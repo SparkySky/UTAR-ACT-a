@@ -12,7 +12,20 @@
           "package_name": "com.meow.utaract"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "408961696606-frfd0ndk3nra4f605ot1m1vmbgnvl8dh.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.meow.utaract",
+            "certificate_hash": "ffa4103471f6e29f6a087ddcc4cb9a43705b45b0"
+          }
+        },
+        {
+          "client_id": "408961696606-psg7f6qp2dfoumtejusr64alhh8hmc3n.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyA_gFO9gaeJr0ONOck1EFiwPaGSXYuwNrk"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "408961696606-psg7f6qp2dfoumtejusr64alhh8hmc3n.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
