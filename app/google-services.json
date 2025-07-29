@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "408961696606",
+    "project_id": "utar-act",
+    "storage_bucket": "utar-act.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:408961696606:android:936f8956b6c94373d0c5cf",
+        "android_client_info": {
+          "package_name": "com.meow.utaract"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA_gFO9gaeJr0ONOck1EFiwPaGSXYuwNrk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
