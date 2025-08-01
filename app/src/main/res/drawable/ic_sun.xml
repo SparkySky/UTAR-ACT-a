@@ -1,0 +1,23 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="100dp"
+    android:height="100dp"
+    android:viewportWidth="100"
+    android:viewportHeight="100">
+
+    <!-- Light background circle -->
+    <path
+        android:fillColor="#FFF8DC"
+    android:pathData="M50,50 m-40,0 a40,40 0 1,0 80,0 a40,40 0 1,0 -80,0" />
+
+    <!-- Sun rays and core -->
+    <group android:translateX="50" android:translateY="50">
+        <path
+            android:fillColor="#FFD700"
+            android:pathData="M0,-30 L0,-40 M0,30 L0,40 M-30,0 L-40,0 M30,0 L40,0
+                              M-21.21,-21.21 L-30,-30 M21.21,-21.21 L30,-30
+                              M-21.21,21.21 L-30,30 M21.21,21.21 L30,30" />
+        <path
+            android:fillColor="#FFD700"
+            android:pathData="M0,0 m-20,0 a20,20 0 1,0 40,0 a20,20 0 1,0 -40,0" />
+    </group>
+</vector>
