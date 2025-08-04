@@ -63,4 +63,11 @@
     <color name="md_theme_dark_surfaceTint">#D0BCFF</color>
     <color name="md_theme_dark_outlineVariant">#49454F</color>
     <color name="md_theme_dark_scrim">#000000</color>
+
+    <!-- UTARACT Brand Colors -->
+    <color name="utaract_blue">#3B82F6</color>
+    <color name="utaract_dark_blue">#1E3A8A</color>
+    <color name="utaract_light_blue">#60A5FA</color>
+    <color name="utaract_white">#FFFFFF</color>
+    <color name="utaract_black">#000000</color>
 </resources>

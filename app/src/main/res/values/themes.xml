@@ -61,4 +61,13 @@
     </style>
     -->
 
+    <!-- Splash screen theme - full screen with no action bar -->
+    <style name="Theme.UTARACT.NoActionBar" parent="Theme.UTARACT">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+
 </resources>
