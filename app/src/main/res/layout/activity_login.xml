@@ -10,15 +10,16 @@
     <!-- Existing views -->
     <ImageView
         android:id="@+id/imageView3"
-        android:contentDescription="@string/logo_utar_act"
-        android:layout_width="214dp"
-        android:layout_height="97dp"
+        android:layout_width="244dp"
+        android:layout_height="95dp"
         android:layout_marginTop="40dp"
+        android:contentDescription="@string/logo_utar_act"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.496"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/icon_utaract_tranparent_crop" />
+
 
     <TextView
         android:id="@+id/slogan"
@@ -29,21 +30,20 @@
         android:textColor="#1F369D"
         android:textStyle="bold|italic"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintHorizontal_bias="0.496"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/imageView3" />
 
-
     <TextView
         android:id="@+id/titleLogin"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:text="Login as Event Organiser"
-        android:textSize="24sp"
+        android:layout_width="84dp"
+        android:layout_height="41dp"
+        android:layout_marginTop="32dp"
+        android:text="Login"
+        android:textSize="32sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/slogan" />
 
@@ -52,32 +52,42 @@
         android:layout_width="0dp"
         android:layout_height="48dp"
         android:layout_marginTop="12dp"
-        android:hint="Email"
         android:autofillHints="emailAddress"
+        android:background="@drawable/circle_border"
+        android:drawablePadding="8dp"
+        android:padding="8dp"
+        android:hint="Your email address"
         android:inputType="textEmailAddress"
+        android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/titleLogin" />
+        app:layout_constraintTop_toBottomOf="@+id/textView2" />
 
     <EditText
         android:id="@+id/passwordInputLogin"
         android:layout_width="0dp"
         android:layout_height="48dp"
         android:layout_marginTop="8dp"
-        android:hint="Password"
+        android:background="@drawable/circle_border"
         android:inputType="textPassword"
+        android:hint="Your password "
+        android:padding="8dp"
+        android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/emailInputLogin" />
+        app:layout_constraintTop_toBottomOf="@+id/textView4" />
 
     <TextView
         android:id="@+id/signupTextLink"
-        android:layout_width="wrap_content"
-        android:layout_height="48dp"
-        android:layout_marginTop="8dp"
+        android:layout_width="231dp"
+        android:layout_height="22dp"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="16dp"
         android:clickable="true"
         android:focusable="true"
-        android:text="> Register as Event Organiser"
+        android:text=">Register as Event Organiser"
         android:textColor="@color/md_theme_dark_primaryContainer"
         android:textSize="16sp"
         android:textStyle="bold"
@@ -88,8 +98,10 @@
         android:id="@+id/loginButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="28dp"
         android:text="Login"
+        android:textSize="18sp"
+        app:cornerRadius="10dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
@@ -116,8 +128,10 @@
         android:id="@+id/guestButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="36dp"
         android:text="Continue as Guest"
+        android:textSize="18sp"
+        app:cornerRadius="10dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
@@ -127,7 +141,8 @@
         android:id="@+id/themeToggleButton"
         android:layout_width="55dp"
         android:layout_height="55dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="12dp"
         android:adjustViewBounds="true"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="Toggle Theme"
@@ -144,5 +159,43 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         app:layout_constraintGuide_begin="20dp" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:text="Email Address"
+        android:textSize="20sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/titleLogin" />
+
+    <TextView
+        android:id="@+id/textView4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="28dp"
+        android:text="Password"
+        android:textSize="20sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/emailInputLogin" />
+
+    <TextView
+        android:id="@+id/divider"
+        android:layout_width="31dp"
+        android:layout_height="19dp"
+        android:gravity="center"
+        android:text="or"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toTopOf="@+id/guestButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/loginButton"
+        app:layout_constraintVertical_bias="0.555" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
