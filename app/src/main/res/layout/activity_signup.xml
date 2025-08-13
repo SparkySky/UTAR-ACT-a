@@ -10,10 +10,9 @@
         android:id="@+id/imageView2"
         android:layout_width="244dp"
         android:layout_height="95dp"
-        android:layout_marginTop="48dp"
+        android:layout_marginTop="32dp"
         android:contentDescription="@string/logo_utar_act"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/icon_utaract_tranparent_crop" />
@@ -36,17 +35,17 @@
 
     <LinearLayout
         android:id="@+id/signupFormLayout"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_width="359dp"
+        android:layout_height="495dp"
         android:orientation="vertical"
         android:padding="24dp"
         android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="1.0">
+        app:layout_constraintVertical_bias="0.891">
 
         <TextView
             android:layout_width="wrap_content"
@@ -61,7 +60,7 @@
             android:id="@+id/emailInputSignupPrompt"
             android:layout_width="match_parent"
             android:layout_height="32dp"
-            android:layout_marginTop="15dp"
+            android:layout_marginTop="5dp"
             android:layout_marginBottom="5dp"
             android:text="Email Address"
             android:textSize="20sp" />
@@ -70,7 +69,7 @@
             android:id="@+id/emailInputSignup"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:layout_marginBottom="16dp"
+            android:layout_marginBottom="10dp"
             android:background="@drawable/circle_border"
             android:drawablePadding="8dp"
             android:hint="Your email"
@@ -89,7 +88,7 @@
             android:id="@+id/passwordInputSignup"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:layout_marginBottom="16dp"
+            android:layout_marginBottom="10dp"
             android:background="@drawable/circle_border"
             android:drawablePadding="8dp"
             android:hint="Your password"
@@ -119,8 +118,7 @@
             android:id="@+id/signupButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:layout_marginBottom="16dp"
+            android:layout_marginBottom="5dp"
             android:text="Sign Up"
             android:textSize="18sp"
             app:cornerRadius="10dp" />
@@ -128,9 +126,8 @@
         <TextView
             android:id="@+id/loginLinkFromSignup"
             android:layout_width="wrap_content"
-            android:layout_height="49dp"
+            android:layout_height="33dp"
             android:layout_gravity="center_horizontal"
-            android:layout_marginTop="12dp"
             android:text="Already have an account? Login"
             android:textColor="?attr/colorPrimary"
             android:textSize="16sp"
