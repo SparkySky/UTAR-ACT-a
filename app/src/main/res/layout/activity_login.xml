@@ -125,9 +125,9 @@
 
     <ImageButton
         android:id="@+id/themeToggleButton"
-        android:layout_width="55dp"
-        android:layout_height="55dp"
-        android:layout_marginTop="8dp"
+        android:layout_width="38dp"
+        android:layout_height="38dp"
+        android:layout_marginTop="4dp"
         android:adjustViewBounds="true"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="Toggle Theme"
@@ -143,6 +143,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_begin="20dp" />
+        app:layout_constraintGuide_begin="-33dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
