@@ -1,5 +1,6 @@
 <resources>
-    <string name="app_name">UTAR ACT</string>
+    <string name="app_name">UTAR ACT</string>    
+    <string name="app_logo">UTAR ACT App Logo</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="nav_header_title">Android Studio</string>
@@ -12,6 +13,8 @@
     <string name="menu_slideshow">Slideshow</string>
     <string name="logo_utar_act">Logo: UTAR ACT</string>
 
+
+  
     <!-- New strings for Guest Form -->
     <string name="title_guest_form">Guest Details</string>
     <string name="hint_full_name">Full Name</string>
