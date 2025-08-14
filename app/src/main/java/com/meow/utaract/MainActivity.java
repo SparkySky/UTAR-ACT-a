@@ -25,6 +25,8 @@ import com.meow.utaract.databinding.ActivityMainBinding;
 public class MainActivity extends AppCompatActivity {
     private AppBarConfiguration mAppBarConfiguration;
 
+    boolean isOrganiser;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         GuestProfile user;
@@ -35,10 +37,10 @@ public class MainActivity extends AppCompatActivity {
 
         // Used for profile storage
         GuestProfileStorage storage = new GuestProfileStorage(this);
-        boolean isOrganizer = getIntent().getBooleanExtra("IS_ORGANISER", false);
+        isOrganiser = getIntent().getBooleanExtra("IS_ORGANISER", false);
 
         // Try downloading from Firestore first - Only for logged in users
-        if (isOrganizer) {
+        if (isOrganiser) {
             storage.downloadProfileFromFirestore(new GuestProfileStorage.FirestoreCallback() {
                 @Override
                 public void onSuccess(GuestProfile user) {
@@ -116,7 +118,7 @@ public class MainActivity extends AppCompatActivity {
         if (id == R.id.action_profile_setting) { // Edit profile
             Intent intent = new Intent(MainActivity.this, GuestFormActivity.class);
             intent.putExtra("IS_EDIT", true);
-            intent.putExtra("IS_ORGANISER", true);
+            intent.putExtra("IS_ORGANISER", isOrganiser);
             startActivity(intent);
             return true;
         }
