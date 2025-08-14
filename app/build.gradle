@@ -42,9 +42,12 @@ dependencies {
     implementation libs.navigation.fragment
     implementation libs.navigation.ui
     implementation libs.firebase.auth
+    implementation libs.webkit
     testImplementation libs.junit
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core
+
+    implementation 'com.google.code.gson:gson:2.10.1'
 
     // Import the Firebase BoM
     implementation platform('com.google.firebase:firebase-bom:34.0.0')
@@ -53,6 +56,8 @@ dependencies {
     // When using the BoM, don't specify versions in Firebase dependencies
     implementation 'com.google.firebase:firebase-analytics'
     implementation 'com.google.firebase:firebase-auth'
+    implementation 'com.google.firebase:firebase-firestore'
+
 
     //splash screen animation
     implementation "androidx.core:core-splashscreen:1.0.0"

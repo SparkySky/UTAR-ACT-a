@@ -1,7 +1,7 @@
 package com.meow.utaract;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
+import com.meow.utaract.firebase.AuthService;
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -14,8 +14,10 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-public class SplashActivity extends AppCompatActivity {
+import com.google.firebase.auth.FirebaseUser;
 
+
+public class SplashActivity extends AppCompatActivity {
     private ImageView ivLogo;
     private TextView tvAppName, tvTagline;
     private ProgressBar progressBar;
@@ -64,16 +66,21 @@ public class SplashActivity extends AppCompatActivity {
         }, 1500);
 
         // Navigate to LoginActivity after animations complete
-        handler.postDelayed(this::navigateToLogin, 3000);
+        handler.postDelayed(this::nextActivity, 3000);
     }
 
-    private void navigateToLogin() {
-        Intent intent = new Intent(SplashActivity.this, LoginActivity.class);
-        startActivity(intent);
+    private void nextActivity() {
+        FirebaseUser currentUser = new AuthService().getAuth().getCurrentUser();
+        if (currentUser != null) {
+            // User is signed in (could be guest or organizer)
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.putExtra("IS_GUEST_USER", currentUser.isAnonymous());
+            startActivity(intent);
+        } else {
+            // No user session, go to login
+            startActivity(new Intent(this, LoginActivity.class));
+        }
         finish();
-        
-        // Add fade transition
-        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
     }
 
     @Override

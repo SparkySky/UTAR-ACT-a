@@ -1,5 +1,7 @@
 // LoginActivity.java
-package com.meow.utaract; // Your package name
+package com.meow.utaract;
+
+import com.meow.utaract.firebase.AuthService;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -14,15 +16,9 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.android.material.switchmaterial.SwitchMaterial;
-import com.google.firebase.auth.AuthResult;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 public class LoginActivity extends AppCompatActivity {
@@ -30,7 +26,6 @@ public class LoginActivity extends AppCompatActivity {
     private EditText emailInput, passwordInput;
     private Button loginButton, guestButton;
     private TextView signupTextLink, verificationStatusText;
-    private FirebaseAuth mAuth;
 
     // Use a unique request code for starting SignupActivity
     private static final int SIGNUP_REQUEST_CODE = 101;
@@ -56,8 +51,6 @@ public class LoginActivity extends AppCompatActivity {
         signupTextLink = findViewById(R.id.signupTextLink);
         verificationStatusText = findViewById(R.id.verificationStatusText);
         handleIntent(getIntent());
-
-        mAuth = FirebaseAuth.getInstance();
 
         themeToggleButton = findViewById(R.id.themeToggleButton);
 
@@ -145,7 +138,7 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        // Handle intent if LoginActivity is already running and is launched again (e.g. by deep link)
+        // Handle intent if LoginActivity is already running and is launched again
         handleIntent(intent);
     }
 
@@ -166,13 +159,13 @@ public class LoginActivity extends AppCompatActivity {
             // and it brings them back to LoginActivity directly.
             Uri data = intent.getData();
             if (data != null && data.toString().startsWith("https://utaract.page.link/verify")) { // Your dynamic link
-                FirebaseUser currentUser = mAuth.getCurrentUser();
+                FirebaseUser currentUser = new AuthService().getAuth().getCurrentUser();
                 String emailFromLink = data.getQueryParameter("email"); // Get email from query param
 
                 if (currentUser != null && currentUser.getEmail().equals(emailFromLink)) {
                     // Current user matches the email in the link, try to reload
                     currentUser.reload().addOnCompleteListener(reloadTask -> {
-                        FirebaseUser refreshedUser = mAuth.getCurrentUser();
+                        FirebaseUser refreshedUser = new AuthService().getAuth().getCurrentUser();
                         if (refreshedUser != null && refreshedUser.isEmailVerified()) {
                             if (emailFromLink != null) emailInput.setText(emailFromLink);
                             verificationStatusText.setText("Email address verified! You can now log in.");
@@ -212,22 +205,26 @@ public class LoginActivity extends AppCompatActivity {
 
         verificationStatusText.setVisibility(View.GONE); // Hide verification message on new login attempt
 
-        mAuth.signInWithEmailAndPassword(email, password)
+        new AuthService().getAuth().signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
-                        FirebaseUser user = mAuth.getCurrentUser();
+                        FirebaseUser user = new AuthService().getAuth().getCurrentUser();
                         if (user != null && user.isEmailVerified()) {
                             Toast.makeText(LoginActivity.this, "Login Successful.", Toast.LENGTH_SHORT).show();
-                            // TODO: Navigate to your main activity
-                            Intent intent = new Intent(LoginActivity.this, MainActivity.class); // Assuming you have MainActivity
+
+                            // navigate to MainActivity
+                            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                            intent.putExtra("IS_ORGANISER", true); // Pass as organizer
                             startActivity(intent);
                             finish();
+
                         } else if (user != null && !user.isEmailVerified()) {
                             Toast.makeText(LoginActivity.this, "Please verify your email address.", Toast.LENGTH_LONG).show();
-                            // Optionally, offer to resend verification email
-                            // user.sendEmailVerification();
+                            // Offer to resend verification email
+                            user.sendEmailVerification();
+                            Toast.makeText(LoginActivity.this, "Verify your email address. Check SPAM if you don't see it.", Toast.LENGTH_SHORT).show();
                         } else {
-                            Toast.makeText(LoginActivity.this, "Login failed. User data inconsistent.", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(LoginActivity.this, "Login failed.", Toast.LENGTH_SHORT).show();
                         }
                     } else {
                         Toast.makeText(LoginActivity.this, "Login failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
@@ -237,7 +234,7 @@ public class LoginActivity extends AppCompatActivity {
 
     private void continueAsGuest() {
         verificationStatusText.setVisibility(View.GONE);
-        mAuth.signInAnonymously()
+        new AuthService().getAuth().signInAnonymously()
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
                         Toast.makeText(LoginActivity.this, "Continuing as Guest.", Toast.LENGTH_SHORT).show();
@@ -270,16 +267,18 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        FirebaseUser currentUser = mAuth.getCurrentUser();
+        FirebaseUser currentUser = new AuthService().getAuth().getCurrentUser();
+        // Go to main activity if guest details existed, else redirect user to fill in.
         if (currentUser != null && currentUser.isEmailVerified()) {
             // If user is already logged in and verified, go to MainActivity
-            // Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-            // startActivity(intent);
-            // finish();
-        } else if (currentUser != null && !currentUser.isEmailVerified()) {
-            // User is logged in but not verified, could prompt them or just let them log in again
+            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+            startActivity(intent);
+            finish();
+        }
+        else if (currentUser != null && !currentUser.isEmailVerified()) {
+            Intent intent = new Intent(LoginActivity.this, GuestFormActivity.class);
+            startActivity(intent);
+            finish();
         }
     }
-
-
 }

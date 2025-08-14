@@ -24,7 +24,7 @@
     <string name="gender_male">Male</string>
     <string name="gender_female">Female</string>
     <string name="label_guest_type">Guest Type</string>
-    <string name="utar_student">UTAR Student</string>
+    <string name="utar_individual">UTAR Student/Staff</string>
     <string name="public_guest">Public</string>
     <string name="hint_student_id">Student ID</string>
     <string name="hint_course">Course / Faculty</string>

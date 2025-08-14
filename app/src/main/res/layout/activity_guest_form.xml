@@ -126,53 +126,20 @@
     </RadioGroup>
 
     <!-- Guest Type -->
-    <TextView
-        android:id="@+id/tvGuestType"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/label_guest_type"
-        android:textColor="@color/md_theme_dark_primaryContainer"
-        android:textStyle="bold"
-        android:textSize="16sp"
-        android:layout_marginTop="5dp"
-        app:layout_constraintTop_toBottomOf="@id/rgGender"
-        app:layout_constraintStart_toStartOf="parent"/>
-
-    <RadioGroup
-        android:id="@+id/rgGuestType"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintTop_toBottomOf="@id/tvGuestType"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-
-        <RadioButton
-            android:id="@+id/rbUtarStudent"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/utar_student"/>
-
-        <RadioButton
-            android:id="@+id/rbPublic"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/public_guest"
-            android:layout_marginStart="15dp"/>
-    </RadioGroup>
 
     <!-- Preferences -->
+
     <TextView
         android:id="@+id/tvPreferences"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
         android:text="@string/label_preferences"
         android:textColor="@color/md_theme_dark_primaryContainer"
-        android:textStyle="bold"
         android:textSize="16sp"
-        app:layout_constraintTop_toBottomOf="@id/rgGuestType"
+        android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginTop="5dp"/>
+        app:layout_constraintTop_toBottomOf="@+id/rgGender" />
 
     <GridLayout
         android:id="@+id/layoutPreferences"
@@ -204,7 +171,7 @@
             android:textColor="@color/md_theme_dark_primaryContainer"/>
 
         <CheckBox
-            android:id="@+id/cbVolunteering"
+            android:id="@+id/cbVolunteer"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/pref_volunteering"
@@ -248,7 +215,7 @@
             android:textColor="@color/md_theme_dark_primaryContainer"/>
 
         <CheckBox
-            android:id="@+id/cbTechTalk"
+            android:id="@+id/cbTalk"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/pref_talk"
@@ -256,27 +223,19 @@
 
     </GridLayout>
 
-    <!-- Opt-in for Notifications -->
-    <CheckBox
-        android:id="@+id/cbNotifications"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/checkbox_updates"
-        app:layout_constraintTop_toBottomOf="@id/layoutPreferences"
-        app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginTop="5dp"/>
-
     <!-- Submit Button -->
     <Button
         android:id="@+id/btnSubmitGuest"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="@string/btn_save"
         android:backgroundTint="@color/md_theme_dark_primaryContainer"
+        android:text="@string/btn_save"
         android:textColor="@color/md_theme_light_onPrimary"
-        android:layout_marginTop="10dp"
-        app:layout_constraintTop_toBottomOf="@id/cbNotifications"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="1.0" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
