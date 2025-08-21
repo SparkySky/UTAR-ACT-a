@@ -15,16 +15,20 @@
 
     <!-- New strings for Event Creation Form -->
     <string name="event_creation_form">Event Creation</string>
-    <string name="hint_event_name">Event Name</string>
-    <string name="hint_description">Description</string>
-    <string name="hint_date">Date</string>
-    <string name="hint_time">Time</string>
-    <string name="hint_location">Location</string>
-    <string name="category">Category</string>
+    <string name="event_name">Event Name</string>
+    <string name="hint_event_name">Enter event name</string>
+    <string name="event_description">Event Description</string>
+    <string name="hint_description">Enter event description</string>
+    <string name="event_category">Event Category</string>
+    <string name="event_date_time">Event Date &amp; Time</string>
+    <string name="hint_date">Select date</string>
+    <string name="hint_time">Select time</string>
+    <string name="location">Location</string>
+    <string name="hint_location">Enter event location</string>
     <string name="cover_poster_image">Cover/Poster Image</string>
     <string name="upload_cover">Upload Cover</string>
-    <string name="additional_pic">Additional Pictures</string>
-    <string name="upload_pic">Upload Pictures</string>
+    <string name="additional_images">Additional Images</string>
+    <string name="upload_pictures">Upload Pictures</string>
     <string name="btn_reset">Reset</string>
     <string name="btn_create_event">Create Event</string>
 

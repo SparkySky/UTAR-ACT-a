@@ -1,5 +1,6 @@
 package com.meow.utaract;
 
+import android.annotation.SuppressLint;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.Intent;
@@ -13,8 +14,10 @@ import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -24,17 +27,17 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.Calendar;
+import java.util.Objects;
 
 public class EventCreationActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
-
-    private static final int PICK_COVER_IMAGE = 1;
-    private static final int PICK_ADDITIONAL_IMAGES = 2;
 
     private TextInputEditText etDate, etTime;
     private ImageView ivCoverPreview;
     private LinearLayout layoutPicturesPreview;
     private Spinner spinnerCategory;
     private DrawerLayout drawerLayout;
+    private ActivityResultLauncher<Intent> coverImageLauncher;
+    private ActivityResultLauncher<Intent> additionalImagesLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +49,8 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         setupCategorySpinner();
         setupDateTimePickers();
         setupButtonListeners();
+        setupActivityResultLaunchers();
+        setupBackPressedHandler();
     }
 
     private void initializeViews() {
@@ -59,15 +64,8 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
 
     private void setupNavigationDrawer() {
         NavigationView navigationView = findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
-
-        // Set up toolbar with navigation icon
-        androidx.appcompat.widget.Toolbar toolbar = findViewById(R.id.toolbar);
-        if (toolbar != null) {
-            setSupportActionBar(toolbar);
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_menu);
-            toolbar.setNavigationOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
+        if (navigationView != null) {
+            navigationView.setNavigationItemSelectedListener(this);
         }
     }
 
@@ -113,7 +111,7 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
             TimePickerDialog timePickerDialog = new TimePickerDialog(
                     EventCreationActivity.this,
                     (view, hourOfDay, minute) -> {
-                        String selectedTime = String.format("%02d:%02d", hourOfDay, minute);
+                        @SuppressLint("DefaultLocale") String selectedTime = String.format("%02d:%02d", hourOfDay, minute);
                         etTime.setText(selectedTime);
                     },
                     calendar.get(Calendar.HOUR_OF_DAY),
@@ -129,7 +127,7 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         findViewById(R.id.btnUploadCover).setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
             intent.setType("image/*");
-            startActivityForResult(intent, PICK_COVER_IMAGE);
+            coverImageLauncher.launch(intent);
         });
 
         // Additional Pictures Upload
@@ -137,7 +135,7 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
             Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
             intent.setType("image/*");
             intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-            startActivityForResult(intent, PICK_ADDITIONAL_IMAGES);
+            additionalImagesLauncher.launch(intent);
         });
 
         // Reset Button
@@ -147,28 +145,51 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         findViewById(R.id.btnCreate).setOnClickListener(v -> createEvent());
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if (resultCode == RESULT_OK && data != null) {
-            if (requestCode == PICK_COVER_IMAGE) {
-                Uri imageUri = data.getData();
-                ivCoverPreview.setImageURI(imageUri);
-                ivCoverPreview.setVisibility(View.VISIBLE);
-            } else if (requestCode == PICK_ADDITIONAL_IMAGES) {
-                if (data.getClipData() != null) {
-                    int count = data.getClipData().getItemCount();
-                    for (int i = 0; i < count; i++) {
-                        Uri imageUri = data.getClipData().getItemAt(i).getUri();
-                        addImagePreview(imageUri);
+    private void setupActivityResultLaunchers() {
+        coverImageLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        Uri imageUri = result.getData().getData();
+                        ivCoverPreview.setImageURI(imageUri);
+                        ivCoverPreview.setVisibility(View.VISIBLE);
                     }
-                } else if (data.getData() != null) {
-                    Uri imageUri = data.getData();
-                    addImagePreview(imageUri);
+                }
+        );
+
+        additionalImagesLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        Intent data = result.getData();
+                        if (data.getClipData() != null) {
+                            int count = data.getClipData().getItemCount();
+                            for (int i = 0; i < count; i++) {
+                                Uri imageUri = data.getClipData().getItemAt(i).getUri();
+                                addImagePreview(imageUri);
+                            }
+                        } else if (data.getData() != null) {
+                            Uri imageUri = data.getData();
+                            addImagePreview(imageUri);
+                        }
+                    }
+                }
+        );
+    }
+
+    private void setupBackPressedHandler() {
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                    drawerLayout.closeDrawer(GravityCompat.START);
+                } else {
+                    // Default back behavior
+                    setEnabled(false);
+                    getOnBackPressedDispatcher().onBackPressed();
                 }
             }
-        }
+        });
     }
 
     private void addImagePreview(Uri imageUri) {
@@ -196,10 +217,10 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
     }
 
     private void createEvent() {
-        String eventName = ((TextInputEditText) findViewById(R.id.etEventName)).getText().toString();
+        String eventName = Objects.requireNonNull(((TextInputEditText) findViewById(R.id.etEventName)).getText()).toString();
         String description = ((TextInputEditText) findViewById(R.id.etDescription)).getText().toString();
-        String date = etDate.getText().toString();
-        String time = etTime.getText().toString();
+        String date = Objects.requireNonNull(etDate.getText()).toString();
+        String time = Objects.requireNonNull(etTime.getText()).toString();
         String location = ((TextInputEditText) findViewById(R.id.etLocation)).getText().toString();
         String category = spinnerCategory.getSelectedItem().toString();
 
@@ -218,25 +239,17 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         int id = item.getItemId();
 
         if (id == R.id.nav_home) {
-            // Handle home navigation
             Intent intent = new Intent(this, MainActivity.class);
             startActivity(intent);
         } else if (id == R.id.nav_gallery) {
-            // Handle gallery navigation
+            // Handle gallery navigation if needed
+            Toast.makeText(this, "Gallery selected", Toast.LENGTH_SHORT).show();
         } else if (id == R.id.nav_slideshow) {
-            // Handle slideshow navigation
+            // Handle slideshow navigation if needed
+            Toast.makeText(this, "Slideshow selected", Toast.LENGTH_SHORT).show();
         }
 
         drawerLayout.closeDrawer(GravityCompat.START);
         return true;
-    }
-
-    @Override
-    public void onBackPressed() {
-        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
-            drawerLayout.closeDrawer(GravityCompat.START);
-        } else {
-            super.onBackPressed();
-        }
     }
 }
