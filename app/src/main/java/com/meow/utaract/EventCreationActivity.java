@@ -6,9 +6,11 @@ import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
@@ -25,6 +27,9 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
+import com.meow.utaract.utils.EventCreationStorage;
+import com.meow.utaract.utils.GuestProfile;
+import com.meow.utaract.utils.GuestProfileStorage;
 
 import java.util.Calendar;
 import java.util.Objects;
@@ -39,6 +44,8 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
     private ActivityResultLauncher<Intent> coverImageLauncher;
     private ActivityResultLauncher<Intent> additionalImagesLauncher;
 
+    private EventCreationStorage eventStorage;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,6 +58,7 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         setupButtonListeners();
         setupActivityResultLaunchers();
         setupBackPressedHandler();
+        eventStorage = new EventCreationStorage();
     }
 
     private void initializeViews() {
@@ -67,6 +75,16 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         if (navigationView != null) {
             navigationView.setNavigationItemSelectedListener(this);
         }
+
+        // Add drawer button functionality
+        ImageButton drawerButton = findViewById(R.id.drawerButton);
+        drawerButton.setOnClickListener(v -> {
+            if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                drawerLayout.closeDrawer(GravityCompat.START);
+            } else {
+                drawerLayout.openDrawer(GravityCompat.START);
+            }
+        });
     }
 
     private void setupCategorySpinner() {
@@ -230,8 +248,40 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
             return;
         }
 
-        Toast.makeText(this, "Event created successfully!", Toast.LENGTH_SHORT).show();
-        finish();
+        // Get organizer info from GuestProfile
+        GuestProfileStorage guestStorage = new GuestProfileStorage(this);
+        GuestProfile organizerProfile = guestStorage.loadProfile();
+
+        String organizerName = "Unknown Organizer";
+        if (organizerProfile != null) {
+            organizerName = organizerProfile.getName();
+        }
+
+        // Create event object
+        com.meow.utaract.utils.Event event = new com.meow.utaract.utils.Event(eventName, description, category, date, time, location, "", organizerName);
+
+        // Show loading
+        Toast.makeText(this, "Creating event...", Toast.LENGTH_SHORT).show();
+
+        // Submit to Firebase using EventCreationStorage
+        eventStorage.createEvent(event, new EventCreationStorage.EventCreationCallback() {
+            @Override
+            public void onSuccess(String eventId) {
+                runOnUiThread(() -> {
+                    Toast.makeText(EventCreationActivity.this, "Event created successfully!", Toast.LENGTH_SHORT).show();
+                    finish();
+                });
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                runOnUiThread(() -> {
+                    Toast.makeText(EventCreationActivity.this, "Failed to create event: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Log.e("EventCreation", "Error creating event", e);
+                });
+            }
+        });
+
     }
 
     @Override

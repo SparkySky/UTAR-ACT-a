@@ -31,6 +31,7 @@
     <string name="upload_pictures">Upload Pictures</string>
     <string name="btn_reset">Reset</string>
     <string name="btn_create_event">Create Event</string>
+    <string name="btn_nav_event">Test - Event Creation</string>
 
 
     <!-- New strings for Guest Form -->
