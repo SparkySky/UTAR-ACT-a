@@ -53,6 +53,9 @@
         <activity
             android:name=".GuestFormActivity"
             android:theme="@style/Theme.UTARACT" />
+        <activity
+            android:name=".EventDetailsActivity"
+            android:theme="@style/Theme.UTARACT" />
     </application>
 
 </manifest>
