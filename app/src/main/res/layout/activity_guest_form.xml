@@ -90,40 +90,6 @@
     </com.google.android.material.textfield.TextInputLayout>
 
     <!-- Gender -->
-    <TextView
-        android:id="@+id/tvGender"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:text="@string/label_gender"
-        android:textColor="@color/md_theme_dark_primaryContainer"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/layoutPhone" />
-
-    <RadioGroup
-        android:id="@+id/rgGender"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintTop_toBottomOf="@id/tvGender"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-
-        <RadioButton
-            android:id="@+id/rbMale"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/gender_male"/>
-
-        <RadioButton
-            android:id="@+id/rbFemale"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/gender_female"
-            android:layout_marginStart="15dp"/>
-    </RadioGroup>
 
     <!-- Guest Type -->
 
@@ -133,13 +99,13 @@
         android:id="@+id/tvPreferences"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="8dp"
         android:text="@string/label_preferences"
         android:textColor="@color/md_theme_dark_primaryContainer"
         android:textSize="16sp"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/rgGender" />
+        app:layout_constraintTop_toBottomOf="@+id/layoutPhone" />
 
     <GridLayout
         android:id="@+id/layoutPreferences"
