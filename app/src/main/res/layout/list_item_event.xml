@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="16dp"
@@ -13,144 +14,134 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <!-- Event Banner with Date Badge -->
-        <FrameLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/banner_container"
             android:layout_width="match_parent"
-            android:layout_height="200dp">
+            android:layout_height="wrap_content">
 
             <ImageView
                 android:id="@+id/event_banner"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:contentDescription="Event banner"
                 android:scaleType="centerCrop"
-                android:src="@drawable/event_banner_placeholder"
-                android:contentDescription="Event banner" />
+                app:layout_constraintDimensionRatio="19:3"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                tools:src="@drawable/event_banner_placeholder" />
 
-            <!-- Date Badge -->
             <TextView
                 android:id="@+id/date_badge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="top|start"
                 android:layout_margin="12dp"
                 android:background="@drawable/date_badge_background"
-                android:paddingStart="12dp"
-                android:paddingEnd="12dp"
-                android:paddingTop="6dp"
-                android:paddingBottom="6dp"
-                android:text="28 SEPTEMBER"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="6dp"
                 android:textColor="@color/md_theme_light_onPrimary"
                 android:textSize="12sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:text="28 SEPTEMBER" />
 
-            <!-- Category Tag -->
             <TextView
                 android:id="@+id/category_tag"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="top|end"
                 android:layout_margin="12dp"
                 android:background="@drawable/category_tag_background"
-                android:paddingStart="8dp"
-                android:paddingEnd="8dp"
-                android:paddingTop="4dp"
-                android:paddingBottom="4dp"
-                android:text="Growth"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="4dp"
                 android:textColor="@color/md_theme_light_onPrimary"
-                android:textSize="10sp"
-                android:textStyle="bold" />
+                android:textSize="14sp"
+                android:textStyle="bold"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:text="Growth" />
 
-        </FrameLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <!-- Event Content -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Event Title -->
             <TextView
                 android:id="@+id/event_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Let's Talk about Depression"
+                android:layout_marginBottom="8dp"
                 android:textSize="18sp"
                 android:textStyle="bold"
-                android:layout_marginBottom="8dp" />
+                tools:text="Let's Talk about Depression" />
 
-            <!-- Event Audience -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
+                android:layout_marginBottom="4dp"
                 android:gravity="center_vertical"
-                android:layout_marginBottom="4dp">
+                android:orientation="horizontal">
 
                 <ImageView
                     android:layout_width="16dp"
                     android:layout_height="16dp"
-                    android:src="@drawable/ic_person"
+                    android:layout_marginEnd="8dp"
                     android:contentDescription="Person icon"
-                    android:layout_marginEnd="8dp" />
+                    android:src="@drawable/ic_person" />
 
                 <TextView
                     android:id="@+id/event_audience"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Open to all UTAR students &amp; staff"
-                    android:textSize="14sp" />
-
+                    android:textSize="14sp"
+                    tools:text="Open to all UTAR students &amp; staff" />
             </LinearLayout>
 
-            <!-- Event Date -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
+                android:layout_marginBottom="4dp"
                 android:gravity="center_vertical"
-                android:layout_marginBottom="4dp">
+                android:orientation="horizontal">
 
                 <ImageView
                     android:layout_width="16dp"
                     android:layout_height="16dp"
-                    android:src="@drawable/ic_calendar"
+                    android:layout_marginEnd="8dp"
                     android:contentDescription="Calendar icon"
-                    android:layout_marginEnd="8dp" />
+                    android:src="@drawable/ic_calendar" />
 
                 <TextView
                     android:id="@+id/event_date"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="28 September 2025 (Sunday)"
-                    android:textSize="14sp" />
-
+                    android:textSize="14sp"
+                    tools:text="28 September 2025 (Sunday)" />
             </LinearLayout>
 
-            <!-- Event Location -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
                 <ImageView
                     android:layout_width="16dp"
                     android:layout_height="16dp"
-                    android:src="@drawable/ic_location"
+                    android:layout_marginEnd="8dp"
                     android:contentDescription="Location icon"
-                    android:layout_marginEnd="8dp" />
+                    android:src="@drawable/ic_location" />
 
                 <TextView
                     android:id="@+id/event_location"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="UTAR Kampar, Dewan Tun Ling Liong Sik, Block M"
-                    android:textSize="14sp" />
+                    android:textSize="14sp"
+                    tools:text="UTAR Kampar, Dewan Tun Ling Liong Sik, Block M" />
             </LinearLayout>
-
         </LinearLayout>
-
     </LinearLayout>
-
 </androidx.cardview.widget.CardView>

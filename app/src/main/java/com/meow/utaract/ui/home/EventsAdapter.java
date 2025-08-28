@@ -6,7 +6,9 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
+import com.bumptech.glide.Glide;
 import com.meow.utaract.R;
 import com.meow.utaract.utils.Event;
 import java.util.List;
@@ -19,7 +21,6 @@ public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.EventViewH
         this.eventList = eventList;
     }
 
-    // New helper method to update the data and refresh the list
     public void updateEvents(List<Event> newEvents) {
         this.eventList.clear();
         this.eventList.addAll(newEvents);
@@ -49,6 +50,27 @@ public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.EventViewH
         } catch (Exception e) {
             holder.dateBadge.setText(event.getDate());
         }
+
+        // This is the updated logic for the event banner
+        if (event.getCoverImageUrl() != null && !event.getCoverImageUrl().isEmpty()) {
+            // If there's a poster, make the banner container visible
+            holder.bannerContainer.setVisibility(View.VISIBLE);
+            Glide.with(holder.itemView.getContext())
+                    .load(event.getCoverImageUrl())
+                    .placeholder(R.drawable.event_banner_placeholder)
+                    .into(holder.eventBanner);
+
+            // Set the click listener to open the full-screen dialog
+            holder.eventBanner.setOnClickListener(v -> {
+                AppCompatActivity activity = (AppCompatActivity) v.getContext();
+                FullScreenImageDialogFragment dialog = FullScreenImageDialogFragment.newInstance(event.getCoverImageUrl());
+                dialog.show(activity.getSupportFragmentManager(), "FullScreenImageDialog");
+            });
+
+        } else {
+            // If there is no poster, hide the entire banner container
+            holder.bannerContainer.setVisibility(View.GONE);
+        }
     }
 
     @Override
@@ -59,6 +81,7 @@ public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.EventViewH
     static class EventViewHolder extends RecyclerView.ViewHolder {
         ImageView eventBanner;
         TextView dateBadge, categoryTag, eventTitle, eventAudience, eventDate, eventLocation;
+        View bannerContainer; // Reference to the banner's parent layout
 
         public EventViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -69,6 +92,8 @@ public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.EventViewH
             eventAudience = itemView.findViewById(R.id.event_audience);
             eventDate = itemView.findViewById(R.id.event_date);
             eventLocation = itemView.findViewById(R.id.event_location);
+            // Make sure the ID in your list_item_event.xml matches this
+            bannerContainer = itemView.findViewById(R.id.banner_container);
         }
     }
 }

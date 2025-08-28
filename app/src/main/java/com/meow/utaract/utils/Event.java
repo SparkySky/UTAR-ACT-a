@@ -17,7 +17,7 @@ public class Event {
     private String organizerName;
     private long createdAt;
     private int maxGuests;
-    private double fee;
+    // private double fee;
 
     public Event() {
         // Default constructor required for Firestore
@@ -25,7 +25,7 @@ public class Event {
     }
 
     public Event(String eventName, String description, String category, String date,
-                 String time, String location, String organizerId, String organizerName, int maxGuests, double fee) {
+                 String time, String location, String organizerId, String organizerName, int maxGuests) {
         this.eventName = eventName;
         this.description = description;
         this.category = category;
@@ -37,7 +37,9 @@ public class Event {
         this.additionalImageUrls = new ArrayList<>();
         this.createdAt = System.currentTimeMillis();
         this.maxGuests = maxGuests;
-        this.fee = fee;
+        //this.fee = fee;
+        this.coverImageUrl = "";
+        this.additionalImageUrls = new ArrayList<>();
     }
 
     // --- Getters and Setters for all fields ---
@@ -81,6 +83,6 @@ public class Event {
     public int getMaxGuests() { return maxGuests; }
     public void setMaxGuests(int maxGuests) { this.maxGuests = maxGuests; }
 
-    public double getFee() { return fee; }
-    public void setFee(double fee) { this.fee = fee; }
+/*    public double getFee() { return fee; }
+    public void setFee(double fee) { this.fee = fee; }*/
 }

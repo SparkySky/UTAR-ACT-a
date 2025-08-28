@@ -7,36 +7,48 @@ import com.meow.utaract.utils.Event;
 import com.meow.utaract.utils.EventCreationStorage;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class HomeViewModel extends ViewModel {
 
-    private final MutableLiveData<List<Event>> displayedEvents;
-    private final MutableLiveData<Boolean> isLoading;
+    private final MutableLiveData<List<Event>> displayedEvents = new MutableLiveData<>();
+    private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>();
+    private final MutableLiveData<List<String>> activeFilters = new MutableLiveData<>();
+    private List<Event> allEvents = new ArrayList<>();
+    private String currentSearchQuery = "";
     private final EventCreationStorage eventCreationStorage;
-    private List<Event> allEvents; // Cache for the full list of events
 
     public HomeViewModel() {
-        displayedEvents = new MutableLiveData<>();
-        isLoading = new MutableLiveData<>();
-        allEvents = new ArrayList<>();
         eventCreationStorage = new EventCreationStorage();
+        activeFilters.setValue(new ArrayList<>());
     }
 
     public LiveData<List<Event>> getEvents() {
         return displayedEvents;
     }
-
     public LiveData<Boolean> getIsLoading() {
         return isLoading;
     }
+    public LiveData<List<String>> getActiveFilters() {
+        return activeFilters;
+    }
 
-    public void fetchEvents() {
+    /**
+     * Fetches all events and optionally applies an initial category filter upon success.
+     * @param initialCategories The list of categories to apply after fetching. Can be null or empty.
+     */
+    public void fetchEvents(List<String> initialCategories) {
         isLoading.setValue(true);
         eventCreationStorage.getAllEvents(new EventCreationStorage.EventsFetchCallback() {
             @Override
             public void onSuccess(List<Event> eventList) {
                 allEvents = eventList;
-                displayedEvents.setValue(allEvents); // Initially, display all events
+                // This is the key fix: Apply the initial filter only AFTER data has arrived.
+                if (initialCategories != null && !initialCategories.isEmpty()) {
+                    setCategoryFilters(initialCategories);
+                } else {
+                    applyFilters(); // If no initial filters, just apply the current search query
+                }
                 isLoading.setValue(false);
             }
             @Override
@@ -46,36 +58,36 @@ public class HomeViewModel extends ViewModel {
         });
     }
 
-    /**
-     * Filters the cached list of events based on a search query.
-     * This performs a fuzzy search that is tolerant of spacing, case, and character sequence.
-     * @param query The user's search input.
-     */
-    public void filterEvents(String query) {
-        if (query == null || query.trim().isEmpty()) {
-            displayedEvents.setValue(allEvents); // If query is empty, show all events
-            return;
+    public void setSearchQuery(String query) {
+        currentSearchQuery = query;
+        applyFilters();
+    }
+
+    public void setCategoryFilters(List<String> categories) {
+        activeFilters.setValue(categories);
+        applyFilters();
+    }
+
+    private void applyFilters() {
+        List<Event> filteredList = new ArrayList<>(allEvents);
+        List<String> currentCategories = activeFilters.getValue();
+
+        if (currentCategories != null && !currentCategories.isEmpty()) {
+            filteredList = filteredList.stream()
+                    .filter(event -> currentCategories.contains(event.getCategory()))
+                    .collect(Collectors.toList());
         }
 
-        List<Event> filteredList = new ArrayList<>();
-        // Prepare the query for matching: lowercase and no spaces.
-        String normalizedQuery = query.toLowerCase().replaceAll("\\s", "");
-
-        for (Event event : allEvents) {
-            // Prepare the event name for matching.
-            String eventName = event.getEventName().toLowerCase().replaceAll("\\s", "");
-            if (isSubsequence(normalizedQuery, eventName)) {
-                filteredList.add(event);
-            }
+        if (currentSearchQuery != null && !currentSearchQuery.trim().isEmpty()) {
+            String normalizedQuery = currentSearchQuery.toLowerCase().replaceAll("\\s", "");
+            filteredList = filteredList.stream()
+                    .filter(event -> isSubsequence(normalizedQuery, event.getEventName().toLowerCase().replaceAll("\\s", "")))
+                    .collect(Collectors.toList());
         }
+
         displayedEvents.setValue(filteredList);
     }
 
-    /**
-     * Checks if one string is a subsequence of another.
-     * This allows for fuzzy matching where characters appear in order but are not necessarily contiguous.
-     * e.g., "dep" is a subsequence of "depression talk".
-     */
     private boolean isSubsequence(String s1, String s2) {
         int i = 0, j = 0;
         while (i < s1.length() && j < s2.length()) {

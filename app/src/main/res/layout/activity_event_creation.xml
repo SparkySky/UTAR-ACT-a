@@ -141,7 +141,7 @@
                     android:inputType="number" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <com.google.android.material.textfield.TextInputLayout
+<!--            <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/layoutFee"
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
@@ -153,7 +153,56 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="numberDecimal" />
-            </com.google.android.material.textfield.TextInputLayout>
+            </com.google.android.material.textfield.TextInputLayout>-->
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Event Poster"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:layout_marginTop="16dp"/>
+
+            <Button
+                android:id="@+id/btnUploadPoster"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Upload Poster"
+                app:icon="@drawable/ic_menu_gallery"/>
+
+            <ImageView
+                android:id="@+id/ivPosterPreview"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:layout_marginTop="8dp"
+                android:scaleType="centerCrop"
+                android:visibility="gone"
+                tools:visibility="visible"
+                android:background="?attr/colorSurfaceContainer"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Additional Catalog Images"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:layout_marginTop="16dp"/>
+
+            <Button
+                android:id="@+id/btnUploadCatalog"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Upload Images"
+                app:icon="@drawable/ic_menu_gallery"/>
+
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp">
+                <LinearLayout
+                    android:id="@+id/layoutCatalogPreview"
+                    android:layout_width="wrap_content"
+                    android:layout_height="100dp"
+                    android:orientation="horizontal"/>
+            </HorizontalScrollView>
 
             <LinearLayout
                 android:layout_width="match_parent"

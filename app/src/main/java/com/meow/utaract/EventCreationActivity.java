@@ -4,15 +4,21 @@ import android.annotation.SuppressLint;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
@@ -20,20 +26,30 @@ import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 import com.meow.utaract.utils.Event;
 import com.meow.utaract.utils.EventCreationStorage;
 import com.meow.utaract.utils.GuestProfile;
 import com.meow.utaract.utils.GuestProfileStorage;
 
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 public class EventCreationActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
-
-    private TextInputEditText etEventName, etDescription, etDate, etTime, etLocation, etMaxGuests, etFee;
+    private TextInputEditText etEventName, etDescription, etDate, etTime, etLocation, etMaxGuests;
     private Spinner spinnerCategory;
     private DrawerLayout drawerLayout;
     private EventCreationStorage eventStorage;
+    private Button btnUploadPoster, btnUploadCatalog;
+    private ImageView ivPosterPreview;
+    private LinearLayout layoutCatalogPreview;
+    private ActivityResultLauncher<Intent> posterImageLauncher, catalogImageLauncher;
+    private String posterImageUrl = "";
+    private List<String> catalogImageUrls = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +63,7 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         setupButtonListeners();
 
         eventStorage = new EventCreationStorage();
+        initializeImageLaunchers();
     }
 
     private void initializeViews() {
@@ -56,9 +73,13 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         etTime = findViewById(R.id.etTime);
         etLocation = findViewById(R.id.etLocation);
         etMaxGuests = findViewById(R.id.etMaxGuests);
-        etFee = findViewById(R.id.etFee);
+        //etFee = findViewById(R.id.etFee);
         spinnerCategory = findViewById(R.id.spinnerCategory);
         drawerLayout = findViewById(R.id.drawer_layout);
+        btnUploadPoster = findViewById(R.id.btnUploadPoster);
+        btnUploadCatalog = findViewById(R.id.btnUploadCatalog);
+        ivPosterPreview = findViewById(R.id.ivPosterPreview);
+        layoutCatalogPreview = findViewById(R.id.layoutCatalogPreview);
     }
 
     private void setupNavigationDrawer() {
@@ -68,8 +89,11 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         drawerButton.setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
     }
 
+    // Retrieve the available category for spinners from the string array
     private void setupCategorySpinner() {
-        String[] categories = {"Music", "Sports", "Volunteering", "Workshops", "Exhibition", "Seminar", "Networking", "Cultural Festival", "Talk"};
+        // This is the corrected implementation that uses the centralized array
+        String[] categories = getResources().getStringArray(R.array.event_categories);
+
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, categories);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerCategory.setAdapter(adapter);
@@ -94,6 +118,69 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
     private void setupButtonListeners() {
         findViewById(R.id.btnReset).setOnClickListener(v -> resetForm());
         findViewById(R.id.btnCreate).setOnClickListener(v -> createEvent());
+
+        btnUploadPoster.setOnClickListener(v -> openImagePicker(posterImageLauncher, false));
+        btnUploadCatalog.setOnClickListener(v -> openImagePicker(catalogImageLauncher, true));
+    }
+
+    private void initializeImageLaunchers() {
+        posterImageLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+            if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                uploadImageToStorage(result.getData().getData(), true);
+            }
+        });
+
+        catalogImageLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+            if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                if (result.getData().getClipData() != null) {
+                    int count = result.getData().getClipData().getItemCount();
+                    for (int i = 0; i < count; i++) {
+                        uploadImageToStorage(result.getData().getClipData().getItemAt(i).getUri(), false);
+                    }
+                } else if (result.getData().getData() != null) {
+                    uploadImageToStorage(result.getData().getData(), false);
+                }
+            }
+        });
+    }
+
+    private void openImagePicker(ActivityResultLauncher<Intent> launcher, boolean allowMultiple) {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT).setType("image/*");
+        if (allowMultiple) {
+            intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+        }
+        launcher.launch(intent);
+    }
+
+    private void uploadImageToStorage(Uri imageUri, boolean isPoster) {
+        Toast.makeText(this, "Uploading image...", Toast.LENGTH_SHORT).show();
+        String fileName = "event_images/" + UUID.randomUUID().toString();
+        StorageReference storageRef = FirebaseStorage.getInstance().getReference().child(fileName);
+
+        storageRef.putFile(imageUri)
+                .addOnSuccessListener(taskSnapshot -> storageRef.getDownloadUrl()
+                        .addOnSuccessListener(uri -> {
+                            if (isPoster) {
+                                posterImageUrl = uri.toString();
+                                ivPosterPreview.setImageURI(imageUri);
+                                ivPosterPreview.setVisibility(View.VISIBLE);
+                            } else {
+                                catalogImageUrls.add(uri.toString());
+                                addCatalogImageToPreview(imageUri);
+                            }
+                            Toast.makeText(this, "Image uploaded.", Toast.LENGTH_SHORT).show();
+                        }))
+                .addOnFailureListener(e -> Toast.makeText(this, "Upload failed: " + e.getMessage(), Toast.LENGTH_LONG).show());
+    }
+
+    private void addCatalogImageToPreview(Uri imageUri) {
+        ImageView imageView = new ImageView(this);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(250, 250);
+        params.setMarginEnd(16);
+        imageView.setLayoutParams(params);
+        imageView.setImageURI(imageUri);
+        imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        layoutCatalogPreview.addView(imageView);
     }
 
     private void createEvent() {
@@ -108,12 +195,15 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         String location = Objects.requireNonNull(etLocation.getText()).toString().trim();
         String category = spinnerCategory.getSelectedItem().toString();
         int maxGuests = Integer.parseInt(Objects.requireNonNull(etMaxGuests.getText()).toString().trim());
-        double fee = Double.parseDouble(Objects.requireNonNull(etFee.getText()).toString().trim());
+        //double fee = Double.parseDouble(Objects.requireNonNull(etFee.getText()).toString().trim());
 
         GuestProfile organizerProfile = new GuestProfileStorage(this).loadProfile();
         String organizerName = (organizerProfile != null) ? organizerProfile.getName() : "Unknown Organizer";
 
-        Event event = new Event(eventName, description, category, date, time, location, "", organizerName, maxGuests, fee);
+        Event event = new Event(eventName, description, category, date, time, location, "", organizerName, maxGuests);
+
+        event.setCoverImageUrl(posterImageUrl);
+        event.setAdditionalImageUrls(catalogImageUrls);
 
         Toast.makeText(this, "Creating event...", Toast.LENGTH_SHORT).show();
         eventStorage.createEvent(event, new EventCreationStorage.EventCreationCallback() {
@@ -164,11 +254,11 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
             etMaxGuests.requestFocus();
             return false;
         }
-        if (Objects.requireNonNull(etFee.getText()).toString().trim().isEmpty()) {
+/*        if (Objects.requireNonNull(etFee.getText()).toString().trim().isEmpty()) {
             etFee.setError("Fee is required (enter 0 for free events)");
             etFee.requestFocus();
             return false;
-        }
+        }*/
         return true;
     }
 
@@ -179,7 +269,7 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         etTime.setText("");
         etLocation.setText("");
         etMaxGuests.setText("");
-        etFee.setText("");
+        //etFee.setText("");
         spinnerCategory.setSelection(0);
         Toast.makeText(this, "Form has been reset", Toast.LENGTH_SHORT).show();
     }
