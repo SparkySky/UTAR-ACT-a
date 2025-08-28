@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="event_categories">
+        <item>Arts &amp; Culture</item>
+        <item>Career &amp; Networking</item>
+        <item>Sports &amp; Fitness</item>
+        <item>Workshops &amp; Learning</item>
+        <item>Seminars &amp; Talks</item>
+        <item>Social &amp; Entertainment</item>
+        <item>Volunteering &amp; Community</item>
+        <item>Competitions</item>
+    </string-array>
+</resources>

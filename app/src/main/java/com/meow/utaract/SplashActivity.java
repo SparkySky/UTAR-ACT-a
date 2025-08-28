@@ -72,9 +72,14 @@ public class SplashActivity extends AppCompatActivity {
     private void nextActivity() {
         FirebaseUser currentUser = new AuthService().getAuth().getCurrentUser();
         if (currentUser != null) {
-            // User is signed in (could be guest or organizer)
+            // User is signed in, determine if they are an organizer or guest
             Intent intent = new Intent(this, MainActivity.class);
-            intent.putExtra("IS_GUEST_USER", currentUser.isAnonymous());
+            boolean isAnonymous = currentUser.isAnonymous();
+
+            // If the user is NOT anonymous, they are an organizer.
+            // This is the critical line that was missing the logic.
+            intent.putExtra("IS_ORGANISER", !isAnonymous);
+
             startActivity(intent);
         } else {
             // No user session, go to login
@@ -90,4 +95,4 @@ public class SplashActivity extends AppCompatActivity {
             handler.removeCallbacksAndMessages(null);
         }
     }
-} 
+}

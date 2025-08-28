@@ -1,117 +1,201 @@
 package com.meow.utaract;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Toast;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import com.bumptech.glide.Glide;
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 import com.meow.utaract.utils.GuestProfile;
 import com.meow.utaract.utils.GuestProfileStorage;
-
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
+import de.hdodenhof.circleimageview.CircleImageView;
 
 public class GuestFormActivity extends AppCompatActivity {
+
     private EditText nameInput, emailInput, phoneInput;
-    private CheckBox cbSports, cbMusic, cbVolunteer, cbWorkshops, cbExhibition, cbSeminar, cbNetworking, cbCulturalFest, cbTalk;
-    private Button saveButton;
+    private Button saveButton, changeProfilePicButton;
+    private CircleImageView profileImageView;
+    private ChipGroup preferencesChipGroup;
+    private GuestProfileStorage storage;
+    private boolean isOrganiser;
+    private Uri selectedImageUri;
+    private String downloadedImageUrl;
+    private ActivityResultLauncher<Intent> imagePickerLauncher;
+    private final List<String> preferenceList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_guest_form);
 
+        storage = new GuestProfileStorage(this);
+        isOrganiser = getIntent().getBooleanExtra("IS_ORGANISER", false);
+
+        initializeViews();
+        initializeImagePicker();
+
+        // Load all the preferences categories from res/value/arrays.xml
+        preferenceList.addAll(Arrays.asList(getResources().getStringArray(R.array.event_categories)));
+
+        populatePreferences();
+        loadExistingProfile();
+
+
+
+        if (isOrganiser) {
+            profileImageView.setVisibility(View.VISIBLE);
+            changeProfilePicButton.setVisibility(View.VISIBLE);
+            changeProfilePicButton.setOnClickListener(v -> openImagePicker());
+        } else {
+            profileImageView.setVisibility(View.GONE);
+            changeProfilePicButton.setVisibility(View.GONE);
+        }
+
+        saveButton.setOnClickListener(v -> saveProfile());
+    }
+
+    private void initializeViews() {
         nameInput = findViewById(R.id.etName);
         emailInput = findViewById(R.id.etEmail);
         phoneInput = findViewById(R.id.etPhone);
         saveButton = findViewById(R.id.btnSubmitGuest);
+        profileImageView = findViewById(R.id.profileImageView);
+        changeProfilePicButton = findViewById(R.id.changeProfilePicButton);
+        preferencesChipGroup = findViewById(R.id.preferencesChipGroup);
+    }
 
-        cbMusic = findViewById(R.id.cbMusic);
-        cbSports = findViewById(R.id.cbSports);
-        cbVolunteer = findViewById(R.id.cbVolunteer);
-        cbWorkshops = findViewById(R.id.cbWorkshops);
-        cbExhibition = findViewById(R.id.cbExhibition);
-        cbSeminar = findViewById(R.id.cbSeminar);
-        cbNetworking = findViewById(R.id.cbNetworking);
-        cbCulturalFest = findViewById(R.id.cbCulturalFest);
-        cbTalk = findViewById(R.id.cbTalk);
+    private void populatePreferences() {
+        for (String preference : preferenceList) {
+            Chip chip = new Chip(this);
+            chip.setText(preference);
+            chip.setCheckable(true);
+            chip.setChipBackgroundColorResource(R.color.preference_chip_background);
+            chip.setTextColor(getResources().getColorStateList(R.color.preference_chip_text_color, getTheme()));
+            chip.setChipStrokeWidth(0); // Hide the default stroke
+            preferencesChipGroup.addView(chip);
+        }
+    }
 
-        // Load existing profile if available
-        GuestProfileStorage storage = new GuestProfileStorage(this);
+    private void loadExistingProfile() {
         GuestProfile existingProfile = storage.loadProfile();
         if (existingProfile != null) {
             nameInput.setText(existingProfile.getName());
             emailInput.setText(existingProfile.getEmail());
             phoneInput.setText(existingProfile.getPhone());
 
-            List<String> prefs = existingProfile.getPreferences();
-            if (prefs != null) {
-                cbMusic.setChecked(prefs.contains("Music"));
-                cbSports.setChecked(prefs.contains("Sports"));
-                cbVolunteer.setChecked(prefs.contains("Volunteer"));
-                cbWorkshops.setChecked(prefs.contains("Workshops"));
-                cbExhibition.setChecked(prefs.contains("Exhibition"));
-                cbSeminar.setChecked(prefs.contains("Seminar"));
-                cbNetworking.setChecked(prefs.contains("Networking"));
-                cbCulturalFest.setChecked(prefs.contains("Cultural Festival"));
-                cbTalk.setChecked(prefs.contains("Talk"));
+            downloadedImageUrl = existingProfile.getProfileImageUrl();
+            if (downloadedImageUrl != null && !downloadedImageUrl.isEmpty()) {
+                Glide.with(this).load(downloadedImageUrl).into(profileImageView);
+            }
+
+            List<String> savedPrefs = existingProfile.getPreferences();
+            if (savedPrefs != null) {
+                for (int i = 0; i < preferencesChipGroup.getChildCount(); i++) {
+                    Chip chip = (Chip) preferencesChipGroup.getChildAt(i);
+                    if (savedPrefs.contains(chip.getText().toString())) {
+                        chip.setChecked(true);
+                    }
+                }
             }
         }
+    }
 
-        saveButton.setOnClickListener(v -> {
-            String name = nameInput.getText().toString().trim();
-            String email = emailInput.getText().toString().trim();
-            String phone = phoneInput.getText().toString().trim();
+    private void saveProfile() {
+        String name = nameInput.getText().toString().trim();
+        String email = emailInput.getText().toString().trim();
+        String phone = phoneInput.getText().toString().trim();
 
-            if (name.isEmpty() || email.isEmpty() || phone.isEmpty()) {
-                Toast.makeText(this, "Please fill all required fields", Toast.LENGTH_SHORT).show();
-                return;
+        if (name.isEmpty() || email.isEmpty() || phone.isEmpty()) {
+            Toast.makeText(this, "Please fill all required fields", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        List<String> selectedPreferences = getSelectedPreferences();
+        if (selectedPreferences.isEmpty()) {
+            Toast.makeText(this, "Please select at least one preference", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        GuestProfile profile = new GuestProfile(name, email, phone, selectedPreferences);
+        if (downloadedImageUrl != null && !downloadedImageUrl.isEmpty()) {
+            profile.setProfileImageUrl(downloadedImageUrl);
+        }
+
+        storage.saveProfile(profile);
+
+        if (isOrganiser) {
+            storage.uploadProfileToFirestore(profile);
+            Toast.makeText(this, "Online profile updated", Toast.LENGTH_SHORT).show();
+        }
+
+        Toast.makeText(this, "Profile Saved Successfully!", Toast.LENGTH_SHORT).show();
+
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.putExtra("IS_ORGANISER", isOrganiser);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
+    }
+
+    private List<String> getSelectedPreferences() {
+        List<String> selected = new ArrayList<>();
+        for (int i = 0; i < preferencesChipGroup.getChildCount(); i++) {
+            Chip chip = (Chip) preferencesChipGroup.getChildAt(i);
+            if (chip.isChecked()) {
+                selected.add(chip.getText().toString());
             }
+        }
+        return selected;
+    }
 
-            List<String> preferences = new ArrayList<>();
-            if (cbSports.isChecked()) preferences.add("Sports");
-            if (cbMusic.isChecked()) preferences.add("Music");
-            if (cbVolunteer.isChecked()) preferences.add("Volunteer");
-            if (cbWorkshops.isChecked()) preferences.add("Workshops");
-            if (cbExhibition.isChecked()) preferences.add("Exhibition");
-            if (cbSeminar.isChecked()) preferences.add("Seminar");
-            if (cbNetworking.isChecked()) preferences.add("Networking");
-            if (cbCulturalFest.isChecked()) preferences.add("Cultural Festival");
-            if (cbTalk.isChecked()) preferences.add("Talk");
+    // --- Image Picker and Upload Logic (no changes needed from previous version) ---
+    private void initializeImagePicker() {
+        imagePickerLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        selectedImageUri = result.getData().getData();
+                        uploadProfileImageToStorage(selectedImageUri);
+                    }
+                }
+        );
+    }
 
-            if (preferences.isEmpty()) {
-                Toast.makeText(this, "Please select at least one preference", Toast.LENGTH_SHORT).show();
-                return;
-            }
+    private void openImagePicker() {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("image/*");
+        imagePickerLauncher.launch(intent);
+    }
 
-            GuestProfile profile = new GuestProfile(name, email, phone, preferences);
-            storage.saveProfile(profile);
-
-            // Get "IS_EDIT" from MainActivity intent
-            Intent intent = getIntent();
-
-            // Update or create guest profile - Local
-            if (getIntent().getBooleanExtra("IS_EDIT", false)) {
-                Toast.makeText(this, "Update Successful!", Toast.LENGTH_SHORT).show();
-            }
-            else {
-                Toast.makeText(this, "Guest Profile Stored Successfully!", Toast.LENGTH_SHORT).show();
-            }
-
-            // Update or create organiser profile - Firestore
-            if (getIntent().getBooleanExtra("IS_ORGANISER", false)) {
-                storage.uploadProfileToFirestore(profile);
-                Toast.makeText(this, "Updated online profile", Toast.LENGTH_SHORT).show();
-            }
-
-            if (storage.profileExists()) {
-                intent = new Intent(GuestFormActivity.this, MainActivity.class);
-                intent.putExtra("IS_GUEST_USER", true);
-                startActivity(intent);
-            }
-            finish();
-        });
+    private void uploadProfileImageToStorage(Uri imageUri) {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (imageUri == null || !isOrganiser || currentUser == null) return;
+        Toast.makeText(this, "Uploading image...", Toast.LENGTH_SHORT).show();
+        String userId = currentUser.getUid();
+        String fileName = "profile_images/" + userId + "/" + UUID.randomUUID().toString();
+        StorageReference storageRef = FirebaseStorage.getInstance().getReference().child(fileName);
+        storageRef.putFile(imageUri)
+                .addOnSuccessListener(taskSnapshot -> storageRef.getDownloadUrl()
+                        .addOnSuccessListener(uri -> {
+                            downloadedImageUrl = uri.toString();
+                            Glide.with(this).load(downloadedImageUrl).into(profileImageView);
+                            Toast.makeText(this, "Image uploaded successfully", Toast.LENGTH_SHORT).show();
+                        }))
+                .addOnFailureListener(e -> Toast.makeText(this, "Upload failed: " + e.getMessage(), Toast.LENGTH_LONG).show());
     }
 }

@@ -5,12 +5,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.meow.utaract.R;
-
+import com.meow.utaract.utils.Event;
 import java.util.List;
 
 public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.EventViewHolder> {
@@ -19,6 +17,13 @@ public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.EventViewH
 
     public EventsAdapter(List<Event> eventList) {
         this.eventList = eventList;
+    }
+
+    // New helper method to update the data and refresh the list
+    public void updateEvents(List<Event> newEvents) {
+        this.eventList.clear();
+        this.eventList.addAll(newEvents);
+        notifyDataSetChanged();
     }
 
     @NonNull
@@ -33,13 +38,17 @@ public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.EventViewH
     public void onBindViewHolder(@NonNull EventViewHolder holder, int position) {
         Event event = eventList.get(position);
 
-        holder.eventTitle.setText(event.getTitle());
-        holder.eventDate.setText(event.getDate());
+        holder.eventTitle.setText(event.getEventName());
+        holder.eventDate.setText(String.format("%s, %s", event.getDate(), event.getTime()));
         holder.eventLocation.setText(event.getLocation());
-        holder.eventAudience.setText(event.getAudience());
+        holder.eventAudience.setText("Max Guests: " + event.getMaxGuests());
         holder.categoryTag.setText(event.getCategory());
-        holder.dateBadge.setText(event.getDateBadge());
-        holder.eventBanner.setImageResource(event.getBannerResId());
+
+        try {
+            holder.dateBadge.setText(event.getDate().substring(0, event.getDate().lastIndexOf('/')));
+        } catch (Exception e) {
+            holder.dateBadge.setText(event.getDate());
+        }
     }
 
     @Override
