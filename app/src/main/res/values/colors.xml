@@ -66,4 +66,10 @@
 
     <color name="pink_event_bg">#EB5757</color>
 
+    <!-- UTARACT Brand Colors -->
+    <color name="utaract_blue">#3B82F6</color>
+    <color name="utaract_dark_blue">#1E3A8A</color>
+    <color name="utaract_light_blue">#60A5FA</color>
+    <color name="utaract_white">#FFFFFF</color>
+    <color name="utaract_black">#000000</color>
 </resources>

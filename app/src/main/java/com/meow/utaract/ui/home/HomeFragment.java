@@ -1,5 +1,6 @@
 package com.meow.utaract.ui.home;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -8,6 +9,8 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
+import com.meow.utaract.EventCreationActivity;
+import com.meow.utaract.R;
 import com.meow.utaract.databinding.FragmentHomeBinding;
 import com.meow.utaract.R;
 
@@ -42,6 +45,7 @@ public class HomeFragment extends Fragment {
         binding.recyclerViewEvents.setLayoutManager(new LinearLayoutManager(getContext()));
         eventsAdapter = new EventsAdapter(eventList);
         binding.recyclerViewEvents.setAdapter(eventsAdapter);
+
 
         return root;
     }

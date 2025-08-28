@@ -1,5 +1,8 @@
 package com.meow.utaract;
 
+import com.meow.utaract.utils.GuestProfileStorage;
+import com.meow.utaract.utils.GuestProfile;
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
@@ -17,36 +20,72 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.meow.utaract.databinding.ActivityMainBinding;
 
 public class MainActivity extends AppCompatActivity {
     private AppBarConfiguration mAppBarConfiguration;
-    private ActivityMainBinding binding;
+
+    boolean isOrganiser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        GuestProfile user;
+
         super.onCreate(savedInstanceState);
-
-        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (currentUser == null) {
-            // Redirect to login/signup
-            startActivity(new Intent(MainActivity.this, SignupActivity.class));
-            finish();
-        }
-
-        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        ActivityMainBinding binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        // Used for profile storage
+        GuestProfileStorage storage = new GuestProfileStorage(this);
+        isOrganiser = getIntent().getBooleanExtra("IS_ORGANISER", false);
+
+        // Try downloading from Firestore first - Only for logged in users
+        if (isOrganiser) {
+            storage.downloadProfileFromFirestore(new GuestProfileStorage.FirestoreCallback() {
+                @Override
+                public void onSuccess(GuestProfile user) {
+                    // Save JSON locally
+                    storage.saveProfile(user);
+                    // Initialize the user data
+                    setupMainUI(user);
+                }
+                // User didn't fill up previously, redirect to form
+                @Override
+                public void onFailure(Exception e) {
+                    // If no profile found, redirect to form
+                    Intent intent = new Intent(MainActivity.this, GuestFormActivity.class);
+                    intent.putExtra("IS_ORGANISER", true);
+                    startActivity(intent);
+                    finish();
+                }
+            });
+        }
+        else if (!storage.profileExists()) {
+            // If no profile found, redirect to form
+            Intent intent = new Intent(MainActivity.this, GuestFormActivity.class);
+            intent.putExtra("IS_ORGANISER", false);
+            startActivity(intent);
+            finish();
+        }
+        else {
+            // Load Guest/Event Organiser data from local profile JSON file
+            // E.g. user.getName(),...
+            user = storage.loadProfile();
+            // Initialize the user data
+            setupMainUI(user);
+        }
+
         setSupportActionBar(binding.appBarMain.toolbar);
+
         binding.appBarMain.fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null)
-                        .setAnchorView(R.id.fab).show();
+                // Navigate to EventCreationActivity
+                Intent intent = new Intent(MainActivity.this, EventCreationActivity.class);
+                startActivity(intent);
             }
         });
+
         DrawerLayout drawer = binding.drawerLayout;
         NavigationView navigationView = binding.navView;
         // Passing each menu ID as a set of Ids because each
@@ -78,13 +117,25 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
+        if (id == R.id.action_profile_setting) { // Edit profile
+            Intent intent = new Intent(MainActivity.this, GuestFormActivity.class);
+            intent.putExtra("IS_EDIT", true);
+            intent.putExtra("IS_ORGANISER", isOrganiser);
+            startActivity(intent);
+            return true;
+        }
         if (id == R.id.action_logout) {
+            // Clear saved JSON profile
+            GuestProfileStorage storage = new GuestProfileStorage(this);
+            storage.clearProfile(); // Delete the JSON profile file entry
+
+            // Sign out from Firebase
             FirebaseAuth.getInstance().signOut();
+
+            // Redirect to login screen
             Intent intent = new Intent(MainActivity.this, LoginActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
-
-
             finish();
             return true;
         }
@@ -92,4 +143,11 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    // User Data Storing
+    public void setupMainUI(GuestProfile profile) {
+      String name = profile.getName();
+      String email = profile.getEmail();
+      String phone = profile.getPhone();
+      String preferences = String.join(", ", profile.getPreferences());
+    }
 }

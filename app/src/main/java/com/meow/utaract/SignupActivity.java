@@ -1,5 +1,7 @@
 package com.meow.utaract; // Your package name
 
+import com.meow.utaract.firebase.AuthService;
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -15,7 +17,6 @@ import android.widget.LinearLayout; // For managing visibility of UI groups
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.auth.ActionCodeSettings;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 public class SignupActivity extends AppCompatActivity {
@@ -24,7 +25,6 @@ public class SignupActivity extends AppCompatActivity {
     private Button signupButton, proceedToLoginButton; // Added proceedToLoginButton
     private TextView loginLink, verificationMessageText; // Added verificationMessageText
     private ProgressBar progressBar;
-    private FirebaseAuth mAuth;
     private LinearLayout signupFormLayout, verificationStatusLayout; // Layout containers
 
     private String userEmailForLogin; // To store email to pass to LoginActivity
@@ -33,8 +33,6 @@ public class SignupActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signup); // Make sure this layout has the new elements
-
-        mAuth = FirebaseAuth.getInstance();
 
         emailInput = findViewById(R.id.emailInputSignup);
         passwordInput = findViewById(R.id.passwordInputSignup);
@@ -110,13 +108,13 @@ public class SignupActivity extends AppCompatActivity {
         progressBar.setVisibility(View.VISIBLE);
         signupButton.setEnabled(false);
 
-        mAuth.createUserWithEmailAndPassword(email, password)
+        new AuthService().getAuth().createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
                     progressBar.setVisibility(View.GONE);
                     // Keep signupButton disabled until flow is complete or reset
 
                     if (task.isSuccessful()) {
-                        FirebaseUser firebaseUser = mAuth.getCurrentUser();
+                        FirebaseUser firebaseUser = new AuthService().getAuth().getCurrentUser();
                         if (firebaseUser != null) {
                             sendVerificationEmail(firebaseUser, email);
                         } else {
@@ -156,7 +154,7 @@ public class SignupActivity extends AppCompatActivity {
     }
 
     private void checkVerificationStatusAndProceed() {
-        FirebaseUser currentUser = mAuth.getCurrentUser();
+        FirebaseUser currentUser = new AuthService().getAuth().getCurrentUser();
         if (currentUser == null) {
             Toast.makeText(this, "No user session found. Please try signing up again.", Toast.LENGTH_LONG).show();
             showSignupForm(); // Reset to signup form
@@ -172,7 +170,7 @@ public class SignupActivity extends AppCompatActivity {
             proceedToLoginButton.setEnabled(true);
 
             if (reloadTask.isSuccessful()) {
-                FirebaseUser refreshedUser = mAuth.getCurrentUser(); // Get the latest user state
+                FirebaseUser refreshedUser = new AuthService().getAuth().getCurrentUser(); // Get the latest user state
                 if (refreshedUser != null && refreshedUser.isEmailVerified()) {
                     Toast.makeText(SignupActivity.this, "Email verified successfully!", Toast.LENGTH_SHORT).show();
 

@@ -1,0 +1,365 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/drawer_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    tools:context=".EventCreationActivity"
+    tools:openDrawer="start">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="16dp"
+            android:background="@color/md_theme_light_background"
+            android:fillViewport="true">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <!-- Row 1: App Logo -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="1dp">
+
+                    <ImageView
+                        android:id="@+id/appLogo"
+                        android:layout_width="100dp"
+                        android:layout_height="60dp"
+                        android:src="@drawable/icon_utaract_tranparent_crop"
+                        android:contentDescription="@string/logo_utar_act" />
+                </LinearLayout>
+
+                <!-- Row 2: Navigation Menu + Title -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="14dp">
+
+                    <ImageButton
+                        android:id="@+id/drawerButton"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:src="@drawable/ic_menu"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="Navigation drawer" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/event_creation_form"
+                        android:textSize="24sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/md_theme_light_primary"
+                        android:layout_marginStart="10dp" />
+                </LinearLayout>
+
+                <!-- Row 3: Event Name Title -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/event_name"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/md_theme_light_primary"
+                    android:layout_marginBottom="2dp"/>
+
+                <!-- Row 4: Event Name Input -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/layoutEventName"
+                    style="@style/Widget.Material3.TextInputLayout.FilledBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/hint_event_name"
+                    app:boxBackgroundColor="@color/md_theme_light_surface"
+                    app:boxStrokeColor="@color/md_theme_light_primary"
+                    app:hintTextColor="@color/md_theme_light_primary"
+                    android:layout_marginBottom="16dp"
+                    android:layout_marginEnd="20dp">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etEventName"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:minHeight="48dp"
+                        android:textColor="@color/md_theme_light_onSurface"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Row 5: Event Description Title -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/event_description"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/md_theme_light_primary"
+                    android:layout_marginBottom="2dp"/>
+
+                <!-- Row 6: Event Description Input -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/layoutDescription"
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/hint_description"
+                    app:boxBackgroundColor="@color/md_theme_light_surface"
+                    app:boxStrokeColor="@color/md_theme_light_primary"
+                    app:hintTextColor="@color/md_theme_light_primary"
+                    android:layout_marginBottom="16dp"
+                    android:layout_marginEnd="20dp">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etDescription"
+                        android:layout_width="match_parent"
+                        android:layout_height="60dp"
+                        android:gravity="top"
+                        android:inputType="textMultiLine"
+                        android:textColor="@color/md_theme_light_onSurface"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Row 7: Event Category Title -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/event_category"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/md_theme_light_primary"
+                    android:layout_marginBottom="2dp"
+                    android:layout_marginEnd="20dp"/>
+
+                <!-- Row 8: Category Dropdown -->
+                <Spinner
+                    android:id="@+id/spinnerCategory"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginBottom="16dp"/>
+
+                <!-- Row 9: Event Date & Time Title -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/event_date_time"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/md_theme_light_primary"
+                    android:layout_marginBottom="2dp"/>
+
+                <!-- Row 10: Date Input -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/layoutDate"
+                    style="@style/Widget.Material3.TextInputLayout.FilledBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/hint_date"
+                    app:boxBackgroundColor="@color/md_theme_light_surface"
+                    app:boxStrokeColor="@color/md_theme_light_primary"
+                    app:hintTextColor="@color/md_theme_light_primary"
+                    android:layout_marginBottom="8dp"
+                    android:layout_marginEnd="20dp">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etDate"
+                        android:layout_width="match_parent"
+                        android:layout_height="78dp"
+                        android:focusable="false"
+                        android:clickable="true"
+                        android:drawableStart="@drawable/ic_calendar_clock"
+                        android:drawablePadding="8dp"
+                        android:textColor="@color/md_theme_light_onSurface"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Row 11: Time Input -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/layoutTime"
+                    style="@style/Widget.Material3.TextInputLayout.FilledBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/hint_time"
+                    app:boxBackgroundColor="@color/md_theme_light_surface"
+                    app:boxStrokeColor="@color/md_theme_light_primary"
+                    app:hintTextColor="@color/md_theme_light_primary"
+                    android:layout_marginBottom="16dp"
+                    android:layout_marginEnd="20dp">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etTime"
+                        android:layout_width="match_parent"
+                        android:layout_height="78dp"
+                        android:focusable="false"
+                        android:clickable="true"
+                        android:drawableStart="@drawable/ic_calendar_clock"
+                        android:drawablePadding="8dp"
+                        android:textColor="@color/md_theme_light_onSurface"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Row 12: Location Title -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/location"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/md_theme_light_primary"
+                    android:layout_marginBottom="2dp"/>
+
+                <!-- Row 13: Location Input -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/layoutLocation"
+                    style="@style/Widget.Material3.TextInputLayout.FilledBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/hint_location"
+                    app:boxBackgroundColor="@color/md_theme_light_surface"
+                    app:boxStrokeColor="@color/md_theme_light_primary"
+                    app:hintTextColor="@color/md_theme_light_primary"
+                    android:layout_marginBottom="16dp"
+                    android:layout_marginEnd="20dp">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etLocation"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:minHeight="48dp"
+                        android:textColor="@color/md_theme_light_onSurface"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Row 14: Cover/Poster Image Title -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/cover_poster_image"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/md_theme_light_primary"
+                    android:layout_marginBottom="15dp"/>
+
+                <!-- Row 15: Cover Upload + Preview -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="10dp"
+                    android:layout_marginEnd="20dp">
+
+                    <Button
+                        android:id="@+id/btnUploadCover"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1"
+                        android:text="@string/upload_cover"
+                        android:drawableLeft="@drawable/ic_menu_gallery"
+                        android:backgroundTint="@color/md_theme_light_primary"
+                        android:textColor="@color/md_theme_light_onPrimary"/>
+
+                    <!-- Cover Preview - ImageView -->
+                    <ImageView
+                        android:id="@+id/ivCoverPreview"
+                        android:layout_width="80dp"
+                        android:layout_height="80dp"
+                        android:layout_marginStart="16dp"
+                        android:scaleType="centerCrop"
+                        android:background="@color/md_theme_light_surfaceVariant"
+                        android:visibility="gone"/>
+                </LinearLayout>
+
+                <!-- Row 16: Additional Images Title -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/additional_images"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/md_theme_light_primary"
+                    android:layout_marginBottom="2dp"
+                    android:layout_marginEnd="20dp"/>
+
+                <!-- Row 17: Additional Images Upload + Preview -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="5dp">
+
+                    <Button
+                        android:id="@+id/btnUploadPictures"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1.5"
+                        android:text="@string/upload_pictures"
+                        android:drawableLeft="@drawable/ic_menu_gallery"
+                        android:backgroundTint="@color/md_theme_light_primary"
+                        android:textColor="@color/md_theme_light_onPrimary"/>
+
+                    <!-- Additional Images Preview Container - LinearLayout -->
+                    <LinearLayout
+                        android:id="@+id/layoutPicturesPreview"
+                        android:layout_width="0dp"
+                        android:layout_height="80dp"
+                        android:layout_weight="1"
+                        android:layout_marginStart="16dp"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"/>
+                </LinearLayout>
+
+                <!-- Row 18: Action Buttons -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center"
+                    android:layout_marginEnd="20dp"
+                    android:layout_marginTop="5dp">
+
+                    <Button
+                        android:id="@+id/btnReset"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1"
+                        android:text="@string/btn_reset"
+                        android:layout_marginEnd="8dp"
+                        android:backgroundTint="@color/md_theme_light_error"
+                        android:textColor="@color/md_theme_light_onError"/>
+
+                    <Button
+                        android:id="@+id/btnCreate"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1"
+                        android:text="@string/btn_create_event"
+                        android:layout_marginStart="8dp"
+                        android:backgroundTint="@color/md_theme_light_primary"
+                        android:textColor="@color/md_theme_light_onPrimary"/>
+                </LinearLayout>
+
+            </LinearLayout>
+        </ScrollView>
+    </LinearLayout>
+
+    <!-- Navigation View -->
+    <com.google.android.material.navigation.NavigationView
+        android:id="@+id/nav_view"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:fitsSystemWindows="true"
+        app:headerLayout="@layout/nav_header_main"
+        app:menu="@menu/activity_main_drawer" />
+
+</androidx.drawerlayout.widget.DrawerLayout>
