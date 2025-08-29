@@ -58,8 +58,23 @@ dependencies {
     implementation 'com.google.firebase:firebase-analytics'
     implementation 'com.google.firebase:firebase-auth'
     implementation 'com.google.firebase:firebase-firestore'
+    implementation 'com.google.firebase:firebase-storage'
 
+    // Add a library for easy image loading (Glide)
+    implementation 'com.github.bumptech.glide:glide:4.16.0'
 
     //splash screen animation
     implementation "androidx.core:core-splashscreen:1.0.0"
+
+    // Swipe refresh layout - refresh when swipe down
+    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
+
+    // For the circular ImageView
+    implementation 'de.hdodenhof:circleimageview:3.1.0'
+
+    // ChipGroup and modern Material components
+    implementation 'com.google.android.material:material:1.12.0'
+
+    // Glide's annotation processor
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.16.0'
 }

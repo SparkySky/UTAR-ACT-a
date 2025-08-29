@@ -1,6 +1,9 @@
 package com.meow.utaract.utils;
 
+import static android.content.ContentValues.TAG;
+
 import android.content.Context;
+import android.util.Log;
 
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -97,54 +100,24 @@ public class EventCreationStorage {
 
     // Get all events
     public void getAllEvents(EventsFetchCallback callback) {
-        firestore.collection(EVENTS_COLLECTION)
+        Log.d(TAG, "Attempting to fetch all events from Firestore.");
+        firestore.collection("events")
                 .orderBy("createdAt", Query.Direction.DESCENDING)
                 .get()
-                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                    @Override
-                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                        List<Event> events = new ArrayList<>();
-                        for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
-                            Event event = document.toObject(Event.class);
-                            if (event != null) {
-                                events.add(event);
-                            }
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    List<Event> events = new ArrayList<>();
+                    for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
+                        Event event = document.toObject(Event.class);
+                        if (event != null) {
+                            events.add(event);
                         }
-                        callback.onSuccess(events);
                     }
+                    Log.d(TAG, "Successfully fetched " + events.size() + " total events.");
+                    callback.onSuccess(events);
                 })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(Exception e) {
-                        callback.onFailure(e);
-                    }
-                });
-    }
-
-    // Get events by organizer
-    public void getEventsByOrganizer(String organizerId, EventsFetchCallback callback) {
-        firestore.collection(EVENTS_COLLECTION)
-                .whereEqualTo("organizerId", organizerId)
-                .orderBy("createdAt", Query.Direction.DESCENDING)
-                .get()
-                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                    @Override
-                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                        List<Event> events = new ArrayList<>();
-                        for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
-                            Event event = document.toObject(Event.class);
-                            if (event != null) {
-                                events.add(event);
-                            }
-                        }
-                        callback.onSuccess(events);
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(Exception e) {
-                        callback.onFailure(e);
-                    }
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error fetching events", e);
+                    callback.onFailure(e);
                 });
     }
 
@@ -182,6 +155,25 @@ public class EventCreationStorage {
                         callback.onFailure(e);
                     }
                 });
+    }
+
+    // Method to get events by a specific organizer with index
+    public void getEventsByOrganizer(String organizerId, EventsFetchCallback callback) {
+        firestore.collection("events")
+                .whereEqualTo("organizerId", organizerId)
+                .orderBy("createdAt", Query.Direction.DESCENDING)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    List<Event> events = new ArrayList<>();
+                    for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
+                        Event event = document.toObject(Event.class);
+                        if (event != null) {
+                            events.add(event);
+                        }
+                    }
+                    callback.onSuccess(events);
+                })
+                .addOnFailureListener(callback::onFailure);
     }
 
     // Callback interfaces
