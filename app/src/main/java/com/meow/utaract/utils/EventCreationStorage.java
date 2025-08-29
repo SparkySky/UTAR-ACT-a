@@ -98,54 +98,23 @@ public class EventCreationStorage {
     // Get all events
     public void getAllEvents(EventsFetchCallback callback) {
         firestore.collection(EVENTS_COLLECTION)
+                .whereEqualTo("visible", true)
+                // Optionally add: .whereLessThanOrEqualTo("publishAt", System.currentTimeMillis())
+                // Note: This requires a composite index in Firestore. For simplicity, we can filter by publishAt on the client.
                 .orderBy("createdAt", Query.Direction.DESCENDING)
                 .get()
-                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                    @Override
-                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                        List<Event> events = new ArrayList<>();
-                        for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
-                            Event event = document.toObject(Event.class);
-                            if (event != null) {
-                                events.add(event);
-                            }
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    List<Event> events = new ArrayList<>();
+                    for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
+                        Event event = document.toObject(Event.class);
+                        // Client-side filter for scheduled posts
+                        if (event != null && event.getPublishAt() <= System.currentTimeMillis()) {
+                            events.add(event);
                         }
-                        callback.onSuccess(events);
                     }
+                    callback.onSuccess(events);
                 })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(Exception e) {
-                        callback.onFailure(e);
-                    }
-                });
-    }
-
-    // Get events by organizer
-    public void getEventsByOrganizer(String organizerId, EventsFetchCallback callback) {
-        firestore.collection(EVENTS_COLLECTION)
-                .whereEqualTo("organizerId", organizerId)
-                .orderBy("createdAt", Query.Direction.DESCENDING)
-                .get()
-                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                    @Override
-                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                        List<Event> events = new ArrayList<>();
-                        for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
-                            Event event = document.toObject(Event.class);
-                            if (event != null) {
-                                events.add(event);
-                            }
-                        }
-                        callback.onSuccess(events);
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(Exception e) {
-                        callback.onFailure(e);
-                    }
-                });
+                .addOnFailureListener(callback::onFailure);
     }
 
     // Update event
@@ -183,6 +152,29 @@ public class EventCreationStorage {
                     }
                 });
     }
+
+    // Method to get events by a specific organizer
+    public void getEventsByOrganizer(String organizerId, EventsFetchCallback callback) {
+        firestore.collection(EVENTS_COLLECTION)
+                .whereEqualTo("organizerId", organizerId)
+                .orderBy("createdAt", Query.Direction.DESCENDING)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    List<Event> events = new ArrayList<>();
+                    for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
+                        Event event = document.toObject(Event.class);
+                        if (event != null) {
+                            events.add(event);
+                        }
+                    }
+                    callback.onSuccess(events);
+                })
+                .addOnFailureListener(callback::onFailure);
+    }
+
+
+
+
 
     // Callback interfaces
     public interface EventCreationCallback {

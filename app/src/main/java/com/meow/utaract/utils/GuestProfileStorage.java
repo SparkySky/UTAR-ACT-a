@@ -9,6 +9,8 @@ import com.meow.utaract.firebase.AuthService;
 
 import java.io.*;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class GuestProfileStorage {
     private static final String FILE_NAME = "profile.json";
@@ -99,6 +101,36 @@ public class GuestProfileStorage {
                     }
                 })
                 .addOnFailureListener(callback::onFailure);
+    }
+
+    public void getProfilesForUserIds(List<String> userIds, ProfilesCallback callback) {
+        if (userIds == null || userIds.isEmpty()) {
+            callback.onSuccess(new HashMap<>()); // Return empty map if no IDs
+            return;
+        }
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("guest_profiles")
+                .whereIn(com.google.firebase.firestore.FieldPath.documentId(), userIds)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    Map<String, GuestProfile> profiles = new HashMap<>();
+                    for (com.google.firebase.firestore.DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
+                        String json = document.getString("profile_json");
+                        if (json != null) {
+                            GuestProfile profile = gson.fromJson(json, GuestProfile.class);
+                            profiles.put(document.getId(), profile);
+                        }
+                    }
+                    callback.onSuccess(profiles);
+                })
+                .addOnFailureListener(callback::onFailure);
+    }
+
+    // New Callback interface for multiple profiles
+    public interface ProfilesCallback {
+        void onSuccess(Map<String, GuestProfile> profiles);
+        void onFailure(Exception e);
     }
 
     // Callback interface

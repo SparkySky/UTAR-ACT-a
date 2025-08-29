@@ -35,7 +35,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class HomeFragment extends Fragment implements FilterBottomSheetDialogFragment.FilterListener {
-
     private FragmentHomeBinding binding;
     private EventsAdapter eventsAdapter;
     private HomeViewModel homeViewModel;
@@ -55,7 +54,7 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
 
         setupRecyclerView();
         setupUIListeners();
-        observeViewModels();
+        observeViewModels(); // This will now work correctly
 
         return binding.getRoot();
     }
@@ -67,7 +66,6 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
         updateHeaderOnScroll();
     }
 
-
     @Override
     public void onResume() {
         super.onResume();
@@ -77,6 +75,7 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
     }
 
     private void setupRecyclerView() {
+        // The adapter is initialized with an empty list of the correct type
         eventsAdapter = new EventsAdapter(new ArrayList<>());
         binding.recyclerViewEvents.setLayoutManager(new LinearLayoutManager(getContext()));
         binding.recyclerViewEvents.setAdapter(eventsAdapter);
@@ -162,8 +161,15 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
     }
 
     private void observeViewModels() {
-        homeViewModel.getEvents().observe(getViewLifecycleOwner(), events -> eventsAdapter.updateEvents(events));
+        // CORRECTED: Observe getEventItems() which returns LiveData<List<EventItem>>
+        homeViewModel.getEventItems().observe(getViewLifecycleOwner(), eventItems -> {
+            if (eventItems != null) {
+                eventsAdapter.updateEvents(eventItems);
+            }
+        });
+
         homeViewModel.getIsLoading().observe(getViewLifecycleOwner(), isLoading -> binding.swipeRefreshLayout.setRefreshing(isLoading));
+
         mainViewModel.isOrganiser().observe(getViewLifecycleOwner(), isOrganiser -> {
             if (isOrganiser != null && isOrganiser) {
                 binding.addEventFab.setVisibility(View.VISIBLE);

@@ -15,6 +15,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -24,32 +25,41 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
+import com.bumptech.glide.Glide;
+import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.meow.utaract.utils.Event;
 import com.meow.utaract.utils.EventCreationStorage;
-import com.meow.utaract.utils.GuestProfile;
-import com.meow.utaract.utils.GuestProfileStorage;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.UUID;
 
 public class EventCreationActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
-    private TextInputEditText etEventName, etDescription, etDate, etTime, etLocation, etMaxGuests;
+    private TextInputEditText etEventName, etDescription, etDate, etTime, etLocation, etMaxGuests, etFee, etPublishDate, etPublishTime;
     private Spinner spinnerCategory;
     private DrawerLayout drawerLayout;
     private EventCreationStorage eventStorage;
-    private Button btnUploadPoster, btnUploadCatalog;
+    private Button btnUploadPoster, btnUploadCatalog, btnCreate;
     private ImageView ivPosterPreview;
     private LinearLayout layoutCatalogPreview;
     private ActivityResultLauncher<Intent> posterImageLauncher, catalogImageLauncher;
+    private MaterialSwitch publishSwitch;
+    private LinearLayout scheduleLayout;
+
     private String posterImageUrl = "";
     private List<String> catalogImageUrls = new ArrayList<>();
+    private boolean isEditMode = false;
+    private Event eventToEdit;
+    private final Calendar publishCalendar = Calendar.getInstance();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,9 +71,16 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         setupCategorySpinner();
         setupDateTimePickers();
         setupButtonListeners();
-
-        eventStorage = new EventCreationStorage();
         initializeImageLaunchers();
+        eventStorage = new EventCreationStorage();
+
+        if (getIntent().hasExtra("IS_EDIT_MODE")) {
+            isEditMode = getIntent().getBooleanExtra("IS_EDIT_MODE", false);
+            eventToEdit = (Event) getIntent().getSerializableExtra("EDIT_EVENT_DATA");
+            if (isEditMode && eventToEdit != null) {
+                setupEditMode();
+            }
+        }
     }
 
     private void initializeViews() {
@@ -73,7 +90,12 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         etTime = findViewById(R.id.etTime);
         etLocation = findViewById(R.id.etLocation);
         etMaxGuests = findViewById(R.id.etMaxGuests);
-        //etFee = findViewById(R.id.etFee);
+        etFee = findViewById(R.id.etFee);
+        publishSwitch = findViewById(R.id.publishSwitch);
+        scheduleLayout = findViewById(R.id.scheduleLayout);
+        etPublishDate = findViewById(R.id.etPublishDate);
+        etPublishTime = findViewById(R.id.etPublishTime);
+        btnCreate = findViewById(R.id.btnCreate);
         spinnerCategory = findViewById(R.id.spinnerCategory);
         drawerLayout = findViewById(R.id.drawer_layout);
         btnUploadPoster = findViewById(R.id.btnUploadPoster);
@@ -89,11 +111,8 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         drawerButton.setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
     }
 
-    // Retrieve the available category for spinners from the string array
     private void setupCategorySpinner() {
-        // This is the corrected implementation that uses the centralized array
         String[] categories = getResources().getStringArray(R.array.event_categories);
-
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, categories);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerCategory.setAdapter(adapter);
@@ -113,14 +132,146 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
                 etTime.setText(selectedTime);
             }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), true).show();
         });
+
+        // Pickers for the scheduling feature
+        etPublishDate.setOnClickListener(v -> {
+            new DatePickerDialog(this, (view, year, month, day) -> {
+                publishCalendar.set(Calendar.YEAR, year);
+                publishCalendar.set(Calendar.MONTH, month);
+                publishCalendar.set(Calendar.DAY_OF_MONTH, day);
+                SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+                etPublishDate.setText(sdf.format(publishCalendar.getTime()));
+            }, publishCalendar.get(Calendar.YEAR), publishCalendar.get(Calendar.MONTH), publishCalendar.get(Calendar.DAY_OF_MONTH)).show();
+        });
+        etPublishTime.setOnClickListener(v -> {
+            new TimePickerDialog(this, (view, hour, minute) -> {
+                publishCalendar.set(Calendar.HOUR_OF_DAY, hour);
+                publishCalendar.set(Calendar.MINUTE, minute);
+                SimpleDateFormat sdf = new SimpleDateFormat("hh:mm a", Locale.getDefault());
+                etPublishTime.setText(sdf.format(publishCalendar.getTime()));
+            }, publishCalendar.get(Calendar.HOUR_OF_DAY), publishCalendar.get(Calendar.MINUTE), false).show();
+        });
     }
 
     private void setupButtonListeners() {
         findViewById(R.id.btnReset).setOnClickListener(v -> resetForm());
-        findViewById(R.id.btnCreate).setOnClickListener(v -> createEvent());
-
         btnUploadPoster.setOnClickListener(v -> openImagePicker(posterImageLauncher, false));
         btnUploadCatalog.setOnClickListener(v -> openImagePicker(catalogImageLauncher, true));
+        publishSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            scheduleLayout.setVisibility(isChecked ? View.GONE : View.VISIBLE);
+        });
+        btnCreate.setOnClickListener(v -> saveEvent());
+    }
+
+    private void setupEditMode() {
+        ((TextView) findViewById(R.id.event_creation_title)).setText("Update Event");
+        btnCreate.setText("Update Event");
+
+        // Populate all fields from the event object passed to the activity
+        etEventName.setText(eventToEdit.getEventName());
+        etDescription.setText(eventToEdit.getDescription());
+        etDate.setText(eventToEdit.getDate());
+        etTime.setText(eventToEdit.getTime());
+        etLocation.setText(eventToEdit.getLocation());
+        etMaxGuests.setText(String.valueOf(eventToEdit.getMaxGuests()));
+        etFee.setText(String.valueOf(eventToEdit.getFee()));
+
+        // Set spinner selection
+        ArrayAdapter<String> adapter = (ArrayAdapter<String>) spinnerCategory.getAdapter();
+        for (int i = 0; i < adapter.getCount(); i++) {
+            if (adapter.getItem(i).equals(eventToEdit.getCategory())) {
+                spinnerCategory.setSelection(i);
+                break;
+            }
+        }
+
+        // Set image previews
+        posterImageUrl = eventToEdit.getCoverImageUrl();
+        if (posterImageUrl != null && !posterImageUrl.isEmpty()) {
+            Glide.with(this).load(posterImageUrl).into(ivPosterPreview);
+            ivPosterPreview.setVisibility(View.VISIBLE);
+        }
+        catalogImageUrls = new ArrayList<>(eventToEdit.getAdditionalImageUrls());
+        for (String url : catalogImageUrls) {
+            addCatalogImageToPreview(Uri.parse(url));
+        }
+
+        // Handle visibility and scheduling UI
+        publishSwitch.setChecked(eventToEdit.isVisible());
+        if (eventToEdit.getPublishAt() > System.currentTimeMillis() && !eventToEdit.isVisible()) {
+            scheduleLayout.setVisibility(View.VISIBLE);
+            publishCalendar.setTimeInMillis(eventToEdit.getPublishAt());
+            SimpleDateFormat sdfDate = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+            etPublishDate.setText(sdfDate.format(publishCalendar.getTime()));
+            SimpleDateFormat sdfTime = new SimpleDateFormat("hh:mm a", Locale.getDefault());
+            etPublishTime.setText(sdfTime.format(publishCalendar.getTime()));
+        } else {
+            scheduleLayout.setVisibility(View.GONE);
+        }
+    }
+
+    private void saveEvent() {
+        if (!isFormValid()) return;
+
+        String eventName = Objects.requireNonNull(etEventName.getText()).toString().trim();
+        String description = Objects.requireNonNull(etDescription.getText()).toString().trim();
+        String date = Objects.requireNonNull(etDate.getText()).toString().trim();
+        String time = Objects.requireNonNull(etTime.getText()).toString().trim();
+        String location = Objects.requireNonNull(etLocation.getText()).toString().trim();
+        String category = spinnerCategory.getSelectedItem().toString();
+        int maxGuests = Integer.parseInt(Objects.requireNonNull(etMaxGuests.getText()).toString().trim());
+        double fee = Double.parseDouble(Objects.requireNonNull(etFee.getText()).toString().trim());
+
+        boolean isVisible;
+        long publishAt;
+
+        if (publishSwitch.isChecked()) {
+            isVisible = true;
+            publishAt = System.currentTimeMillis();
+        } else {
+            isVisible = false;
+            publishAt = publishCalendar.getTimeInMillis();
+            if (publishAt <= System.currentTimeMillis()) {
+                Toast.makeText(this, "Scheduled publish time must be in the future.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+        }
+
+        String organizerId = isEditMode ? eventToEdit.getOrganizerId() : FirebaseAuth.getInstance().getUid();
+
+        Event event = new Event(eventName, description, category, date, time, location, organizerId, maxGuests, fee, isVisible, publishAt);
+        event.setCoverImageUrl(posterImageUrl);
+        event.setAdditionalImageUrls(catalogImageUrls);
+
+        if (isEditMode) {
+            event.setEventId(eventToEdit.getEventId());
+            event.setCreatedAt(eventToEdit.getCreatedAt()); // Preserve original creation date
+            eventStorage.updateEvent(event.getEventId(), event, getEventCreationCallback());
+        } else {
+            eventStorage.createEvent(event, getEventCreationCallback());
+        }
+    }
+
+    private EventCreationStorage.EventCreationCallback getEventCreationCallback() {
+        return new EventCreationStorage.EventCreationCallback() {
+            @Override
+            public void onSuccess(String eventId) {
+                runOnUiThread(() -> {
+                    String message = isEditMode ? "Event updated successfully!" : "Event created successfully!";
+                    Toast.makeText(EventCreationActivity.this, message, Toast.LENGTH_SHORT).show();
+                    finish();
+                });
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                runOnUiThread(() -> {
+                    String message = isEditMode ? "Failed to update event: " : "Failed to create event: ";
+                    Toast.makeText(EventCreationActivity.this, message + e.getMessage(), Toast.LENGTH_LONG).show();
+                    Log.e("EventCreation", "Error saving event", e);
+                });
+            }
+        };
     }
 
     private void initializeImageLaunchers() {
@@ -183,48 +334,6 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         layoutCatalogPreview.addView(imageView);
     }
 
-    private void createEvent() {
-        if (!isFormValid()) {
-            return;
-        }
-
-        String eventName = Objects.requireNonNull(etEventName.getText()).toString().trim();
-        String description = Objects.requireNonNull(etDescription.getText()).toString().trim();
-        String date = Objects.requireNonNull(etDate.getText()).toString().trim();
-        String time = Objects.requireNonNull(etTime.getText()).toString().trim();
-        String location = Objects.requireNonNull(etLocation.getText()).toString().trim();
-        String category = spinnerCategory.getSelectedItem().toString();
-        int maxGuests = Integer.parseInt(Objects.requireNonNull(etMaxGuests.getText()).toString().trim());
-        //double fee = Double.parseDouble(Objects.requireNonNull(etFee.getText()).toString().trim());
-
-        GuestProfile organizerProfile = new GuestProfileStorage(this).loadProfile();
-        String organizerName = (organizerProfile != null) ? organizerProfile.getName() : "Unknown Organizer";
-
-        Event event = new Event(eventName, description, category, date, time, location, "", organizerName, maxGuests);
-
-        event.setCoverImageUrl(posterImageUrl);
-        event.setAdditionalImageUrls(catalogImageUrls);
-
-        Toast.makeText(this, "Creating event...", Toast.LENGTH_SHORT).show();
-        eventStorage.createEvent(event, new EventCreationStorage.EventCreationCallback() {
-            @Override
-            public void onSuccess(String eventId) {
-                runOnUiThread(() -> {
-                    Toast.makeText(EventCreationActivity.this, "Event created successfully!", Toast.LENGTH_SHORT).show();
-                    finish();
-                });
-            }
-
-            @Override
-            public void onFailure(Exception e) {
-                runOnUiThread(() -> {
-                    Toast.makeText(EventCreationActivity.this, "Failed to create event: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                    Log.e("EventCreation", "Error creating event", e);
-                });
-            }
-        });
-    }
-
     private boolean isFormValid() {
         if (Objects.requireNonNull(etEventName.getText()).toString().trim().isEmpty()) {
             etEventName.setError("Event name is required");
@@ -261,6 +370,8 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         }*/
         return true;
     }
+
+
 
     private void resetForm() {
         etEventName.setText("");

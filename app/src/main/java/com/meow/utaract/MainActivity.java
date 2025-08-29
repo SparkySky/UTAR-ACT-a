@@ -2,6 +2,8 @@ package com.meow.utaract;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.Menu;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.lifecycle.ViewModelProvider;
@@ -29,16 +31,35 @@ public class MainActivity extends AppCompatActivity {
         boolean isOrganiser = getIntent().getBooleanExtra("IS_ORGANISER", false);
         mainViewModel.setOrganiser(isOrganiser);
 
-        setupNavigation();
+        setupNavigation(isOrganiser);
         loadUserProfile(isOrganiser);
     }
 
-    private void setupNavigation() {
+    private void setupNavigation(boolean isOrganiser) {
         NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment_content_main);
         if (navHostFragment != null) {
             navController = navHostFragment.getNavController();
             NavigationView navView = binding.navView;
-            NavigationUI.setupWithNavController(navView, navController);
+
+            // Show/Hide "My Events" menu item based on user role
+            Menu navMenu = navView.getMenu();
+            navMenu.findItem(R.id.nav_my_events).setVisible(isOrganiser);
+
+            // Handle navigation clicks
+            navView.setNavigationItemSelectedListener(item -> {
+                int id = item.getItemId();
+                if (id == R.id.nav_my_events) {
+                    startActivity(new Intent(this, MyEventsActivity.class));
+                    binding.drawerLayout.closeDrawers();
+                    return true;
+                }
+                // Let NavigationUI handle other clicks
+                boolean handled = NavigationUI.onNavDestinationSelected(item, navController);
+                if (handled) {
+                    binding.drawerLayout.closeDrawers();
+                }
+                return handled;
+            });
         }
     }
 

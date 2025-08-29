@@ -69,6 +69,7 @@
             android:orientation="vertical"
             android:padding="16dp">
 
+
             <TextView
                 android:id="@+id/event_title"
                 android:layout_width="match_parent"
@@ -77,6 +78,28 @@
                 android:textSize="18sp"
                 android:textStyle="bold"
                 tools:text="Let's Talk about Depression" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <de.hdodenhof.circleimageview.CircleImageView
+                    android:id="@+id/organizer_avatar"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_marginEnd="8dp"
+                    android:src="@drawable/ic_person" />
+
+                <TextView
+                    android:id="@+id/organizer_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="14sp"
+                    tools:text="UTAR Centre for Community Service" />
+            </LinearLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -142,6 +165,22 @@
                     android:textSize="14sp"
                     tools:text="UTAR Kampar, Dewan Tun Ling Liong Sik, Block M" />
             </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_marginEnd="8dp"
+                    android:contentDescription="Location icon"
+                    android:src="@android:drawable/ic_menu_edit" />
+
+            </LinearLayout>
         </LinearLayout>
+
     </LinearLayout>
 </androidx.cardview.widget.CardView>
