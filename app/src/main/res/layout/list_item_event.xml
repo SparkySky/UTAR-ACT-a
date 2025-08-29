@@ -166,20 +166,24 @@
                     tools:text="UTAR Kampar, Dewan Tun Ling Liong Sik, Block M" />
             </LinearLayout>
 
-            <LinearLayout
+            <View
+                android:id="@+id/divider"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:layout_height="1dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="8dp"
+                android:background="?attr/colorOutlineVariant" />
 
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:layout_marginEnd="8dp"
-                    android:contentDescription="Location icon"
-                    android:src="@android:drawable/ic_menu_edit" />
-
-            </LinearLayout>
+            <Button
+                android:id="@+id/editEventButton"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:text="Edit Event"
+                android:visibility="gone"
+                app:icon="@android:drawable/ic_menu_edit"
+                tools:visibility="visible" />
         </LinearLayout>
 
     </LinearLayout>

@@ -30,11 +30,11 @@ import com.meow.utaract.R;
 import com.meow.utaract.databinding.FragmentHomeBinding;
 import com.meow.utaract.utils.GuestProfile;
 import com.meow.utaract.utils.GuestProfileStorage;
-
 import java.util.ArrayList;
 import java.util.List;
 
 public class HomeFragment extends Fragment implements FilterBottomSheetDialogFragment.FilterListener {
+
     private FragmentHomeBinding binding;
     private EventsAdapter eventsAdapter;
     private HomeViewModel homeViewModel;
@@ -54,7 +54,7 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
 
         setupRecyclerView();
         setupUIListeners();
-        observeViewModels(); // This will now work correctly
+        observeViewModels();
 
         return binding.getRoot();
     }
@@ -62,44 +62,54 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        // Set the initial state of the animation when the view is created
         updateHeaderOnScroll();
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        GuestProfile profile = new GuestProfileStorage(requireContext()).loadProfile();
-        List<String> preferredCategories = (profile != null && profile.getPreferences() != null) ? profile.getPreferences() : new ArrayList<>();
-        homeViewModel.fetchEvents(preferredCategories);
+        // This is the key to solving both issues:
+        // 1. It automatically refreshes the list for scheduled posts.
+        // 2. It re-applies the user's preferences every time they return.
+        loadDataWithPreferences();
+    }
+
+    private void loadDataWithPreferences() {
+        if (getContext() == null) return;
+
+        GuestProfile profile = new GuestProfileStorage(getContext()).loadProfile();
+        List<String> preferences = (profile != null && profile.getPreferences() != null)
+                ? profile.getPreferences()
+                : new ArrayList<>();
+
+        homeViewModel.fetchEvents(preferences);
     }
 
     private void setupRecyclerView() {
-        // The adapter is initialized with an empty list of the correct type
         eventsAdapter = new EventsAdapter(new ArrayList<>());
         binding.recyclerViewEvents.setLayoutManager(new LinearLayoutManager(getContext()));
         binding.recyclerViewEvents.setAdapter(eventsAdapter);
     }
 
     private void setupUIListeners() {
-        binding.swipeRefreshLayout.setOnRefreshListener(() -> homeViewModel.fetchEvents(null));
+        binding.swipeRefreshLayout.setOnRefreshListener(this::loadDataWithPreferences);
 
         binding.menuIcon.setOnClickListener(v -> {
             if (getActivity() instanceof MainActivity) {
                 DrawerLayout drawerLayout = ((MainActivity) getActivity()).getDrawerLayout();
-                drawerLayout.openDrawer(GravityCompat.START);
+                if (drawerLayout != null) {
+                    drawerLayout.openDrawer(GravityCompat.START);
+                }
             }
         });
 
         binding.userAvatar.setOnClickListener(this::showPopupMenu);
         binding.filterButton.setOnClickListener(v -> showFilterDialog());
 
-        // This listener now links scroll progress directly to animation progress
         binding.nestedScrollView.setOnScrollChangeListener((NestedScrollView.OnScrollChangeListener) (v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
             updateHeaderOnScroll();
         });
 
-        // The focus listener remains to handle direct taps on the search bar
         searchInput.setOnFocusChangeListener((v, hasFocus) -> {
             if (hasFocus) {
                 motionLayoutHeader.transitionToEnd();
@@ -107,14 +117,11 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
         });
 
         searchInput.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
                 homeViewModel.setSearchQuery(s.toString());
             }
-            @Override
-            public void afterTextChanged(Editable s) {}
+            @Override public void afterTextChanged(Editable s) {}
         });
 
         binding.nestedScrollView.setOnTouchListener((v, event) -> {
@@ -129,27 +136,18 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
         });
     }
 
-    /**
-     * This method smoothly controls the header animation based on the scroll position.
-     */
     private void updateHeaderOnScroll() {
-        // The total height of the part of the header that collapses (the purple section)
         float headerHeight = binding.mainSection.getHeight();
-        if (headerHeight == 0) return; // Avoid division by zero before layout is drawn
-
-        // Calculate the progress of the scroll (from 0.0 to 1.0)
-        // This value represents how much the header should be "collapsed"
+        if (headerHeight == 0) return;
         float scrollProgress = Math.min(binding.nestedScrollView.getScrollY() / headerHeight, 1.0f);
-
-        // Set the MotionLayout's progress.
-        // We use 1.0f - scrollProgress because a progress of 1.0 is fully EXPANDED,
-        // which should happen when scrollY (and scrollProgress) is 0.
         motionLayoutHeader.setProgress(1.0f - scrollProgress);
     }
 
     private void showFilterDialog() {
         String[] categories = getResources().getStringArray(R.array.event_categories);
-        ArrayList<String> selected = new ArrayList<>(homeViewModel.getActiveFilters().getValue());
+        List<String> currentFilters = homeViewModel.getActiveFilters().getValue();
+        ArrayList<String> selected = (currentFilters != null) ? new ArrayList<>(currentFilters) : new ArrayList<>();
+
         FilterBottomSheetDialogFragment bottomSheet = FilterBottomSheetDialogFragment.newInstance(categories, selected);
         bottomSheet.setFilterListener(this);
         bottomSheet.show(getParentFragmentManager(), "FilterBottomSheet");
@@ -161,14 +159,17 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
     }
 
     private void observeViewModels() {
-        // CORRECTED: Observe getEventItems() which returns LiveData<List<EventItem>>
         homeViewModel.getEventItems().observe(getViewLifecycleOwner(), eventItems -> {
             if (eventItems != null) {
                 eventsAdapter.updateEvents(eventItems);
             }
         });
 
-        homeViewModel.getIsLoading().observe(getViewLifecycleOwner(), isLoading -> binding.swipeRefreshLayout.setRefreshing(isLoading));
+        homeViewModel.getIsLoading().observe(getViewLifecycleOwner(), isLoading -> {
+            if (isLoading != null) {
+                binding.swipeRefreshLayout.setRefreshing(isLoading);
+            }
+        });
 
         mainViewModel.isOrganiser().observe(getViewLifecycleOwner(), isOrganiser -> {
             if (isOrganiser != null && isOrganiser) {
@@ -196,7 +197,9 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
                 return true;
             }
             if (id == R.id.action_logout) {
-                new GuestProfileStorage(requireContext()).clearProfile();
+                if (getContext() != null) {
+                    new GuestProfileStorage(getContext()).clearProfile();
+                }
                 FirebaseAuth.getInstance().signOut();
                 Intent intent = new Intent(getActivity(), LoginActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);

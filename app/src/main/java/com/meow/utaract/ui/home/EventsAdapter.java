@@ -1,22 +1,27 @@
 package com.meow.utaract.ui.home;
 
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
+import com.google.firebase.auth.FirebaseAuth;
+import com.meow.utaract.EventCreationActivity;
 import com.meow.utaract.R;
 import com.meow.utaract.utils.Event;
 import com.meow.utaract.utils.GuestProfile;
 import java.util.List;
+import java.util.Locale;
+
 import de.hdodenhof.circleimageview.CircleImageView;
 
 public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.EventViewHolder> {
-
     private List<HomeViewModel.EventItem> eventItemList;
 
     public EventsAdapter(List<HomeViewModel.EventItem> eventItemList) {
@@ -40,53 +45,7 @@ public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.EventViewH
     @Override
     public void onBindViewHolder(@NonNull EventViewHolder holder, int position) {
         HomeViewModel.EventItem eventItem = eventItemList.get(position);
-        Event event = eventItem.event;
-        GuestProfile organizer = eventItem.organizer;
-
-        holder.eventTitle.setText(event.getEventName());
-        holder.eventDate.setText(String.format("%s, %s", event.getDate(), event.getTime()));
-        holder.eventLocation.setText(event.getLocation());
-        holder.categoryTag.setText(event.getCategory());
-
-        String feeText = (event.getFee() == 0) ? "Free" : "RM" + String.format("%.2f", event.getFee());
-        holder.eventAudience.setText("Fee: " + feeText + " | Max Guests: " + event.getMaxGuests());
-
-        if (organizer != null) {
-            holder.organizerName.setText(organizer.getName());
-            if (organizer.getProfileImageUrl() != null && !organizer.getProfileImageUrl().isEmpty()) {
-                Glide.with(holder.itemView.getContext())
-                        .load(organizer.getProfileImageUrl())
-                        .placeholder(R.drawable.ic_person)
-                        .into(holder.organizerAvatar);
-            } else {
-                holder.organizerAvatar.setImageResource(R.drawable.ic_person);
-            }
-        } else {
-            holder.organizerName.setText("Unknown Organizer");
-            holder.organizerAvatar.setImageResource(R.drawable.ic_person);
-        }
-
-        try {
-            holder.dateBadge.setText(event.getDate().substring(0, event.getDate().lastIndexOf('/')));
-        } catch (Exception e) {
-            holder.dateBadge.setText(event.getDate());
-        }
-
-        if (event.getCoverImageUrl() != null && !event.getCoverImageUrl().isEmpty()) {
-            holder.bannerContainer.setVisibility(View.VISIBLE);
-            Glide.with(holder.itemView.getContext())
-                    .load(event.getCoverImageUrl())
-                    .placeholder(R.drawable.event_banner_placeholder)
-                    .into(holder.eventBanner);
-
-            holder.eventBanner.setOnClickListener(v -> {
-                AppCompatActivity activity = (AppCompatActivity) v.getContext();
-                FullScreenImageDialogFragment dialog = FullScreenImageDialogFragment.newInstance(event.getCoverImageUrl());
-                dialog.show(activity.getSupportFragmentManager(), "FullScreenImageDialog");
-            });
-        } else {
-            holder.bannerContainer.setVisibility(View.GONE);
-        }
+        holder.bind(eventItem);
     }
 
     @Override
@@ -99,8 +58,9 @@ public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.EventViewH
         TextView dateBadge, categoryTag, eventTitle, eventAudience, eventDate, eventLocation, organizerName;
         View bannerContainer;
         CircleImageView organizerAvatar;
+        Button editEventButton;
 
-        public EventViewHolder(@NonNull View itemView) {
+        EventViewHolder(@NonNull View itemView) {
             super(itemView);
             eventBanner = itemView.findViewById(R.id.event_banner);
             dateBadge = itemView.findViewById(R.id.date_badge);
@@ -112,6 +72,75 @@ public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.EventViewH
             bannerContainer = itemView.findViewById(R.id.banner_container);
             organizerAvatar = itemView.findViewById(R.id.organizer_avatar);
             organizerName = itemView.findViewById(R.id.organizer_name);
+            editEventButton = itemView.findViewById(R.id.editEventButton);
+        }
+
+        void bind(final HomeViewModel.EventItem eventItem) {
+            final Event event = eventItem.event;
+            GuestProfile organizer = eventItem.organizer;
+            String currentUserId = FirebaseAuth.getInstance().getUid();
+
+            // Set basic event details
+            eventTitle.setText(event.getEventName());
+            eventDate.setText(String.format("%s, %s", event.getDate(), event.getTime()));
+            eventLocation.setText(event.getLocation());
+            categoryTag.setText(event.getCategory());
+
+            // Set Fee and Max Guests text
+            String feeText = (event.getFee() == 0) ? "Free" : "RM" + String.format(Locale.US, "%.2f", event.getFee());
+            eventAudience.setText("Fee: " + feeText + " | Max Guests: " + event.getMaxGuests());
+
+            // Set Date Badge
+            try {
+                dateBadge.setText(event.getDate().substring(0, event.getDate().lastIndexOf('/')));
+            } catch (Exception e) {
+                dateBadge.setText(event.getDate());
+            }
+
+            // Set Organizer Name and Profile Picture
+            if (organizer != null) {
+                organizerName.setText(organizer.getName());
+                if (organizer.getProfileImageUrl() != null && !organizer.getProfileImageUrl().isEmpty()) {
+                    Glide.with(itemView.getContext())
+                            .load(organizer.getProfileImageUrl())
+                            .placeholder(R.drawable.ic_person)
+                            .into(organizerAvatar);
+                } else {
+                    organizerAvatar.setImageResource(R.drawable.ic_person);
+                }
+            } else {
+                organizerName.setText("Unknown Organizer");
+                organizerAvatar.setImageResource(R.drawable.ic_person);
+            }
+
+            // Set Event Banner
+            if (event.getCoverImageUrl() != null && !event.getCoverImageUrl().isEmpty()) {
+                bannerContainer.setVisibility(View.VISIBLE);
+                Glide.with(itemView.getContext())
+                        .load(event.getCoverImageUrl())
+                        .placeholder(R.drawable.event_banner_placeholder)
+                        .into(eventBanner);
+                eventBanner.setOnClickListener(v -> {
+                    AppCompatActivity activity = (AppCompatActivity) v.getContext();
+                    FullScreenImageDialogFragment dialog = FullScreenImageDialogFragment.newInstance(event.getCoverImageUrl());
+                    dialog.show(activity.getSupportFragmentManager(), "FullScreenImageDialog");
+                });
+            } else {
+                bannerContainer.setVisibility(View.GONE);
+            }
+
+            // Show/Hide and set listener for the Edit Button
+            if (currentUserId != null && currentUserId.equals(event.getOrganizerId())) {
+                editEventButton.setVisibility(View.VISIBLE);
+                editEventButton.setOnClickListener(v -> {
+                    Intent intent = new Intent(itemView.getContext(), EventCreationActivity.class);
+                    intent.putExtra("IS_EDIT_MODE", true);
+                    intent.putExtra("EDIT_EVENT_DATA", event);
+                    itemView.getContext().startActivity(intent);
+                });
+            } else {
+                editEventButton.setVisibility(View.GONE);
+            }
         }
     }
 }

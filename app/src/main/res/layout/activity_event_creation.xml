@@ -164,12 +164,11 @@
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.materialswitch.MaterialSwitch
-                android:id="@+id/publishSwitch"
+                android:id="@+id/scheduleSwitch"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:checked="true"
-                android:text="Publish Immediately" />
+                android:text="Schedule for Later" />
 
             <LinearLayout
                 android:id="@+id/scheduleLayout"

@@ -52,7 +52,7 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
     private ImageView ivPosterPreview;
     private LinearLayout layoutCatalogPreview;
     private ActivityResultLauncher<Intent> posterImageLauncher, catalogImageLauncher;
-    private MaterialSwitch publishSwitch;
+    private MaterialSwitch scheduleSwitch;
     private LinearLayout scheduleLayout;
 
     private String posterImageUrl = "";
@@ -91,7 +91,7 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         etLocation = findViewById(R.id.etLocation);
         etMaxGuests = findViewById(R.id.etMaxGuests);
         etFee = findViewById(R.id.etFee);
-        publishSwitch = findViewById(R.id.publishSwitch);
+        scheduleSwitch = findViewById(R.id.scheduleSwitch);
         scheduleLayout = findViewById(R.id.scheduleLayout);
         etPublishDate = findViewById(R.id.etPublishDate);
         etPublishTime = findViewById(R.id.etPublishTime);
@@ -157,8 +157,8 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         findViewById(R.id.btnReset).setOnClickListener(v -> resetForm());
         btnUploadPoster.setOnClickListener(v -> openImagePicker(posterImageLauncher, false));
         btnUploadCatalog.setOnClickListener(v -> openImagePicker(catalogImageLauncher, true));
-        publishSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            scheduleLayout.setVisibility(isChecked ? View.GONE : View.VISIBLE);
+        scheduleSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            scheduleLayout.setVisibility(isChecked ? View.VISIBLE : View.GONE);
         });
         btnCreate.setOnClickListener(v -> saveEvent());
     }
@@ -197,8 +197,8 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         }
 
         // Handle visibility and scheduling UI
-        publishSwitch.setChecked(eventToEdit.isVisible());
-        if (eventToEdit.getPublishAt() > System.currentTimeMillis() && !eventToEdit.isVisible()) {
+        if (eventToEdit.getPublishAt() > System.currentTimeMillis()) {
+            scheduleSwitch.setChecked(true);
             scheduleLayout.setVisibility(View.VISIBLE);
             publishCalendar.setTimeInMillis(eventToEdit.getPublishAt());
             SimpleDateFormat sdfDate = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
@@ -206,6 +206,8 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
             SimpleDateFormat sdfTime = new SimpleDateFormat("hh:mm a", Locale.getDefault());
             etPublishTime.setText(sdfTime.format(publishCalendar.getTime()));
         } else {
+            // Otherwise, it's published immediately.
+            scheduleSwitch.setChecked(false);
             scheduleLayout.setVisibility(View.GONE);
         }
     }
@@ -225,21 +227,20 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         boolean isVisible;
         long publishAt;
 
-        if (publishSwitch.isChecked()) {
-            isVisible = true;
-            publishAt = System.currentTimeMillis();
-        } else {
-            isVisible = false;
+        if (scheduleSwitch.isChecked()) {
             publishAt = publishCalendar.getTimeInMillis();
             if (publishAt <= System.currentTimeMillis()) {
-                Toast.makeText(this, "Scheduled publish time must be in the future.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Scheduled time must be in the future.", Toast.LENGTH_SHORT).show();
                 return;
             }
+        } else {
+            // If not scheduled, publish immediately
+            publishAt = System.currentTimeMillis();
         }
 
         String organizerId = isEditMode ? eventToEdit.getOrganizerId() : FirebaseAuth.getInstance().getUid();
 
-        Event event = new Event(eventName, description, category, date, time, location, organizerId, maxGuests, fee, isVisible, publishAt);
+        Event event = new Event(eventName, description, category, date, time, location, organizerId, maxGuests, fee, publishAt);
         event.setCoverImageUrl(posterImageUrl);
         event.setAdditionalImageUrls(catalogImageUrls);
 

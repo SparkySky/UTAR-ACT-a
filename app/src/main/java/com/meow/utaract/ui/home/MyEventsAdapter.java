@@ -28,6 +28,7 @@ public class MyEventsAdapter extends RecyclerView.Adapter<MyEventsAdapter.MyEven
     private Context context;
     private EventCreationStorage eventStorage;
 
+
     public MyEventsAdapter(List<Event> eventList, Context context, EventCreationStorage eventStorage) {
         this.eventList = eventList;
         this.context = context;
@@ -53,7 +54,7 @@ public class MyEventsAdapter extends RecyclerView.Adapter<MyEventsAdapter.MyEven
     }
 
     class MyEventViewHolder extends RecyclerView.ViewHolder {
-        TextView eventTitleText, createdDateText, publishTimeText;
+        TextView eventTitleText, createdDateText, eventStatusText;
         MaterialSwitch visibilitySwitch;
         Button deleteButton, editButton;
 
@@ -61,8 +62,7 @@ public class MyEventsAdapter extends RecyclerView.Adapter<MyEventsAdapter.MyEven
             super(itemView);
             eventTitleText = itemView.findViewById(R.id.eventTitleText);
             createdDateText = itemView.findViewById(R.id.createdDateText);
-            publishTimeText = itemView.findViewById(R.id.publishTimeText);
-            visibilitySwitch = itemView.findViewById(R.id.visibilitySwitch);
+            eventStatusText = itemView.findViewById(R.id.eventStatusText);
             deleteButton = itemView.findViewById(R.id.deleteButton);
             editButton = itemView.findViewById(R.id.editButton);
         }
@@ -72,27 +72,13 @@ public class MyEventsAdapter extends RecyclerView.Adapter<MyEventsAdapter.MyEven
             SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault());
             createdDateText.setText("Created on: " + sdf.format(new Date(event.getCreatedAt())));
 
-            visibilitySwitch.setChecked(event.isVisible());
-
-            if (event.getPublishAt() > System.currentTimeMillis() && !event.isVisible()) {
-                SimpleDateFormat publishSdf = new SimpleDateFormat("dd MMM yyyy 'at' hh:mm a", Locale.getDefault());
-                publishTimeText.setText("Scheduled for: " + publishSdf.format(new Date(event.getPublishAt())));
-                publishTimeText.setVisibility(View.VISIBLE);
+            // Set the status text based on publishAt time
+            if (event.getPublishAt() <= System.currentTimeMillis()) {
+                eventStatusText.setText("Status: Published");
             } else {
-                publishTimeText.setVisibility(View.GONE);
+                SimpleDateFormat publishSdf = new SimpleDateFormat("dd MMM yyyy 'at' hh:mm a", Locale.getDefault());
+                eventStatusText.setText("Status: Scheduled for " + publishSdf.format(new Date(event.getPublishAt())));
             }
-
-            // Set listeners without executing update logic immediately
-            visibilitySwitch.setOnCheckedChangeListener(null);
-            visibilitySwitch.setChecked(event.isVisible());
-            visibilitySwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                event.setVisible(isChecked);
-                // If they make it visible, set publish time to now
-                if (isChecked) {
-                    event.setPublishAt(System.currentTimeMillis());
-                }
-                updateEventInFirestore(event);
-            });
 
             // Delete button logic
             deleteButton.setEnabled(isEventDeletable(event.getDate()));

@@ -43,6 +43,15 @@
             android:textColor="?attr/colorPrimary"
             tools:text="Scheduled to publish on 2025-09-01 at 10:00 AM" />
 
+        <TextView
+            android:id="@+id/eventStatusText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textStyle="bold"
+            tools:text="Status: Published" />
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

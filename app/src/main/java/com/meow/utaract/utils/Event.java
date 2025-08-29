@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-// Implement Serializable to allow passing Event objects between activities
 public class Event implements Serializable {
     private String eventId;
     private String eventName;
@@ -19,18 +18,15 @@ public class Event implements Serializable {
     private long createdAt;
     private int maxGuests;
     private double fee;
-
-    // New fields for visibility and scheduling
-    private boolean isVisible;
-    private long publishAt;
+    private long publishAt; // The ONLY field for visibility control
 
     public Event() {
-        // Default constructor
         this.additionalImageUrls = new ArrayList<>();
     }
 
+    // Constructor is now simpler, without isVisible
     public Event(String eventName, String description, String category, String date,
-                 String time, String location, String organizerId, int maxGuests, double fee, boolean isVisible, long publishAt) {
+                 String time, String location, String organizerId, int maxGuests, double fee, long publishAt) {
         this.eventName = eventName;
         this.description = description;
         this.category = category;
@@ -41,21 +37,16 @@ public class Event implements Serializable {
         this.createdAt = System.currentTimeMillis();
         this.maxGuests = maxGuests;
         this.fee = fee;
-        this.isVisible = isVisible;
         this.publishAt = publishAt;
         this.coverImageUrl = "";
         this.additionalImageUrls = new ArrayList<>();
     }
 
-    // --- Getters and Setters for all fields (including new ones) ---
-
-    public boolean isVisible() { return isVisible; }
-    public void setVisible(boolean visible) { isVisible = visible; }
-
+    // --- Getters and Setters ---
     public long getPublishAt() { return publishAt; }
     public void setPublishAt(long publishAt) { this.publishAt = publishAt; }
 
-    // (All other getters and setters remain)
+    // (All other getters and setters remain the same)
     public String getEventId() { return eventId; }
     public void setEventId(String eventId) { this.eventId = eventId; }
     public String getEventName() { return eventName; }

@@ -1,7 +1,6 @@
 package com.meow.utaract.ui.home;
 
-import android.content.Context;
-
+import android.util.Log;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
@@ -9,7 +8,6 @@ import com.meow.utaract.utils.Event;
 import com.meow.utaract.utils.EventCreationStorage;
 import com.meow.utaract.utils.GuestProfile;
 import com.meow.utaract.utils.GuestProfileStorage;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -17,99 +15,111 @@ import java.util.stream.Collectors;
 
 public class HomeViewModel extends ViewModel {
 
+    private static final String TAG = "HomeViewModel";
     private final MutableLiveData<List<EventItem>> displayedEventItems = new MutableLiveData<>();
     private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>();
-    private final MutableLiveData<List<String>> activeFilters = new MutableLiveData<>();
+    private final MutableLiveData<List<String>> activeFilters = new MutableLiveData<>(new ArrayList<>());
+
     private List<Event> allEvents = new ArrayList<>();
-    private Map<String, GuestProfile> organizerProfiles = null;
+    private Map<String, GuestProfile> organizerProfiles;
     private String currentSearchQuery = "";
-    private final EventCreationStorage eventCreationStorage;
-    private final GuestProfileStorage guestProfileStorage;
+
+    private final EventCreationStorage eventStorage;
+    private final GuestProfileStorage profileStorage;
 
     public HomeViewModel() {
-        eventCreationStorage = new EventCreationStorage();
-        guestProfileStorage = new GuestProfileStorage(null);
-        activeFilters.setValue(new ArrayList<>());
+        eventStorage = new EventCreationStorage();
+        profileStorage = new GuestProfileStorage(null);
     }
 
     public LiveData<List<EventItem>> getEventItems() {
         return displayedEventItems;
     }
-    public LiveData<Boolean> getIsLoading() { return isLoading; }
-    public LiveData<List<String>> getActiveFilters() { return activeFilters; }
 
-    public void fetchEvents(List<String> initialCategories) {
+    public LiveData<Boolean> getIsLoading() {
+        return isLoading;
+    }
+
+    public LiveData<List<String>> getActiveFilters() {
+        return activeFilters;
+    }
+
+    public void fetchEvents(List<String> initialCategoryPreferences) {
         isLoading.setValue(true);
-        eventCreationStorage.getAllEvents(new EventCreationStorage.EventsFetchCallback() {
+        if (initialCategoryPreferences != null) {
+            activeFilters.setValue(initialCategoryPreferences);
+        }
+
+        eventStorage.getAllEvents(new EventCreationStorage.EventsFetchCallback() {
             @Override
-            public void onSuccess(List<Event> eventList) {
-                allEvents = eventList;
+            public void onSuccess(List<Event> events) {
+                allEvents = events;
                 List<String> organizerIds = allEvents.stream()
                         .map(Event::getOrganizerId)
                         .distinct()
                         .collect(Collectors.toList());
 
-                guestProfileStorage.getProfilesForUserIds(organizerIds, new GuestProfileStorage.ProfilesCallback() {
+                if (organizerIds.isEmpty()) {
+                    applyFiltersAndCombine();
+                    isLoading.setValue(false);
+                    return;
+                }
+
+                profileStorage.getProfilesForUserIds(organizerIds, new GuestProfileStorage.ProfilesCallback() {
                     @Override
                     public void onSuccess(Map<String, GuestProfile> profiles) {
                         organizerProfiles = profiles;
-                        if (initialCategories != null && !initialCategories.isEmpty()) {
-                            setCategoryFilters(initialCategories);
-                        } else {
-                            applyFilters();
-                        }
-                        isLoading.setValue(false);
+                        applyFiltersAndCombine();
                     }
-
                     @Override
                     public void onFailure(Exception e) {
                         organizerProfiles = null;
-                        applyFilters();
-                        isLoading.setValue(false);
+                        applyFiltersAndCombine();
                     }
                 });
             }
             @Override
             public void onFailure(Exception e) {
                 isLoading.setValue(false);
+                displayedEventItems.setValue(new ArrayList<>());
             }
         });
     }
 
     public void setSearchQuery(String query) {
         currentSearchQuery = query;
-        applyFilters();
+        applyFiltersAndCombine();
     }
 
     public void setCategoryFilters(List<String> categories) {
         activeFilters.setValue(categories);
-        applyFilters();
+        applyFiltersAndCombine();
     }
 
-    private void applyFilters() {
-        if (allEvents == null) return;
-        List<Event> filteredList = new ArrayList<>(allEvents);
-        List<String> currentCategories = activeFilters.getValue();
+    private void applyFiltersAndCombine() {
+        long currentTime = System.currentTimeMillis();
 
-        if (currentCategories != null && !currentCategories.isEmpty()) {
-            filteredList = filteredList.stream()
-                    .filter(event -> currentCategories.contains(event.getCategory()))
-                    .collect(Collectors.toList());
-        }
+        List<Event> filteredEvents = allEvents.stream()
+                // THE ONLY VISIBILITY RULE:
+                .filter(event -> event.getPublishAt() <= currentTime)
+                .filter(event -> { // User preference filter
+                    List<String> categories = activeFilters.getValue();
+                    return categories == null || categories.isEmpty() || categories.contains(event.getCategory());
+                })
+                .filter(event -> { // Search filter
+                    if (currentSearchQuery == null || currentSearchQuery.trim().isEmpty()) return true;
+                    String normalizedQuery = currentSearchQuery.toLowerCase().replaceAll("\\s", "");
+                    return isSubsequence(normalizedQuery, event.getEventName().toLowerCase().replaceAll("\\s", ""));
+                })
+                .collect(Collectors.toList());
 
-        if (currentSearchQuery != null && !currentSearchQuery.trim().isEmpty()) {
-            String normalizedQuery = currentSearchQuery.toLowerCase().replaceAll("\\s", "");
-            filteredList = filteredList.stream()
-                    .filter(event -> isSubsequence(normalizedQuery, event.getEventName().toLowerCase().replaceAll("\\s", "")))
-                    .collect(Collectors.toList());
-        }
-
-        List<EventItem> eventItems = new ArrayList<>();
-        for (Event event : filteredList) {
+        List<EventItem> combinedList = new ArrayList<>();
+        for (Event event : filteredEvents) {
             GuestProfile organizer = (organizerProfiles != null) ? organizerProfiles.get(event.getOrganizerId()) : null;
-            eventItems.add(new EventItem(event, organizer));
+            combinedList.add(new EventItem(event, organizer));
         }
-        displayedEventItems.setValue(eventItems);
+        displayedEventItems.setValue(combinedList);
+        isLoading.setValue(false);
     }
 
     private boolean isSubsequence(String s1, String s2) {
@@ -126,7 +136,6 @@ public class HomeViewModel extends ViewModel {
     public static class EventItem {
         public final Event event;
         public final GuestProfile organizer;
-
         public EventItem(Event event, GuestProfile organizer) {
             this.event = event;
             this.organizer = organizer;

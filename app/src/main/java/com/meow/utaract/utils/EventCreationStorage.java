@@ -1,6 +1,9 @@
 package com.meow.utaract.utils;
 
+import static android.content.ContentValues.TAG;
+
 import android.content.Context;
+import android.util.Log;
 
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -97,24 +100,25 @@ public class EventCreationStorage {
 
     // Get all events
     public void getAllEvents(EventsFetchCallback callback) {
-        firestore.collection(EVENTS_COLLECTION)
-                .whereEqualTo("visible", true)
-                // Optionally add: .whereLessThanOrEqualTo("publishAt", System.currentTimeMillis())
-                // Note: This requires a composite index in Firestore. For simplicity, we can filter by publishAt on the client.
+        Log.d(TAG, "Attempting to fetch all events from Firestore.");
+        firestore.collection("events")
                 .orderBy("createdAt", Query.Direction.DESCENDING)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     List<Event> events = new ArrayList<>();
                     for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
                         Event event = document.toObject(Event.class);
-                        // Client-side filter for scheduled posts
-                        if (event != null && event.getPublishAt() <= System.currentTimeMillis()) {
+                        if (event != null) {
                             events.add(event);
                         }
                     }
+                    Log.d(TAG, "Successfully fetched " + events.size() + " total events.");
                     callback.onSuccess(events);
                 })
-                .addOnFailureListener(callback::onFailure);
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error fetching events", e);
+                    callback.onFailure(e);
+                });
     }
 
     // Update event
