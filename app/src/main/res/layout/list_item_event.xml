@@ -17,7 +17,8 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/banner_container"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:minHeight="60dp">
 
             <ImageView
                 android:id="@+id/event_banner"
@@ -25,10 +26,11 @@
                 android:layout_height="0dp"
                 android:contentDescription="Event banner"
                 android:scaleType="centerCrop"
-                app:layout_constraintDimensionRatio="19:3"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintDimensionRatio="16:9"
                 app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
                 tools:src="@drawable/event_banner_placeholder" />
 
             <TextView

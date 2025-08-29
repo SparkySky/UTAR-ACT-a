@@ -63,6 +63,11 @@ public class FilterBottomSheetDialogFragment extends BottomSheetDialogFragment {
                     chip.setText(category);
                     chip.setCheckable(true);
                     chip.setChecked(selectedCategories.contains(category));
+
+                    chip.setChipBackgroundColorResource(R.color.preference_chip_background);
+                    chip.setTextColor(getResources().getColorStateList(R.color.preference_chip_text_color, requireActivity().getTheme()));
+                    chip.setChipStrokeWidth(0); // Hide the default stroke
+
                     filterChipGroup.addView(chip);
                 }
             }

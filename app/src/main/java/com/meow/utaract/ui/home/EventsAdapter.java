@@ -1,6 +1,8 @@
 package com.meow.utaract.ui.home;
 
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,6 +11,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
@@ -18,14 +21,42 @@ import com.meow.utaract.utils.Event;
 import com.meow.utaract.utils.GuestProfile;
 import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
 public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.EventViewHolder> {
     private List<HomeViewModel.EventItem> eventItemList;
-
-    public EventsAdapter(List<HomeViewModel.EventItem> eventItemList) {
+    // Jus placeholder image colours
+    private final int[] placeholderColors;
+    private final Random random = new Random();
+    public EventsAdapter(List<HomeViewModel.EventItem> eventItemList, View context) {
         this.eventItemList = eventItemList;
+        // Define a palette of colors for the image placeholders
+        placeholderColors = new int[]{
+                Color.parseColor("#E0BBE4"),
+                Color.parseColor("#957DAD"),
+                Color.parseColor("#D291BC"),
+                Color.parseColor("#FEC8D8"),
+                Color.parseColor("#B2EBF2"), // Light Cyan
+                Color.parseColor("#FFCCBC"), // Light Coral
+                Color.parseColor("#D1C4E9"), // Light Lavender
+                Color.parseColor("#C8E6C9"), // Light Green
+                Color.parseColor("#FFF9C4"), // Light Yellow
+                Color.parseColor("#F8BBD0"), // Light Pink
+                Color.parseColor("#80DEEA"), // Vibrant Cyan
+                Color.parseColor("#FFAB91"), // Vibrant Coral
+                Color.parseColor("#B39DDB"), // Vibrant Lavender
+                Color.parseColor("#A5D6A7"), // Vibrant Green
+                Color.parseColor("#FFF59D"), // Vibrant Yellow
+                Color.parseColor("#F48FB1"), // Vibrant Pink
+                Color.parseColor("#A7FFEB"), // Light Teal
+                Color.parseColor("#CFD8DC"), // Blue Grey
+                Color.parseColor("#FFD180"), // Light Orange
+                Color.parseColor("#B2FF59"), // Light Lime
+                Color.parseColor("#81D4FA"), // Light Blue
+                Color.parseColor("#FF8A80")  // Light Red
+        };
     }
 
     public void updateEvents(List<HomeViewModel.EventItem> newEventItems) {
@@ -45,7 +76,7 @@ public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.EventViewH
     @Override
     public void onBindViewHolder(@NonNull EventViewHolder holder, int position) {
         HomeViewModel.EventItem eventItem = eventItemList.get(position);
-        holder.bind(eventItem);
+        holder.bind(eventItem, placeholderColors[random.nextInt(placeholderColors.length)]);
     }
 
     @Override
@@ -53,6 +84,7 @@ public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.EventViewH
         return eventItemList.size();
     }
 
+    // Class for the view holder
     static class EventViewHolder extends RecyclerView.ViewHolder {
         ImageView eventBanner;
         TextView dateBadge, categoryTag, eventTitle, eventAudience, eventDate, eventLocation, organizerName;
@@ -75,7 +107,7 @@ public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.EventViewH
             editEventButton = itemView.findViewById(R.id.editEventButton);
         }
 
-        void bind(final HomeViewModel.EventItem eventItem) {
+        void bind(final HomeViewModel.EventItem eventItem, int placeholderColor) {
             final Event event = eventItem.event;
             GuestProfile organizer = eventItem.organizer;
             String currentUserId = FirebaseAuth.getInstance().getUid();
@@ -115,18 +147,43 @@ public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.EventViewH
 
             // Set Event Banner
             if (event.getCoverImageUrl() != null && !event.getCoverImageUrl().isEmpty()) {
-                bannerContainer.setVisibility(View.VISIBLE);
+                // If there IS a poster, load it with Glide
+                bannerContainer.setOnClickListener(null); // Remove placeholder listener
                 Glide.with(itemView.getContext())
                         .load(event.getCoverImageUrl())
-                        .placeholder(R.drawable.event_banner_placeholder)
                         .into(eventBanner);
+                eventBanner.setOnClickListener(v -> { // Set click listener on the image itself
+                    AppCompatActivity activity = (AppCompatActivity) v.getContext();
+                    FullScreenImageDialogFragment dialog = FullScreenImageDialogFragment.newInstance(event.getCoverImageUrl());
+                    dialog.show(activity.getSupportFragmentManager(), "FullScreenImageDialog");
+                });
+            } else {
+                // If there is NO poster, apply the colored placeholder
+                eventBanner.setOnClickListener(null); // Remove image listener
+                GradientDrawable newDrawable = (GradientDrawable) ContextCompat.getDrawable(itemView.getContext(), R.drawable.event_banner_gradient_placeholder).mutate();
+                newDrawable.setColor(placeholderColor);
+                eventBanner.setImageDrawable(newDrawable); // Set the drawable on the ImageView
+            }
+
+            // Set color for placeholder image
+            if (event.getCoverImageUrl() != null && !event.getCoverImageUrl().isEmpty()) {
+                // If there is a poster, load it with Glide
+                eventBanner.setVisibility(View.VISIBLE);
+                Glide.with(itemView.getContext())
+                        .load(event.getCoverImageUrl())
+                        .into(eventBanner);
+                bannerContainer.setBackgroundColor(Color.TRANSPARENT); // Remove any placeholder color
                 eventBanner.setOnClickListener(v -> {
                     AppCompatActivity activity = (AppCompatActivity) v.getContext();
                     FullScreenImageDialogFragment dialog = FullScreenImageDialogFragment.newInstance(event.getCoverImageUrl());
                     dialog.show(activity.getSupportFragmentManager(), "FullScreenImageDialog");
                 });
             } else {
-                bannerContainer.setVisibility(View.GONE);
+                // If there is NO poster, hide the ImageView and set a random color on the container
+                eventBanner.setVisibility(View.GONE); // Hide the ImageView
+                GradientDrawable newDrawable = (GradientDrawable) ContextCompat.getDrawable(itemView.getContext(), R.drawable.event_banner_gradient_placeholder).mutate();
+                newDrawable.setColor(placeholderColor);
+                bannerContainer.setBackground(newDrawable);
             }
 
             // Show/Hide and set listener for the Edit Button

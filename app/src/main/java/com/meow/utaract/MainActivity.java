@@ -3,7 +3,6 @@ package com.meow.utaract;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
-
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.lifecycle.ViewModelProvider;
@@ -19,7 +18,6 @@ public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
     private MainViewModel mainViewModel;
-    private NavController navController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,41 +34,27 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setupNavigation(boolean isOrganiser) {
-        NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment_content_main);
-        if (navHostFragment != null) {
-            navController = navHostFragment.getNavController();
-            NavigationView navView = binding.navView;
+        NavigationView navigationView = binding.navView;
 
-            // Show/Hide "My Events" menu item based on user role
-            Menu navMenu = navView.getMenu();
-            navMenu.findItem(R.id.nav_my_events).setVisible(isOrganiser);
+        NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.nav_host_fragment_content_main);
+        NavController navController = navHostFragment.getNavController();
 
-            // Handle navigation clicks
-            navView.setNavigationItemSelectedListener(item -> {
-                int id = item.getItemId();
-                if (id == R.id.nav_my_events) {
-                    startActivity(new Intent(this, MyEventsActivity.class));
-                    binding.drawerLayout.closeDrawers();
-                    return true;
-                }
-                // Let NavigationUI handle other clicks
-                boolean handled = NavigationUI.onNavDestinationSelected(item, navController);
-                if (handled) {
-                    binding.drawerLayout.closeDrawers();
-                }
-                return handled;
-            });
-        }
+        // This line is enough to make the navigation drawer items work.
+        NavigationUI.setupWithNavController(navigationView, navController);
+
+        Menu navMenu = navigationView.getMenu();
+        navMenu.findItem(R.id.nav_manage_events).setVisible(isOrganiser);
     }
+
+    // The onSupportNavigateUp method is no longer needed.
 
     private void loadUserProfile(boolean isOrganiser) {
         GuestProfileStorage storage = new GuestProfileStorage(this);
         if (isOrganiser && !storage.profileExists()) {
             storage.downloadProfileFromFirestore(new GuestProfileStorage.FirestoreCallback() {
                 @Override
-                public void onSuccess(GuestProfile user) {
-                    storage.saveProfile(user);
-                }
+                public void onSuccess(GuestProfile user) { storage.saveProfile(user); }
                 @Override
                 public void onFailure(Exception e) {
                     Intent intent = new Intent(MainActivity.this, GuestFormActivity.class);
@@ -86,7 +70,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // This method is now public so the fragment can access the DrawerLayout
     public DrawerLayout getDrawerLayout() {
         return binding.drawerLayout;
     }

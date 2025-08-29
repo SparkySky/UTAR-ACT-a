@@ -10,8 +10,8 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
-import com.google.android.material.materialswitch.MaterialSwitch;
 import com.meow.utaract.EventCreationActivity;
 import com.meow.utaract.R;
 import com.meow.utaract.utils.Event;
@@ -24,15 +24,20 @@ import java.util.Locale;
 
 public class MyEventsAdapter extends RecyclerView.Adapter<MyEventsAdapter.MyEventViewHolder> {
 
-    private List<Event> eventList;
-    private Context context;
-    private EventCreationStorage eventStorage;
-
+    private final List<Event> eventList;
+    private final Context context;
+    private final EventCreationStorage eventStorage;
 
     public MyEventsAdapter(List<Event> eventList, Context context, EventCreationStorage eventStorage) {
         this.eventList = eventList;
         this.context = context;
         this.eventStorage = eventStorage;
+    }
+
+    public void updateEvents(List<Event> newEvents) {
+        this.eventList.clear();
+        this.eventList.addAll(newEvents);
+        notifyDataSetChanged();
     }
 
     @NonNull
@@ -55,7 +60,6 @@ public class MyEventsAdapter extends RecyclerView.Adapter<MyEventsAdapter.MyEven
 
     class MyEventViewHolder extends RecyclerView.ViewHolder {
         TextView eventTitleText, createdDateText, eventStatusText;
-        MaterialSwitch visibilitySwitch;
         Button deleteButton, editButton;
 
         MyEventViewHolder(@NonNull View itemView) {
@@ -72,19 +76,18 @@ public class MyEventsAdapter extends RecyclerView.Adapter<MyEventsAdapter.MyEven
             SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault());
             createdDateText.setText("Created on: " + sdf.format(new Date(event.getCreatedAt())));
 
-            // Set the status text based on publishAt time
             if (event.getPublishAt() <= System.currentTimeMillis()) {
                 eventStatusText.setText("Status: Published");
+                eventStatusText.setTextColor(ContextCompat.getColor(context, R.color.md_theme_light_primary));
             } else {
                 SimpleDateFormat publishSdf = new SimpleDateFormat("dd MMM yyyy 'at' hh:mm a", Locale.getDefault());
                 eventStatusText.setText("Status: Scheduled for " + publishSdf.format(new Date(event.getPublishAt())));
+                eventStatusText.setTextColor(ContextCompat.getColor(context, R.color.md_theme_light_secondary));
             }
 
-            // Delete button logic
             deleteButton.setEnabled(isEventDeletable(event.getDate()));
             deleteButton.setOnClickListener(v -> showDeleteConfirmation(event));
 
-            // Edit button logic
             editButton.setOnClickListener(v -> {
                 Intent intent = new Intent(context, EventCreationActivity.class);
                 intent.putExtra("IS_EDIT_MODE", true);
@@ -99,14 +102,14 @@ public class MyEventsAdapter extends RecyclerView.Adapter<MyEventsAdapter.MyEven
                 Date eventDate = eventSdf.parse(eventDateStr);
                 return eventDate != null && eventDate.after(new Date());
             } catch (ParseException e) {
-                return false; // Cannot parse date, disable deletion
+                return false;
             }
         }
 
         private void showDeleteConfirmation(Event event) {
             new AlertDialog.Builder(context)
                     .setTitle("Delete Event")
-                    .setMessage("Are you sure you want to delete this event? This action cannot be undone.")
+                    .setMessage("Are you sure you want to delete this event?")
                     .setPositiveButton("Delete", (dialog, which) -> {
                         eventStorage.deleteEvent(event.getEventId(), new EventCreationStorage.EventDeletionCallback() {
                             @Override
@@ -126,20 +129,6 @@ public class MyEventsAdapter extends RecyclerView.Adapter<MyEventsAdapter.MyEven
                     })
                     .setNegativeButton("Cancel", null)
                     .show();
-        }
-
-        private void updateEventInFirestore(Event event) {
-            eventStorage.updateEvent(event.getEventId(), event, new EventCreationStorage.EventCreationCallback() {
-                @Override
-                public void onSuccess(String eventId) {
-                    Toast.makeText(context, "Visibility updated", Toast.LENGTH_SHORT).show();
-                    bind(event); // Re-bind to update the UI state (e.g., the scheduled text)
-                }
-                @Override
-                public void onFailure(Exception e) {
-                    Toast.makeText(context, "Update failed", Toast.LENGTH_SHORT).show();
-                }
-            });
         }
     }
 }

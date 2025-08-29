@@ -26,23 +26,6 @@
             android:textAppearance="?attr/textAppearanceBodySmall"
             tools:text="Created on: 2025-08-30" />
 
-        <com.google.android.material.materialswitch.MaterialSwitch
-            android:id="@+id/visibilitySwitch"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="Visible to Public" />
-
-        <TextView
-            android:id="@+id/publishTimeText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:visibility="gone"
-            tools:visibility="visible"
-            android:textAppearance="?attr/textAppearanceBodySmall"
-            android:textColor="?attr/colorPrimary"
-            tools:text="Scheduled to publish on 2025-09-01 at 10:00 AM" />
-
         <TextView
             android:id="@+id/eventStatusText"
             android:layout_width="wrap_content"

@@ -70,20 +70,25 @@
             <LinearLayout
                 android:id="@+id/search_container"
                 android:layout_width="0dp"
-                android:layout_height="48dp"
+                android:layout_height="45dp"
                 android:background="@drawable/icon_main_searchbar"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:paddingStart="8dp"
-                android:paddingEnd="8dp">
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                tools:layout_editor_absoluteX="64dp"
+                tools:layout_editor_absoluteY="66dp">
+
                 <ImageView
                     android:layout_width="30dp"
                     android:layout_height="30dp"
                     android:src="@drawable/icon_main_search" />
+
                 <ImageView
                     android:layout_width="wrap_content"
                     android:layout_height="25dp"
                     android:src="@drawable/icon_main_line" />
+
                 <EditText
                     android:id="@+id/search_input"
                     android:layout_width="0dp"
@@ -99,8 +104,8 @@
 
                 <ImageView
                     android:id="@+id/filter_button"
-                    android:layout_width="70dp"
-                    android:layout_height="match_parent"
+                    android:layout_width="80dp"
+                    android:layout_height="40dp"
                     android:src="@drawable/icon_main_filter" />
             </LinearLayout>
         </androidx.constraintlayout.motion.widget.MotionLayout>

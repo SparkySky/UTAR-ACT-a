@@ -12,14 +12,9 @@
         tools:layout="@layout/fragment_home" />
 
     <fragment
-        android:id="@+id/nav_gallery"
-        android:name="com.meow.utaract.ui.gallery.GalleryFragment"
-        android:label="@string/menu_gallery"
-        tools:layout="@layout/fragment_gallery" />
+        android:id="@+id/nav_manage_events"
+        android:name="com.meow.utaract.ui.manage.ManageEventsFragment"
+        android:label="Manage Events"
+        tools:layout="@layout/fragment_manage_events" />
 
-    <fragment
-        android:id="@+id/nav_slideshow"
-        android:name="com.meow.utaract.ui.slideshow.SlideshowFragment"
-        android:label="@string/menu_slideshow"
-        tools:layout="@layout/fragment_slideshow" />
 </navigation>

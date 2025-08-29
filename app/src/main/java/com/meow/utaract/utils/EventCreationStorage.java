@@ -157,9 +157,9 @@ public class EventCreationStorage {
                 });
     }
 
-    // Method to get events by a specific organizer
+    // Method to get events by a specific organizer with index
     public void getEventsByOrganizer(String organizerId, EventsFetchCallback callback) {
-        firestore.collection(EVENTS_COLLECTION)
+        firestore.collection("events")
                 .whereEqualTo("organizerId", organizerId)
                 .orderBy("createdAt", Query.Direction.DESCENDING)
                 .get()
@@ -175,10 +175,6 @@ public class EventCreationStorage {
                 })
                 .addOnFailureListener(callback::onFailure);
     }
-
-
-
-
 
     // Callback interfaces
     public interface EventCreationCallback {

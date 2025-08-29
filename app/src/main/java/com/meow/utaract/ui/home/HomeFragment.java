@@ -1,5 +1,6 @@
 package com.meow.utaract.ui.home;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -50,11 +51,13 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
         homeViewModel = new ViewModelProvider(this).get(HomeViewModel.class);
 
         motionLayoutHeader = binding.motionLayoutHeader;
+        motionLayoutHeader.setProgress(1.0f);
         searchInput = binding.searchInput;
 
         setupRecyclerView();
         setupUIListeners();
         observeViewModels();
+        loadDataWithPreferences();
 
         return binding.getRoot();
     }
@@ -68,9 +71,6 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
     @Override
     public void onResume() {
         super.onResume();
-        // This is the key to solving both issues:
-        // 1. It automatically refreshes the list for scheduled posts.
-        // 2. It re-applies the user's preferences every time they return.
         loadDataWithPreferences();
     }
 
@@ -86,11 +86,13 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
     }
 
     private void setupRecyclerView() {
-        eventsAdapter = new EventsAdapter(new ArrayList<>());
+        // THE FIX: Pass the fragment's root view (binding.getRoot()) to the adapter's constructor.
+        eventsAdapter = new EventsAdapter(new ArrayList<>(), binding.getRoot());
         binding.recyclerViewEvents.setLayoutManager(new LinearLayoutManager(getContext()));
         binding.recyclerViewEvents.setAdapter(eventsAdapter);
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private void setupUIListeners() {
         binding.swipeRefreshLayout.setOnRefreshListener(this::loadDataWithPreferences);
 
