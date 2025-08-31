@@ -46,10 +46,6 @@ public class HomeViewModel extends ViewModel {
 
     public void fetchEvents(List<String> initialCategoryPreferences) {
         isLoading.setValue(true);
-        if (initialCategoryPreferences != null) {
-            activeFilters.setValue(initialCategoryPreferences);
-        }
-
         eventStorage.getAllEvents(new EventCreationStorage.EventsFetchCallback() {
             @Override
             public void onSuccess(List<Event> events) {
@@ -61,7 +57,6 @@ public class HomeViewModel extends ViewModel {
 
                 if (organizerIds.isEmpty()) {
                     applyFiltersAndCombine();
-                    isLoading.setValue(false);
                     return;
                 }
 

@@ -1,5 +1,6 @@
 package com.meow.utaract.ui.home;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
@@ -16,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
 import com.meow.utaract.EventCreationActivity;
+import com.meow.utaract.EventDetailActivity;
 import com.meow.utaract.R;
 import com.meow.utaract.utils.Event;
 import com.meow.utaract.utils.GuestProfile;
@@ -198,6 +200,15 @@ public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.EventViewH
             } else {
                 editEventButton.setVisibility(View.GONE);
             }
+
+            // Set a click listener on the entire card
+            itemView.setOnClickListener(v -> {
+                Context context = itemView.getContext();
+                Intent intent = new Intent(context, EventDetailActivity.class);
+                intent.putExtra("event_details", eventItem.event);
+                intent.putExtra("organizer_details", eventItem.organizer);
+                context.startActivity(intent);
+            });
         }
     }
 }

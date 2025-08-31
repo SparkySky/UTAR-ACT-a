@@ -42,6 +42,7 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
     private MainViewModel mainViewModel;
     private MotionLayout motionLayoutHeader;
     private EditText searchInput;
+    private boolean isInitialLoad = true;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -71,7 +72,12 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
     @Override
     public void onResume() {
         super.onResume();
-        loadDataWithPreferences();
+        if (isInitialLoad) {
+            loadDataWithPreferences();
+            isInitialLoad = false;
+        } else {
+            homeViewModel.fetchEvents(null); // Refresh data without resetting filters
+        }
     }
 
     private void loadDataWithPreferences() {
@@ -94,7 +100,7 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
 
     @SuppressLint("ClickableViewAccessibility")
     private void setupUIListeners() {
-        binding.swipeRefreshLayout.setOnRefreshListener(this::loadDataWithPreferences);
+        binding.swipeRefreshLayout.setOnRefreshListener(() -> homeViewModel.fetchEvents(null));
 
         binding.menuIcon.setOnClickListener(v -> {
             if (getActivity() instanceof MainActivity) {

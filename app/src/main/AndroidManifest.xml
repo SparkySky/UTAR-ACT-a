@@ -59,6 +59,9 @@
         <activity
             android:name=".ManageEventsActivity"
             android:theme="@style/Theme.UTARACT" />
+        <activity
+            android:name=".EventDetailActivity"
+            android:theme="@style/Theme.UTARACT" />
     </application>
 
 </manifest>
