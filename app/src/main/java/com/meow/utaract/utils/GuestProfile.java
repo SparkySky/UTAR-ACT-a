@@ -1,13 +1,16 @@
 package com.meow.utaract.utils;
 
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
-public class GuestProfile {
-    private String name;
-    private String email;
-    private String phone;
-    private List<String> preferences;
-    private String profileImageUrl; // New field for profile picture URL
+public class GuestProfile implements Serializable {
+    private String name; // Store Name
+    private String email;// Store Email
+    private String phone; // Store Phone Number
+    private String profileImageUrl; // Store Profile Image URL
+    private List<String> preferences; // Store Food Preferences
+    private List<String> following; // Store Follower
 
     // Constructor
     public GuestProfile(String name, String email, String phone, List<String> preferences) {
@@ -16,6 +19,7 @@ public class GuestProfile {
         this.phone = phone;
         this.preferences = preferences;
         this.profileImageUrl = ""; // Default to empty string
+        this.following = new ArrayList<>();
     }
 
     // Getters and Setters
@@ -33,4 +37,7 @@ public class GuestProfile {
 
     public String getProfileImageUrl() { return profileImageUrl; }
     public void setProfileImageUrl(String profileImageUrl) { this.profileImageUrl = profileImageUrl; }
+
+    public List<String> getFollowing() { return following; }
+    public void setFollowing(List<String> following) { this.following = following; }
 }

@@ -9,6 +9,7 @@ import com.meow.utaract.utils.EventCreationStorage;
 import com.meow.utaract.utils.GuestProfile;
 import com.meow.utaract.utils.GuestProfileStorage;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -21,7 +22,7 @@ public class HomeViewModel extends ViewModel {
     private final MutableLiveData<List<String>> activeFilters = new MutableLiveData<>(new ArrayList<>());
 
     private List<Event> allEvents = new ArrayList<>();
-    private Map<String, GuestProfile> organizerProfiles;
+    private Map<String, GuestProfile> organizerProfiles = new HashMap<>();
     private String currentSearchQuery = "";
 
     private final EventCreationStorage eventStorage;
@@ -49,7 +50,6 @@ public class HomeViewModel extends ViewModel {
         if (initialCategoryPreferences != null) {
             activeFilters.setValue(initialCategoryPreferences);
         }
-
         eventStorage.getAllEvents(new EventCreationStorage.EventsFetchCallback() {
             @Override
             public void onSuccess(List<Event> events) {
@@ -61,7 +61,6 @@ public class HomeViewModel extends ViewModel {
 
                 if (organizerIds.isEmpty()) {
                     applyFiltersAndCombine();
-                    isLoading.setValue(false);
                     return;
                 }
 
@@ -73,7 +72,8 @@ public class HomeViewModel extends ViewModel {
                     }
                     @Override
                     public void onFailure(Exception e) {
-                        organizerProfiles = null;
+                        Log.e(TAG, "Failed to fetch organizer profiles", e);
+                        organizerProfiles = new HashMap<>(); // Ensure it's not null
                         applyFiltersAndCombine();
                     }
                 });
@@ -100,13 +100,12 @@ public class HomeViewModel extends ViewModel {
         long currentTime = System.currentTimeMillis();
 
         List<Event> filteredEvents = allEvents.stream()
-                // THE ONLY VISIBILITY RULE:
                 .filter(event -> event.getPublishAt() <= currentTime)
-                .filter(event -> { // User preference filter
+                .filter(event -> {
                     List<String> categories = activeFilters.getValue();
                     return categories == null || categories.isEmpty() || categories.contains(event.getCategory());
                 })
-                .filter(event -> { // Search filter
+                .filter(event -> {
                     if (currentSearchQuery == null || currentSearchQuery.trim().isEmpty()) return true;
                     String normalizedQuery = currentSearchQuery.toLowerCase().replaceAll("\\s", "");
                     return isSubsequence(normalizedQuery, event.getEventName().toLowerCase().replaceAll("\\s", ""));

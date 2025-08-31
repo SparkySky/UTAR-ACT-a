@@ -1,5 +1,6 @@
-package com.meow.utaract.ui.home;
+package com.meow.utaract.ui.event;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
@@ -16,7 +17,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
 import com.meow.utaract.EventCreationActivity;
+import com.meow.utaract.EventDetailActivity;
+import com.meow.utaract.FullScreenImageDialogFragment;
 import com.meow.utaract.R;
+import com.meow.utaract.ui.home.HomeViewModel;
 import com.meow.utaract.utils.Event;
 import com.meow.utaract.utils.GuestProfile;
 import java.util.List;
@@ -145,27 +149,7 @@ public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.EventViewH
                 organizerAvatar.setImageResource(R.drawable.ic_person);
             }
 
-            // Set Event Banner
-            if (event.getCoverImageUrl() != null && !event.getCoverImageUrl().isEmpty()) {
-                // If there IS a poster, load it with Glide
-                bannerContainer.setOnClickListener(null); // Remove placeholder listener
-                Glide.with(itemView.getContext())
-                        .load(event.getCoverImageUrl())
-                        .into(eventBanner);
-                eventBanner.setOnClickListener(v -> { // Set click listener on the image itself
-                    AppCompatActivity activity = (AppCompatActivity) v.getContext();
-                    FullScreenImageDialogFragment dialog = FullScreenImageDialogFragment.newInstance(event.getCoverImageUrl());
-                    dialog.show(activity.getSupportFragmentManager(), "FullScreenImageDialog");
-                });
-            } else {
-                // If there is NO poster, apply the colored placeholder
-                eventBanner.setOnClickListener(null); // Remove image listener
-                GradientDrawable newDrawable = (GradientDrawable) ContextCompat.getDrawable(itemView.getContext(), R.drawable.event_banner_gradient_placeholder).mutate();
-                newDrawable.setColor(placeholderColor);
-                eventBanner.setImageDrawable(newDrawable); // Set the drawable on the ImageView
-            }
-
-            // Set color for placeholder image
+            // Set Event Banner or set color for placeholder image
             if (event.getCoverImageUrl() != null && !event.getCoverImageUrl().isEmpty()) {
                 // If there is a poster, load it with Glide
                 eventBanner.setVisibility(View.VISIBLE);
@@ -198,6 +182,16 @@ public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.EventViewH
             } else {
                 editEventButton.setVisibility(View.GONE);
             }
+
+            // Set a click listener on the entire card
+            // Set a click listener on the entire card
+            itemView.setOnClickListener(v -> {
+                Context context = itemView.getContext();
+                Intent intent = new Intent(context, EventDetailActivity.class);
+                // PASS ONLY THE ID, NOT THE WHOLE OBJECT
+                intent.putExtra("EVENT_ID", eventItem.event.getEventId());
+                context.startActivity(intent);
+            });
         }
     }
 }

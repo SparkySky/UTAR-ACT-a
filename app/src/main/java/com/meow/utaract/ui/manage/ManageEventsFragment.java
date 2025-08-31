@@ -12,10 +12,9 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import com.meow.utaract.R;
+
 import com.meow.utaract.databinding.FragmentManageEventsBinding;
-import com.meow.utaract.ui.home.MyEventsAdapter;
-import com.meow.utaract.utils.Event;
+import com.meow.utaract.ui.event.MyEventsAdapter;
 import com.meow.utaract.utils.EventCreationStorage;
 import java.util.ArrayList;
 

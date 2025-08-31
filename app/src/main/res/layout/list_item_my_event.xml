@@ -39,6 +39,70 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/viewApplicantsButton"
+                android:layout_width="191dp"
+                android:layout_height="wrap_content"
+                android:text="View Applicants"
+                android:textStyle="bold"
+                app:icon="@android:drawable/ic_menu_today" />
+
+            <LinearLayout
+                android:id="@+id/statusIndicatorLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <TextView
+                    android:id="@+id/pendingCountText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/background_partition_gray_left"
+                    android:gravity="center"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="4dp"
+                    android:textColor="@android:color/white"
+                    android:textStyle="bold"
+                    tools:text="12" />
+
+                <TextView
+                    android:id="@+id/acceptedCountText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/background_partition_green_center"
+                    android:gravity="center"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="4dp"
+                    android:textColor="@android:color/white"
+                    android:textStyle="bold"
+                    tools:text="2" />
+
+                <TextView
+                    android:id="@+id/rejectedCountText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/background_partition_red_right"
+                    android:gravity="center"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="4dp"
+                    android:textColor="@android:color/white"
+                    android:textStyle="bold"
+                    tools:text="1" />
+            </LinearLayout>
+
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
             android:orientation="horizontal">
 
             <Button
@@ -48,6 +112,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Delete"
+                android:textStyle="bold"
                 app:icon="@android:drawable/ic_menu_delete" />
 
             <Button
@@ -57,6 +122,7 @@
                 android:layout_marginStart="8dp"
                 android:layout_weight="1"
                 android:text="Edit"
+                android:textStyle="bold"
                 app:icon="@android:drawable/ic_menu_edit" />
         </LinearLayout>
     </LinearLayout>

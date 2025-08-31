@@ -1,11 +1,13 @@
 package com.meow.utaract;
 
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -15,24 +17,29 @@ import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.meow.utaract.utils.GuestProfile;
 import com.meow.utaract.utils.GuestProfileStorage;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 public class GuestFormActivity extends AppCompatActivity {
 
     private EditText nameInput, emailInput, phoneInput;
-    private Button saveButton, changeProfilePicButton;
+    private Button saveButton, changeProfilePicButton, confirmRegisterButton;
     private CircleImageView profileImageView;
     private ChipGroup preferencesChipGroup;
+    private TextView titleGuestForm, tvPreferences;
     private GuestProfileStorage storage;
-    private boolean isOrganiser;
+    private boolean isOrganiser, isRegistrationMode;
+    private String eventId;
     private Uri selectedImageUri;
     private String downloadedImageUrl;
     private ActivityResultLauncher<Intent> imagePickerLauncher;
@@ -45,18 +52,54 @@ public class GuestFormActivity extends AppCompatActivity {
 
         storage = new GuestProfileStorage(this);
         isOrganiser = getIntent().getBooleanExtra("IS_ORGANISER", false);
+        isRegistrationMode = getIntent().getBooleanExtra("IS_REGISTRATION_MODE", false);
+        eventId = getIntent().getStringExtra("EVENT_ID");
 
         initializeViews();
         initializeImagePicker();
 
-        // Load all the preferences categories from res/value/arrays.xml
         preferenceList.addAll(Arrays.asList(getResources().getStringArray(R.array.event_categories)));
 
         populatePreferences();
         loadExistingProfile();
 
+        if (isRegistrationMode) {
+            setupRegistrationMode();
+        } else {
+            setupProfileMode();
+        }
+    }
 
+    private void initializeViews() {
+        nameInput = findViewById(R.id.etName);
+        emailInput = findViewById(R.id.etEmail);
+        phoneInput = findViewById(R.id.etPhone);
+        saveButton = findViewById(R.id.btnSubmitGuest);
+        confirmRegisterButton = findViewById(R.id.btnConfirmRegister);
+        profileImageView = findViewById(R.id.profileImageView);
+        changeProfilePicButton = findViewById(R.id.changeProfilePicButton);
+        preferencesChipGroup = findViewById(R.id.preferencesChipGroup);
+        titleGuestForm = findViewById(R.id.titleGuestForm);
+        tvPreferences = findViewById(R.id.tvPreferences);
+    }
 
+    private void setupRegistrationMode() {
+        titleGuestForm.setText("Confirm Your Details");
+        saveButton.setVisibility(View.GONE);
+        confirmRegisterButton.setVisibility(View.VISIBLE);
+        changeProfilePicButton.setVisibility(View.GONE);
+        preferencesChipGroup.setVisibility(View.GONE);
+        tvPreferences.setVisibility(View.GONE);
+
+        nameInput.setEnabled(false);
+        emailInput.setEnabled(false);
+        phoneInput.setEnabled(false);
+
+        confirmRegisterButton.setOnClickListener(v -> showConfirmationDialog());
+    }
+
+    private void setupProfileMode() {
+        saveButton.setOnClickListener(v -> saveProfile());
         if (isOrganiser) {
             profileImageView.setVisibility(View.VISIBLE);
             changeProfilePicButton.setVisibility(View.VISIBLE);
@@ -65,18 +108,56 @@ public class GuestFormActivity extends AppCompatActivity {
             profileImageView.setVisibility(View.GONE);
             changeProfilePicButton.setVisibility(View.GONE);
         }
-
-        saveButton.setOnClickListener(v -> saveProfile());
     }
 
-    private void initializeViews() {
-        nameInput = findViewById(R.id.etName);
-        emailInput = findViewById(R.id.etEmail);
-        phoneInput = findViewById(R.id.etPhone);
-        saveButton = findViewById(R.id.btnSubmitGuest);
-        profileImageView = findViewById(R.id.profileImageView);
-        changeProfilePicButton = findViewById(R.id.changeProfilePicButton);
-        preferencesChipGroup = findViewById(R.id.preferencesChipGroup);
+    private void showConfirmationDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("Confirm Registration")
+                .setMessage("Are you sure you want to register for this event?")
+                .setPositiveButton("Yes", (dialog, which) -> {
+                    saveProfile(); // Save the profile first
+                    submitRegistration();
+                })
+                .setNegativeButton("No", null)
+                .show();
+    }
+
+    private void submitRegistration() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser == null) {
+            Toast.makeText(this, "You must be logged in to register.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        String userId = currentUser.getUid();
+
+        // Load the other guest profile to get their name
+        GuestProfile userProfile = storage.loadProfile();
+        if (userProfile == null) {
+            Toast.makeText(this, "Error: Could not find user profile.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        String userName = userProfile.getName();
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        Map<String, Object> registrationData = new HashMap<>();
+        registrationData.put("userId", userId);
+        registrationData.put("userName", userName); // Add the user's name
+        registrationData.put("timestamp", System.currentTimeMillis());
+        registrationData.put("status", "pending");
+
+        db.collection("events").document(eventId).collection("registrations").document(userId)
+                .set(registrationData)
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(this, "Registered successfully!", Toast.LENGTH_SHORT).show();
+                    sendRegistrationNotification(eventId, userId);
+                    finish();
+                })
+                .addOnFailureListener(e -> Toast.makeText(this, "Registration failed: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+    }
+
+    private void sendRegistrationNotification(String eventId, String userId) {
+        System.out.println("Placeholder: Sending notification to organizer for event " + eventId + " from user " + userId);
     }
 
     private void populatePreferences() {
@@ -86,7 +167,7 @@ public class GuestFormActivity extends AppCompatActivity {
             chip.setCheckable(true);
             chip.setChipBackgroundColorResource(R.color.preference_chip_background);
             chip.setTextColor(getResources().getColorStateList(R.color.preference_chip_text_color, getTheme()));
-            chip.setChipStrokeWidth(0); // Hide the default stroke
+            chip.setChipStrokeWidth(0);
             preferencesChipGroup.addView(chip);
         }
     }
@@ -126,7 +207,7 @@ public class GuestFormActivity extends AppCompatActivity {
         }
 
         List<String> selectedPreferences = getSelectedPreferences();
-        if (selectedPreferences.isEmpty()) {
+        if (!isRegistrationMode && selectedPreferences.isEmpty()) {
             Toast.makeText(this, "Please select at least one preference", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -143,13 +224,14 @@ public class GuestFormActivity extends AppCompatActivity {
             Toast.makeText(this, "Online profile updated", Toast.LENGTH_SHORT).show();
         }
 
-        Toast.makeText(this, "Profile Saved Successfully!", Toast.LENGTH_SHORT).show();
-
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.putExtra("IS_ORGANISER", isOrganiser);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
-        finish();
+        if (!isRegistrationMode) {
+            Toast.makeText(this, "Profile Saved Successfully!", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.putExtra("IS_ORGANISER", isOrganiser);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+            finish();
+        }
     }
 
     private List<String> getSelectedPreferences() {
@@ -163,7 +245,6 @@ public class GuestFormActivity extends AppCompatActivity {
         return selected;
     }
 
-    // --- Image Picker and Upload Logic (no changes needed from previous version) ---
     private void initializeImagePicker() {
         imagePickerLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
