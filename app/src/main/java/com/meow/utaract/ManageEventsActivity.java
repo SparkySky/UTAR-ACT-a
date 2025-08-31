@@ -1,27 +1,24 @@
 package com.meow.utaract;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.appbar.MaterialToolbar;
-import com.google.firebase.auth.FirebaseAuth;
-import com.meow.utaract.ui.home.MyEventsAdapter;
-import com.meow.utaract.utils.Event;
+import com.meow.utaract.ui.event.MyEventsAdapter;
+import com.meow.utaract.ui.manage.ManageEventsViewModel;
 import com.meow.utaract.utils.EventCreationStorage;
 import java.util.ArrayList;
-import java.util.List;
 
 public class ManageEventsActivity extends AppCompatActivity {
 
-    private static final String TAG = "ManageEventsActivity";
     private RecyclerView myEventsRecyclerView;
     private MyEventsAdapter myEventsAdapter;
-    private final List<Event> eventList = new ArrayList<>();
-    private EventCreationStorage eventStorage;
     private TextView emptyView;
+    private ManageEventsViewModel viewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,61 +31,45 @@ public class ManageEventsActivity extends AppCompatActivity {
 
         myEventsRecyclerView = findViewById(R.id.myEventsRecyclerView);
         emptyView = findViewById(R.id.emptyView);
-        eventStorage = new EventCreationStorage();
 
         setupRecyclerView();
+
+        // Initialize the ViewModel
+        viewModel = new ViewModelProvider(this).get(ManageEventsViewModel.class);
+
+        // Observe the final, correctly-typed list from the ViewModel
+        viewModel.getMyEvents().observe(this, managedEventItems -> {
+            boolean hasEvents = managedEventItems != null && !managedEventItems.isEmpty();
+            if (hasEvents) {
+                // The adapter's update method receives the correct list type
+                myEventsAdapter.updateEvents(managedEventItems);
+            }
+            updateUI(hasEvents);
+        });
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        // Fetching in onResume ensures the list is always up-to-date
-        // when the user navigates back to this screen.
-        fetchMyEvents();
+        // Tell the ViewModel to fetch the data
+        viewModel.fetchMyEvents();
     }
 
     private void setupRecyclerView() {
-        myEventsAdapter = new MyEventsAdapter(eventList, this, eventStorage);
+        // Initialize the adapter with an empty list of the correct type.
+        // The old `eventList` variable is no longer used here.
+        myEventsAdapter = new MyEventsAdapter(new ArrayList<>(), this, new EventCreationStorage());
+        myEventsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         myEventsRecyclerView.setAdapter(myEventsAdapter);
     }
 
-    private void fetchMyEvents() {
-        String currentUserId = FirebaseAuth.getInstance().getUid();
-        if (currentUserId == null) {
-            Log.e(TAG, "User is not logged in. Cannot fetch events.");
-            updateUI(); // Show empty view
-            return;
-        }
-
-        Log.d(TAG, "Fetching events for organizer: " + currentUserId);
-        eventStorage.getEventsByOrganizer(currentUserId, new EventCreationStorage.EventsFetchCallback() {
-            @Override
-            public void onSuccess(List<Event> events) {
-                Log.d(TAG, "Successfully fetched " + events.size() + " events.");
-                eventList.clear();
-                eventList.addAll(events);
-                myEventsAdapter.notifyDataSetChanged();
-                updateUI();
-            }
-
-            @Override
-            public void onFailure(Exception e) {
-                Log.e(TAG, "Failed to fetch events.", e);
-                eventList.clear();
-                myEventsAdapter.notifyDataSetChanged();
-                updateUI();
-            }
-        });
-    }
-
-    // This new method handles showing/hiding the list or the empty message
-    private void updateUI() {
-        if (eventList.isEmpty()) {
-            myEventsRecyclerView.setVisibility(View.GONE);
-            emptyView.setVisibility(View.VISIBLE);
-        } else {
+    private void updateUI(boolean hasEvents) {
+        if (hasEvents) {
             myEventsRecyclerView.setVisibility(View.VISIBLE);
             emptyView.setVisibility(View.GONE);
+        } else {
+            myEventsRecyclerView.setVisibility(View.GONE);
+            emptyView.setVisibility(View.VISIBLE);
         }
     }
 }

@@ -4,13 +4,18 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.meow.utaract.ManagedEventItem;
 import com.meow.utaract.utils.Event;
 import com.meow.utaract.utils.EventCreationStorage;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ManageEventsViewModel extends ViewModel {
 
-    private final MutableLiveData<List<Event>> myEvents = new MutableLiveData<>();
+    private final MutableLiveData<List<ManagedEventItem>> myEvents = new MutableLiveData<>();
     private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>();
     private final EventCreationStorage eventStorage;
 
@@ -18,7 +23,7 @@ public class ManageEventsViewModel extends ViewModel {
         eventStorage = new EventCreationStorage();
     }
 
-    public LiveData<List<Event>> getMyEvents() {
+    public LiveData<List<ManagedEventItem>> getMyEvents() {
         return myEvents;
     }
 
@@ -29,22 +34,69 @@ public class ManageEventsViewModel extends ViewModel {
     public void fetchMyEvents() {
         String currentUserId = FirebaseAuth.getInstance().getUid();
         if (currentUserId == null) {
-            return; // Not logged in
+            myEvents.setValue(new ArrayList<>());
+            return;
         }
+
         isLoading.setValue(true);
         eventStorage.getEventsByOrganizer(currentUserId, new EventCreationStorage.EventsFetchCallback() {
             @Override
             public void onSuccess(List<Event> events) {
-                myEvents.setValue(events);
-                isLoading.setValue(false);
+                if (events.isEmpty()) {
+                    myEvents.setValue(new ArrayList<>());
+                    isLoading.setValue(false);
+                    return;
+                }
+                fetchApplicantCountsForEvents(events);
             }
 
             @Override
             public void onFailure(Exception e) {
-                // Handle error, post empty list
                 myEvents.setValue(null);
                 isLoading.setValue(false);
             }
         });
+    }
+
+    private void fetchApplicantCountsForEvents(List<Event> events) {
+        List<ManagedEventItem> managedEventItems = new ArrayList<>();
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        AtomicInteger tasksCompleted = new AtomicInteger(0);
+
+        if (events.isEmpty()) {
+            myEvents.setValue(managedEventItems);
+            isLoading.setValue(false);
+            return;
+        }
+
+        for (Event event : events) {
+            ManagedEventItem managedEvent = new ManagedEventItem(event);
+            managedEventItems.add(managedEvent);
+
+            db.collection("events").document(event.getEventId()).collection("registrations").get()
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful() && task.getResult() != null) {
+                            int pending = 0, accepted = 0, rejected = 0;
+                            for (QueryDocumentSnapshot doc : task.getResult()) {
+                                String status = doc.getString("status");
+                                if (status != null) {
+                                    switch (status) {
+                                        case "pending": pending++; break;
+                                        case "accepted": accepted++; break;
+                                        case "rejected": rejected++; break;
+                                    }
+                                }
+                            }
+                            managedEvent.setPendingCount(pending);
+                            managedEvent.setAcceptedCount(accepted);
+                            managedEvent.setRejectedCount(rejected);
+                        }
+
+                        if (tasksCompleted.incrementAndGet() == events.size()) {
+                            myEvents.setValue(managedEventItems);
+                            isLoading.setValue(false);
+                        }
+                    });
+        }
     }
 }

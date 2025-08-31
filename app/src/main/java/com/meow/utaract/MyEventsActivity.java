@@ -5,7 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.firebase.auth.FirebaseAuth;
-import com.meow.utaract.ui.home.MyEventsAdapter;
+import com.meow.utaract.ui.event.MyEventsAdapter;
 import com.meow.utaract.utils.Event;
 import com.meow.utaract.utils.EventCreationStorage;
 import java.util.ArrayList;
@@ -35,7 +35,11 @@ public class MyEventsActivity extends AppCompatActivity {
     }
 
     private void setupRecyclerView() {
-        myEventsAdapter = new MyEventsAdapter(eventList, this, eventStorage);
+        List<ManagedEventItem> managedEventItems = new ArrayList<>();
+        for (Event event : eventList) {
+            managedEventItems.add(new ManagedEventItem(event)); // Or however you construct ManagedEventItem
+        }
+        myEventsAdapter = new MyEventsAdapter(managedEventItems, this, eventStorage);
         myEventsRecyclerView.setAdapter(myEventsAdapter);
     }
 

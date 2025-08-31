@@ -7,16 +7,21 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.FrameLayout;
+import android.widget.HorizontalScrollView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+import com.bumptech.glide.Glide;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -25,13 +30,15 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
-import com.bumptech.glide.Glide;
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 import com.meow.utaract.utils.Event;
 import com.meow.utaract.utils.EventCreationStorage;
 
@@ -42,6 +49,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.UUID;
+import android.widget.ProgressBar;
 
 public class EventCreationActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     private TextInputEditText etEventName, etDescription, etDate, etTime, etLocation, etMaxGuests, etFee, etPublishDate, etPublishTime;
@@ -54,12 +62,18 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
     private ActivityResultLauncher<Intent> posterImageLauncher, catalogImageLauncher;
     private MaterialSwitch scheduleSwitch;
     private LinearLayout scheduleLayout;
+    private ProgressBar progressBar;
+    private FrameLayout posterFrame;
+    private ImageView removePosterButton;
 
     private String posterImageUrl = "";
     private List<String> catalogImageUrls = new ArrayList<>();
     private boolean isEditMode = false;
     private Event eventToEdit;
     private final Calendar publishCalendar = Calendar.getInstance();
+    private HorizontalScrollView catalogScrollView;
+    private Uri newPosterUri = null;
+    private List<Uri> newCatalogUris = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,11 +112,16 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         btnCreate = findViewById(R.id.btnCreate);
         spinnerCategory = findViewById(R.id.spinnerCategory);
         drawerLayout = findViewById(R.id.drawer_layout);
-        btnUploadPoster = findViewById(R.id.btnUploadPoster);
-        btnUploadCatalog = findViewById(R.id.btnUploadCatalog);
+        btnUploadPoster = findViewById(R.id.buttonSelectPoster);
+        btnUploadCatalog = findViewById(R.id.buttonAddCatalogImage);
         ivPosterPreview = findViewById(R.id.ivPosterPreview);
+        posterFrame = findViewById(R.id.posterFrame);
+        removePosterButton = findViewById(R.id.removePosterButton);
+        catalogScrollView = findViewById(R.id.catalogScrollView);
         layoutCatalogPreview = findViewById(R.id.layoutCatalogPreview);
+        progressBar = findViewById(R.id.progressBar);
     }
+
 
     private void setupNavigationDrawer() {
         NavigationView navigationView = findViewById(R.id.nav_view);
@@ -161,6 +180,11 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
             scheduleLayout.setVisibility(isChecked ? View.VISIBLE : View.GONE);
         });
         btnCreate.setOnClickListener(v -> saveEvent());
+        removePosterButton.setOnClickListener(v -> {
+            newPosterUri = null;
+            posterImageUrl = ""; // Clear the URL
+            updatePosterPreview();
+        });
     }
 
     private void setupEditMode() {
@@ -187,14 +211,11 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
 
         // Set image previews
         posterImageUrl = eventToEdit.getCoverImageUrl();
-        if (posterImageUrl != null && !posterImageUrl.isEmpty()) {
-            Glide.with(this).load(posterImageUrl).into(ivPosterPreview);
-            ivPosterPreview.setVisibility(View.VISIBLE);
-        }
+
+        // Load and display existing catalogue images using their URLs
         catalogImageUrls = new ArrayList<>(eventToEdit.getAdditionalImageUrls());
-        for (String url : catalogImageUrls) {
-            addCatalogImageToPreview(Uri.parse(url));
-        }
+        updatePosterPreview();
+        updateCatalogPreview();
 
         // Handle visibility and scheduling UI
         if (eventToEdit.getPublishAt() > System.currentTimeMillis()) {
@@ -215,42 +236,10 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
     private void saveEvent() {
         if (!isFormValid()) return;
 
-        String eventName = Objects.requireNonNull(etEventName.getText()).toString().trim();
-        String description = Objects.requireNonNull(etDescription.getText()).toString().trim();
-        String date = Objects.requireNonNull(etDate.getText()).toString().trim();
-        String time = Objects.requireNonNull(etTime.getText()).toString().trim();
-        String location = Objects.requireNonNull(etLocation.getText()).toString().trim();
-        String category = spinnerCategory.getSelectedItem().toString();
-        int maxGuests = Integer.parseInt(Objects.requireNonNull(etMaxGuests.getText()).toString().trim());
-        double fee = Double.parseDouble(Objects.requireNonNull(etFee.getText()).toString().trim());
+        progressBar.setVisibility(View.VISIBLE);
+        btnCreate.setEnabled(false);
 
-        boolean isVisible;
-        long publishAt;
-
-        if (scheduleSwitch.isChecked()) {
-            publishAt = publishCalendar.getTimeInMillis();
-            if (publishAt <= System.currentTimeMillis()) {
-                Toast.makeText(this, "Scheduled time must be in the future.", Toast.LENGTH_SHORT).show();
-                return;
-            }
-        } else {
-            // If not scheduled, publish immediately
-            publishAt = System.currentTimeMillis();
-        }
-
-        String organizerId = isEditMode ? eventToEdit.getOrganizerId() : FirebaseAuth.getInstance().getUid();
-
-        Event event = new Event(eventName, description, category, date, time, location, organizerId, maxGuests, fee, publishAt);
-        event.setCoverImageUrl(posterImageUrl);
-        event.setAdditionalImageUrls(catalogImageUrls);
-
-        if (isEditMode) {
-            event.setEventId(eventToEdit.getEventId());
-            event.setCreatedAt(eventToEdit.getCreatedAt()); // Preserve original creation date
-            eventStorage.updateEvent(event.getEventId(), event, getEventCreationCallback());
-        } else {
-            eventStorage.createEvent(event, getEventCreationCallback());
-        }
+        uploadAllImagesAndSaveEvent();
     }
 
     private EventCreationStorage.EventCreationCallback getEventCreationCallback() {
@@ -275,27 +264,6 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         };
     }
 
-    private void initializeImageLaunchers() {
-        posterImageLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-            if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                uploadImageToStorage(result.getData().getData(), true);
-            }
-        });
-
-        catalogImageLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-            if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                if (result.getData().getClipData() != null) {
-                    int count = result.getData().getClipData().getItemCount();
-                    for (int i = 0; i < count; i++) {
-                        uploadImageToStorage(result.getData().getClipData().getItemAt(i).getUri(), false);
-                    }
-                } else if (result.getData().getData() != null) {
-                    uploadImageToStorage(result.getData().getData(), false);
-                }
-            }
-        });
-    }
-
     private void openImagePicker(ActivityResultLauncher<Intent> launcher, boolean allowMultiple) {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT).setType("image/*");
         if (allowMultiple) {
@@ -304,7 +272,102 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         launcher.launch(intent);
     }
 
-    private void uploadImageToStorage(Uri imageUri, boolean isPoster) {
+    private void uploadAllImagesAndSaveEvent() {
+        final StorageReference storageRef = FirebaseStorage.getInstance().getReference();
+        final List<Task<Uri>> uploadTasks = new ArrayList<>();
+        final List<String> finalCatalogUrls = new ArrayList<>(catalogImageUrls); // Start with existing URLs
+
+        // Task for the poster image if a new one was selected
+        if (newPosterUri != null) {
+            final StorageReference posterRef = storageRef.child("event_images/" + UUID.randomUUID().toString());
+            UploadTask posterUploadTask = posterRef.putFile(newPosterUri);
+            Task<Uri> posterUrlTask = posterUploadTask.continueWithTask(task -> {
+                if (!task.isSuccessful()) {
+                    throw Objects.requireNonNull(task.getException());
+                }
+                return posterRef.getDownloadUrl();
+            });
+            uploadTasks.add(posterUrlTask);
+        }
+
+        // Tasks for new catalogue images
+        for (Uri uri : newCatalogUris) {
+            final StorageReference catalogRef = storageRef.child("event_images/" + UUID.randomUUID().toString());
+            UploadTask catalogUploadTask = catalogRef.putFile(uri);
+            Task<Uri> catalogUrlTask = catalogUploadTask.continueWithTask(task -> {
+                if (!task.isSuccessful()) {
+                    throw Objects.requireNonNull(task.getException());
+                }
+                return catalogRef.getDownloadUrl();
+            });
+            uploadTasks.add(catalogUrlTask);
+        }
+
+        // Wait for all tasks to complete
+        Tasks.whenAllSuccess(uploadTasks).addOnSuccessListener(results -> {
+            int urlIndex = 0;
+            if (newPosterUri != null) {
+                posterImageUrl = results.get(urlIndex++).toString();
+            }
+
+            for (; urlIndex < results.size(); urlIndex++) {
+                finalCatalogUrls.add(results.get(urlIndex).toString());
+            }
+
+            saveEventToFirestore(posterImageUrl, finalCatalogUrls);
+
+        }).addOnFailureListener(e -> {
+            progressBar.setVisibility(View.GONE);
+            btnCreate.setEnabled(true);
+            Toast.makeText(EventCreationActivity.this, "Image upload failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        });
+
+        // If no new images to upload, just save the event
+        if (uploadTasks.isEmpty()) {
+            saveEventToFirestore(posterImageUrl, finalCatalogUrls);
+        }
+    }
+
+    private void saveEventToFirestore(String finalPosterUrl, List<String> finalCatalogUrls) {
+        String eventName = Objects.requireNonNull(etEventName.getText()).toString().trim();
+        // ... (get all other event details from the input fields)
+        long publishAt = scheduleSwitch.isChecked() ? publishCalendar.getTimeInMillis() : System.currentTimeMillis();
+        String organizerId = isEditMode ? eventToEdit.getOrganizerId() : Objects.requireNonNull(FirebaseAuth.getInstance().getUid());
+
+        Event event = new Event(eventName, etDescription.getText().toString(), spinnerCategory.getSelectedItem().toString(),
+                etDate.getText().toString(), etTime.getText().toString(), etLocation.getText().toString(),
+                organizerId, Integer.parseInt(etMaxGuests.getText().toString()), Double.parseDouble(etFee.getText().toString()),
+                publishAt);
+
+        event.setCoverImageUrl(finalPosterUrl);
+        event.setAdditionalImageUrls(finalCatalogUrls);
+
+        EventCreationStorage.EventCreationCallback callback = new EventCreationStorage.EventCreationCallback() {
+            @Override
+            public void onSuccess(String eventId) {
+                progressBar.setVisibility(View.GONE);
+                Toast.makeText(EventCreationActivity.this, isEditMode ? "Event updated!" : "Event created!", Toast.LENGTH_SHORT).show();
+                finish();
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                progressBar.setVisibility(View.GONE);
+                btnCreate.setEnabled(true);
+                Toast.makeText(EventCreationActivity.this, "Failed to save event: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        };
+
+        if (isEditMode) {
+            event.setEventId(eventToEdit.getEventId());
+            event.setCreatedAt(eventToEdit.getCreatedAt());
+            eventStorage.updateEvent(event.getEventId(), event, callback);
+        } else {
+            eventStorage.createEvent(event, callback);
+        }
+    }
+
+    /*private void uploadImageToStorage(Uri imageUri, boolean isPoster) {
         Toast.makeText(this, "Uploading image...", Toast.LENGTH_SHORT).show();
         String fileName = "event_images/" + UUID.randomUUID().toString();
         StorageReference storageRef = FirebaseStorage.getInstance().getReference().child(fileName);
@@ -314,26 +377,112 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
                         .addOnSuccessListener(uri -> {
                             if (isPoster) {
                                 posterImageUrl = uri.toString();
-                                ivPosterPreview.setImageURI(imageUri);
-                                ivPosterPreview.setVisibility(View.VISIBLE);
+                                newPosterUri = null; // Clear the temporary URI
+                                //ivPosterPreview.setImageURI(imageUri);
+                                //ivPosterPreview.setVisibility(View.VISIBLE);
                             } else {
                                 catalogImageUrls.add(uri.toString());
-                                addCatalogImageToPreview(imageUri);
+                                //addCatalogImageToPreview(imageUri);
                             }
                             Toast.makeText(this, "Image uploaded.", Toast.LENGTH_SHORT).show();
                         }))
                 .addOnFailureListener(e -> Toast.makeText(this, "Upload failed: " + e.getMessage(), Toast.LENGTH_LONG).show());
-    }
+    }*/
 
-    private void addCatalogImageToPreview(Uri imageUri) {
+    /*private void addCatalogImageToPreview(Uri imageUri) {
         ImageView imageView = new ImageView(this);
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(250, 250);
         params.setMarginEnd(16);
         imageView.setLayoutParams(params);
         imageView.setImageURI(imageUri);
         imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        // Use Glide to load the local Uri
+        Glide.with(this).load(imageUri).into(imageView);
         layoutCatalogPreview.addView(imageView);
+    }*/
+
+
+    private void updateCatalogPreview() {
+        layoutCatalogPreview.removeAllViews(); // Clear all existing previews
+
+        // Add previews for existing images (from URLs)
+        for (String url : catalogImageUrls) {
+            addSingleCatalogItem(url);
+        }
+
+        // Add previews for newly selected images (from URIs)
+        for (Uri uri : newCatalogUris) {
+            addSingleCatalogItem(uri);
+        }
+
+        // Show/Hide the entire scroll view
+        catalogScrollView.setVisibility(catalogImageUrls.isEmpty() && newCatalogUris.isEmpty() ? View.GONE : View.VISIBLE);
     }
+
+    // This is the single method to add one catalogue item to the preview
+    private void addSingleCatalogItem(Object imageSource) {
+        FrameLayout itemFrame = new FrameLayout(this);
+        LinearLayout.LayoutParams frameParams = new LinearLayout.LayoutParams(250, 250);
+        frameParams.setMarginEnd(16);
+        itemFrame.setLayoutParams(frameParams);
+
+        ImageView imageView = new ImageView(this);
+        imageView.setLayoutParams(new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+        imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        Glide.with(this).load(imageSource).into(imageView);
+
+        ImageView removeBtn = new ImageView(this);
+        FrameLayout.LayoutParams btnParams = new FrameLayout.LayoutParams(48, 48, Gravity.TOP | Gravity.END);
+        removeBtn.setLayoutParams(btnParams);
+        removeBtn.setPadding(8, 8, 8, 8);
+        removeBtn.setImageResource(android.R.drawable.ic_menu_close_clear_cancel);
+        removeBtn.setBackgroundResource(R.drawable.round_red_background);
+        removeBtn.setOnClickListener(v -> {
+            if (imageSource instanceof Uri) {
+                newCatalogUris.remove(imageSource);
+            } else if (imageSource instanceof String) {
+                catalogImageUrls.remove(imageSource);
+            }
+            updateCatalogPreview(); // Refresh the entire preview
+        });
+
+        itemFrame.addView(imageView);
+        itemFrame.addView(removeBtn);
+        layoutCatalogPreview.addView(itemFrame);
+    }
+
+    private void updatePosterPreview() {
+        if (newPosterUri != null) {
+            posterFrame.setVisibility(View.VISIBLE);
+            Glide.with(this).load(newPosterUri).into(ivPosterPreview);
+        } else if (posterImageUrl != null && !posterImageUrl.isEmpty()) {
+            posterFrame.setVisibility(View.VISIBLE);
+            Glide.with(this).load(posterImageUrl).into(ivPosterPreview);
+        } else {
+            posterFrame.setVisibility(View.GONE);
+        }
+    }
+
+    private void initializeImageLaunchers() {
+        posterImageLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+            if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                newPosterUri = result.getData().getData();
+                posterImageUrl = ""; // A new image overrides any existing URL
+                updatePosterPreview();
+            }
+        });
+
+        catalogImageLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+            if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                // ... (your existing logic to get URI)
+                if (result.getData().getData() != null) {
+                    newCatalogUris.add(result.getData().getData());
+                    updateCatalogPreview();
+                }
+            }
+        });
+    }
+
 
     private boolean isFormValid() {
         if (Objects.requireNonNull(etEventName.getText()).toString().trim().isEmpty()) {
