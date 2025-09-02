@@ -495,10 +495,30 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
             etDescription.requestFocus();
             return false;
         }
+
+        String eventDateStr = Objects.requireNonNull(etDate.getText()).toString().trim();
         if (Objects.requireNonNull(etDate.getText()).toString().trim().isEmpty()) {
             Toast.makeText(this, "Please select a date", Toast.LENGTH_SHORT).show();
             return false;
         }
+
+        Calendar eventDate = Calendar.getInstance();
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+            eventDate.setTime(sdf.parse(eventDateStr));
+
+            Calendar minDate = Calendar.getInstance();
+            minDate.add(Calendar.DAY_OF_MONTH, 3);
+
+            if (eventDate.before(minDate)) {
+                Toast.makeText(this, "Event start date must be at least 3 days from today", Toast.LENGTH_LONG).show();
+                return false;
+            }
+        } catch (Exception e) {
+            Toast.makeText(this, "Invalid event date format", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
         if (Objects.requireNonNull(etTime.getText()).toString().trim().isEmpty()) {
             Toast.makeText(this, "Please select a time", Toast.LENGTH_SHORT).show();
             return false;
@@ -512,6 +532,26 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
             etMaxGuests.setError("Max guests is required");
             etMaxGuests.requestFocus();
             return false;
+        }
+        if (scheduleSwitch.isChecked()) {
+            String publishDateStr = Objects.requireNonNull(etPublishDate.getText()).toString().trim();
+            if (publishDateStr.isEmpty()) {
+                Toast.makeText(this, "Please select a publish date", Toast.LENGTH_SHORT).show();
+                return false;
+            }
+            try {
+                SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+                Calendar publishDate = Calendar.getInstance();
+                publishDate.setTime(sdf.parse(publishDateStr));
+
+                if (!publishDate.before(eventDate)) {
+                    Toast.makeText(this, "Publish date must be earlier than event start date", Toast.LENGTH_LONG).show();
+                    return false;
+                }
+            } catch (Exception e) {
+                Toast.makeText(this, "Invalid publish date format", Toast.LENGTH_SHORT).show();
+                return false;
+            }
         }
 /*        if (Objects.requireNonNull(etFee.getText()).toString().trim().isEmpty()) {
             etFee.setError("Fee is required (enter 0 for free events)");
