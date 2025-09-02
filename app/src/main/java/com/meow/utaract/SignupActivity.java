@@ -51,6 +51,14 @@ public class SignupActivity extends AppCompatActivity {
             return;
         }
 
+        if (isOrganiserEmail(email) == false && (email.endsWith("@utar.my") || email.endsWith("@1utar.my"))) {
+        }
+        if (isOrganiserEmail(email) && !(email.endsWith("@utar.my") || email.endsWith("@1utar.my"))) {
+            emailInput.setError("Organiser must use @utar.my or @1utar.my email");
+            emailInput.requestFocus();
+            return;
+        }
+
         progressBar.setVisibility(View.VISIBLE);
         signupButton.setEnabled(false);
 
@@ -69,6 +77,9 @@ public class SignupActivity extends AppCompatActivity {
                 });
     }
 
+    private boolean isOrganiserEmail(String email) {
+        return email.endsWith("@utar.my") || email.endsWith("@1utar.my");
+    }
     private boolean isFormValid(String email, String password, String confirmPassword) {
         if (email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             emailInput.setError("Enter a valid email");
