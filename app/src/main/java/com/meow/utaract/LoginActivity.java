@@ -9,6 +9,7 @@ import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -20,6 +21,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 
 import com.google.firebase.auth.FirebaseUser;
+import com.meow.utaract.ui.gallery.GalleryViewModel;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -194,12 +196,22 @@ public class LoginActivity extends AppCompatActivity {
         String email = emailInput.getText().toString().trim();
         String password = passwordInput.getText().toString().trim();
 
-        if (TextUtils.isEmpty(email)) {
-            Toast.makeText(getApplicationContext(), "Enter email address!", Toast.LENGTH_SHORT).show();
+        if (email.isEmpty()) {
+            emailInput.setError("Email is required");
+            emailInput.requestFocus();
             return;
         }
-        if (TextUtils.isEmpty(password)) {
-            Toast.makeText(getApplicationContext(), "Enter password!", Toast.LENGTH_SHORT).show();
+        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            emailInput.setError("Enter a valid email");
+            emailInput.requestFocus();
+            return;
+        }
+
+        boolean isOrganiser = email.endsWith("@utar.my") || email.endsWith("@1utar.my");
+
+        if (isOrganiser == false && (email.endsWith("@utar.my") || email.endsWith("@1utar.my"))) {
+            emailInput.setError("Organiser must use @utar.my or @1utar.my email");
+            emailInput.requestFocus();
             return;
         }
 

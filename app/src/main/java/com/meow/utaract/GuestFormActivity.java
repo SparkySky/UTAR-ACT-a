@@ -70,6 +70,18 @@ public class GuestFormActivity extends AppCompatActivity {
                 return;
             }
 
+            if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                emailInput.setError("Enter a valid email (e.g. example@gmail.com)");
+                emailInput.requestFocus();
+                return;
+            }
+
+            if (!phone.matches("^01\\d-\\d{7,8}$")) {
+                phoneInput.setError("Enter a valid phone number (e.g. 012-1234567 or 012-12345678)");
+                phoneInput.requestFocus();
+                return;
+            }
+
             List<String> preferences = new ArrayList<>();
             if (cbSports.isChecked()) preferences.add("Sports");
             if (cbMusic.isChecked()) preferences.add("Music");
@@ -81,8 +93,8 @@ public class GuestFormActivity extends AppCompatActivity {
             if (cbCulturalFest.isChecked()) preferences.add("Cultural Festival");
             if (cbTalk.isChecked()) preferences.add("Talk");
 
-            if (preferences.isEmpty()) {
-                Toast.makeText(this, "Please select at least one preference", Toast.LENGTH_SHORT).show();
+            if (preferences.size() < 3) {
+                Toast.makeText(this, "Please select at least 3 preferences", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -111,6 +123,15 @@ public class GuestFormActivity extends AppCompatActivity {
                 intent.putExtra("IS_GUEST_USER", true);
                 startActivity(intent);
             }
+
+            storage.createNotification(
+                    organiserId,
+                    guestId,
+                    eventId,
+                    "New applicant " + name + " has applied for your event!",
+                    "organiser"
+            );
+
             finish();
         });
     }

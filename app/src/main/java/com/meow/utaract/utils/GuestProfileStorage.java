@@ -111,4 +111,24 @@ public class GuestProfileStorage {
             // Default error handling
         }
     }
+
+    public void createNotification(String organiserId, String guestId, String eventId,
+                                   String message, String targetRole) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        HashMap<String, Object> notif = new HashMap<>();
+        notif.put("organiserId", organiserId);
+        notif.put("guestId", guestId);
+        notif.put("eventId", eventId);
+        notif.put("message", message);
+        notif.put("targetRole", targetRole);
+        notif.put("read", false);
+        notif.put("timestamp", System.currentTimeMillis());
+
+        db.collection("notifications").add(notif)
+                .addOnSuccessListener(ref -> {
+                    System.out.println("Notification created: " + ref.getId());
+                })
+                .addOnFailureListener(Throwable::printStackTrace);
+    }
 }
