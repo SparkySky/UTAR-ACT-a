@@ -23,6 +23,10 @@ public class GuestFormActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_guest_form);
 
+        String organiserId = getIntent().getStringExtra("organiserId");
+        String eventId = getIntent().getStringExtra("eventId");
+        String guestId = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser().getUid();
+
         nameInput = findViewById(R.id.etName);
         emailInput = findViewById(R.id.etEmail);
         phoneInput = findViewById(R.id.etPhone);
