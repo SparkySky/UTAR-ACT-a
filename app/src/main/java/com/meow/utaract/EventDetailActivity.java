@@ -178,18 +178,36 @@ public class EventDetailActivity extends AppCompatActivity {
 
         if (organizerProfile != null) {
             organizerNameText.setText(organizerProfile.getName());
+
             Glide.with(this)
                     .load(organizerProfile.getProfileImageUrl())
                     .placeholder(R.drawable.ic_person)
                     .into(organizerAvatarImage);
 
-            if (organizerProfile.getSocialMediaLink() != null &&
-                    !organizerProfile.getSocialMediaLink().isEmpty()) {
+            if (organizerProfile.getSocialMediaPlatform() != null
+                    && !organizerProfile.getSocialMediaPlatform().equals("None")
+                    && organizerProfile.getSocialMediaLink() != null
+                    && !organizerProfile.getSocialMediaLink().isEmpty()) {
+
                 socialMediaIcon.setVisibility(View.VISIBLE);
+
+                switch (organizerProfile.getSocialMediaPlatform()) {
+                    case "Instagram":
+                        socialMediaIcon.setImageResource(R.drawable.ic_instagram);
+                        break;
+                    case "Facebook":
+                        socialMediaIcon.setImageResource(R.drawable.ic_facebook);
+                        break;
+                    case "Other":
+                        socialMediaIcon.setImageResource(R.drawable.ic_link);
+                        break;
+                }
+
                 socialMediaIcon.setOnClickListener(v -> {
                     Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(organizerProfile.getSocialMediaLink()));
                     startActivity(intent);
                 });
+
             } else {
                 socialMediaIcon.setVisibility(View.GONE);
             }
@@ -199,13 +217,14 @@ public class EventDetailActivity extends AppCompatActivity {
             organizerAvatarImage.setImageResource(R.drawable.ic_person);
             socialMediaIcon.setVisibility(View.GONE);
         }
+
         updateFollowButtonState();
 
-        // Show the content now that everything is ready
         pageProgressBar.setVisibility(View.GONE);
         contentScrollView.setVisibility(View.VISIBLE);
         registrationLayout.setVisibility(View.VISIBLE);
     }
+
 
     private void setupListeners() {
         followButton.setOnClickListener(v -> toggleFollowStatus());

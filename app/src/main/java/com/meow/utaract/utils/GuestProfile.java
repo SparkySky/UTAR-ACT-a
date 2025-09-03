@@ -12,6 +12,7 @@ public class GuestProfile implements Serializable {
     private List<String> preferences;
     private List<String> following;
     private String socialMediaLink;
+    private String socialMediaPlatform;
 
 
     public GuestProfile(String name, String email, String phone, List<String> preferences) {
@@ -22,6 +23,7 @@ public class GuestProfile implements Serializable {
         this.profileImageUrl = "";
         this.following = new ArrayList<>();
         this.socialMediaLink = "";
+        this.socialMediaPlatform = "None";
     }
 
     public String getName() { return name; }
@@ -44,4 +46,6 @@ public class GuestProfile implements Serializable {
 
     public String getSocialMediaLink() { return socialMediaLink; }
     public void setSocialMediaLink(String socialMediaLink) { this.socialMediaLink = socialMediaLink; }
+    public String getSocialMediaPlatform() { return socialMediaPlatform; }
+    public void setSocialMediaPlatform(String socialMediaPlatform) { this.socialMediaPlatform = socialMediaPlatform; }
 }
