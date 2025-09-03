@@ -3,6 +3,7 @@ package com.meow.utaract;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
+import android.view.MenuItem;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.lifecycle.ViewModelProvider;
@@ -42,6 +43,31 @@ public class MainActivity extends AppCompatActivity {
 
         // This line is enough to make the navigation drawer items work.
         NavigationUI.setupWithNavController(navigationView, navController);
+
+        // Set custom navigation item selected listener
+        navigationView.setNavigationItemSelectedListener(item -> {
+            int id = item.getItemId();
+
+            if (id == R.id.nav_manage_events) {
+                // Launch ManageEventsActivity instead of using navigation component
+                Intent intent = new Intent(MainActivity.this, ManageEventsActivity.class);
+                startActivity(intent);
+
+                // Close the drawer
+                binding.drawerLayout.closeDrawer(binding.navView);
+                return true;
+            } else {
+                // For all other items, use the default navigation
+                try {
+                    NavigationUI.onNavDestinationSelected(item, navController);
+                    binding.drawerLayout.closeDrawer(binding.navView);
+                    return true;
+                } catch (IllegalArgumentException e) {
+                    // Handle case where the destination doesn't exist in the navigation graph
+                    return false;
+                }
+            }
+        });
 
         Menu navMenu = navigationView.getMenu();
         navMenu.findItem(R.id.nav_manage_events).setVisible(isOrganiser);
