@@ -66,7 +66,6 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
     private MainViewModel mainViewModel;
     private MotionLayout motionLayoutHeader;
     private EditText searchInput;
-    private boolean isInitialLoad = true;
 
     // QR Scanner Launcher
     private final ActivityResultLauncher<ScanOptions> qrScannerLauncher =
@@ -169,12 +168,6 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
     @Override
     public void onResume() {
         super.onResume();
-        if (isInitialLoad) {
-            loadDataWithPreferences();
-            isInitialLoad = false;
-        } else {
-            homeViewModel.fetchEvents(null); // Refresh data without resetting filters
-        }
     }
 
     private void loadDataWithPreferences() {
@@ -185,7 +178,9 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
                 ? profile.getPreferences()
                 : new ArrayList<>();
 
-        homeViewModel.fetchEvents(preferences);
+        // First, set the filters. Then, fetch the events.
+        homeViewModel.setCategoryFilters(preferences);
+        homeViewModel.fetchEvents();
     }
 
     private void handleScannedUrl(String url) {
@@ -220,7 +215,7 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
 
     @SuppressLint("ClickableViewAccessibility")
     private void setupUIListeners() {
-        binding.swipeRefreshLayout.setOnRefreshListener(() -> homeViewModel.fetchEvents(null));
+        binding.swipeRefreshLayout.setOnRefreshListener(() -> homeViewModel.fetchEvents());
 
         binding.menuIcon.setOnClickListener(v -> {
             if (getActivity() instanceof MainActivity) {
@@ -264,6 +259,9 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
             }
             return false;
         });
+
+        // The swipe refresh listener  calls the fetchEvents()
+        binding.swipeRefreshLayout.setOnRefreshListener(() -> homeViewModel.fetchEvents());
     }
 
     private void updateHeaderOnScroll() {

@@ -45,11 +45,8 @@ public class HomeViewModel extends ViewModel {
         return activeFilters;
     }
 
-    public void fetchEvents(List<String> initialCategoryPreferences) {
+    public void fetchEvents() {
         isLoading.setValue(true);
-        if (initialCategoryPreferences != null) {
-            activeFilters.setValue(initialCategoryPreferences);
-        }
         eventStorage.getAllEvents(new EventCreationStorage.EventsFetchCallback() {
             @Override
             public void onSuccess(List<Event> events) {
@@ -73,7 +70,7 @@ public class HomeViewModel extends ViewModel {
                     @Override
                     public void onFailure(Exception e) {
                         Log.e(TAG, "Failed to fetch organizer profiles", e);
-                        organizerProfiles = new HashMap<>(); // Ensure it's not null
+                        organizerProfiles = new HashMap<>();
                         applyFiltersAndCombine();
                     }
                 });
@@ -93,6 +90,7 @@ public class HomeViewModel extends ViewModel {
 
     public void setCategoryFilters(List<String> categories) {
         activeFilters.setValue(categories);
+        // After setting a new filter, we must re-apply it to the existing data.
         applyFiltersAndCombine();
     }
 
