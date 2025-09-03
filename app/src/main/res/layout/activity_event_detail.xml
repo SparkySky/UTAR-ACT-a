@@ -161,6 +161,15 @@
                             android:text="Organizer" />
                     </LinearLayout>
 
+                    <ImageView
+                        android:id="@+id/organizer_social_media_icon"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_instagram"
+                        android:visibility="gone"
+                        android:layout_marginEnd="12dp"
+                        android:contentDescription="Organizer social media link" />
+
                     <Button
                         android:id="@+id/follow_button"
                         style="?attr/materialButtonOutlinedStyle"

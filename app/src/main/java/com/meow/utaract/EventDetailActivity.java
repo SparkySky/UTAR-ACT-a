@@ -174,6 +174,7 @@ public class EventDetailActivity extends AppCompatActivity {
     private void displayOrganizerInfo() {
         CircleImageView organizerAvatarImage = findViewById(R.id.organizer_avatar_image);
         TextView organizerNameText = findViewById(R.id.organizer_name_text);
+        ImageView socialMediaIcon = findViewById(R.id.organizer_social_media_icon);
 
         if (organizerProfile != null) {
             organizerNameText.setText(organizerProfile.getName());
@@ -181,9 +182,22 @@ public class EventDetailActivity extends AppCompatActivity {
                     .load(organizerProfile.getProfileImageUrl())
                     .placeholder(R.drawable.ic_person)
                     .into(organizerAvatarImage);
+
+            if (organizerProfile.getSocialMediaLink() != null &&
+                    !organizerProfile.getSocialMediaLink().isEmpty()) {
+                socialMediaIcon.setVisibility(View.VISIBLE);
+                socialMediaIcon.setOnClickListener(v -> {
+                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(organizerProfile.getSocialMediaLink()));
+                    startActivity(intent);
+                });
+            } else {
+                socialMediaIcon.setVisibility(View.GONE);
+            }
+
         } else {
             organizerNameText.setText("Unknown Organizer");
             organizerAvatarImage.setImageResource(R.drawable.ic_person);
+            socialMediaIcon.setVisibility(View.GONE);
         }
         updateFollowButtonState();
 

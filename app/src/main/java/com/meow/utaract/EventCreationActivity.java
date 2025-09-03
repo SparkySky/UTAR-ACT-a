@@ -74,6 +74,7 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
     private HorizontalScrollView catalogScrollView;
     private Uri newPosterUri = null;
     private List<Uri> newCatalogUris = new ArrayList<>();
+    private TextInputEditText etSocialMediaLink;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,6 +87,7 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         setupDateTimePickers();
         setupButtonListeners();
         initializeImageLaunchers();
+        etSocialMediaLink = findViewById(R.id.etSocialMediaLink);
         eventStorage = new EventCreationStorage();
 
         if (getIntent().hasExtra("IS_EDIT_MODE")) {
@@ -341,6 +343,9 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
 
         event.setCoverImageUrl(finalPosterUrl);
         event.setAdditionalImageUrls(finalCatalogUrls);
+
+        String socialMedia = Objects.requireNonNull(etSocialMediaLink.getText()).toString().trim();
+        event.setSocialMediaLink(socialMedia);
 
         EventCreationStorage.EventCreationCallback callback = new EventCreationStorage.EventCreationCallback() {
             @Override
