@@ -56,6 +56,13 @@ public class MainActivity extends AppCompatActivity {
                 // Close the drawer
                 binding.drawerLayout.closeDrawer(binding.navView);
                 return true;
+            } else if (id == R.id.nav_news) {
+                // Launch NewsActivity
+                Intent intent = new Intent(MainActivity.this, NewsActivity.class);
+                intent.putExtra("IS_ORGANISER", isOrganiser);
+                startActivity(intent);
+                binding.drawerLayout.closeDrawer(binding.navView);
+                return true;
             } else {
                 // For all other items, use the default navigation
                 try {

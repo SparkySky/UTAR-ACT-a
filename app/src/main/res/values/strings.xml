@@ -33,6 +33,16 @@
     <string name="btn_create_event">Create Event</string>
     <string name="btn_nav_event">Test - Event Creation</string>
 
+    <!-- New strings for News -->
+    <string name="hint_search_news">Search news...</string>
+    <string name="no_news">No news from followed organizers yet.</string>
+    <string name="desc_add_news">Add News</string>
+    <string name="desc_organizer_profile">Organizer Profile</string>
+    <string name="organizer_name">Organizer Name</string>
+    <string name="posted_time">2 hours ago</string>
+    <string name="news_content">This is the news content that will be displayed here. It can be multiple lines of text.</string>
+    <string name="desc_like_news">Like news</string>
+    <string name="like_count">0</string>
 
     <!-- New strings for Guest Form -->
     <string name="title_guest_form">Guest Details</string>
