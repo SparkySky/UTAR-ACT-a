@@ -6,7 +6,6 @@
     android:layout_height="match_parent"
     tools:context=".ManageEventsActivity">
 
-
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -34,7 +33,7 @@
                 android:layout_height="48dp"
                 android:padding="12dp"
                 app:navigationIcon="@drawable/ic_arrow_back"
-                android:src="@drawable/ic_arrow_back"
+                android:src="@drawable/icon_main_menu"
                 app:layout_constraintBottom_toBottomOf="@id/main_section"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="@id/main_section" />
@@ -64,7 +63,7 @@
                 app:layout_constraintTop_toTopOf="@id/main_section">
 
                 <ImageView
-                    android:id="@+id/qrScannerIcon"
+                    android:id="@+id/searchIcon"
                     android:layout_width="30dp"
                     android:layout_height="30dp"
                     android:src="@android:drawable/ic_search_category_default" />
