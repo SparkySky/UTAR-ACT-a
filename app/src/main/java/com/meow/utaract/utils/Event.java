@@ -19,7 +19,14 @@ public class Event implements Serializable {
     private int maxGuests;
     private double fee;
     private long publishAt; // The ONLY field for visibility control
+    private String socialMediaLink;
 
+    public String getSocialMediaLink() {
+        return socialMediaLink;
+    }
+    public void setSocialMediaLink(String socialMediaLink) {
+        this.socialMediaLink = socialMediaLink;
+    }
     public Event() {
         this.additionalImageUrls = new ArrayList<>();
     }

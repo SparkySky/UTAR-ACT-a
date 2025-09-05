@@ -25,6 +25,7 @@ public class ApplicantListActivity extends AppCompatActivity {
     private ApplicantAdapter adapter;
     private List<Applicant> allApplicants = new ArrayList<>();
     private String eventId;
+    private String organizerId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,6 +33,7 @@ public class ApplicantListActivity extends AppCompatActivity {
         setContentView(R.layout.activity_applicant_list);
 
         eventId = getIntent().getStringExtra("EVENT_ID");
+        organizerId = getIntent().getStringExtra("ORGANIZER_ID");
         if (eventId == null) {
             finish(); // Cannot function without an event ID
             return;
@@ -47,18 +49,17 @@ public class ApplicantListActivity extends AppCompatActivity {
         adapter = new ApplicantAdapter(new ArrayList<>(), new ApplicantAdapter.OnApplicantActionListener() {
             @Override
             public void onAccept(Applicant applicant) {
-                viewModel.updateApplicantStatus(eventId, applicant.getUserId(), "accepted");
+                viewModel.updateApplicantStatus(eventId, applicant.getUserId(), "accepted", organizerId);
             }
             @Override
             public void onReject(Applicant applicant) {
-                viewModel.updateApplicantStatus(eventId, applicant.getUserId(), "rejected");
+                viewModel.updateApplicantStatus(eventId, applicant.getUserId(), "rejected", organizerId);
             }
             @Override
             public void onViewDetails(Applicant applicant) {
                 fetchAndShowApplicantDetails(applicant);
             }
         });
-
 
         recyclerView.setAdapter(adapter);
 
@@ -67,9 +68,7 @@ public class ApplicantListActivity extends AppCompatActivity {
             allApplicants = applicants;
             filterAndDisplayApplicants(); // Initial display
         });
-        viewModel.fetchApplicants(eventId);
-
-
+        viewModel.fetchApplicants(eventId, organizerId);
 
         setupFilters();
     }
