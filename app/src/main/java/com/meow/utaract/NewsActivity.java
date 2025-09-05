@@ -60,6 +60,8 @@ public class NewsActivity extends AppCompatActivity implements NewsAdapter.NewsI
         drawerLayout = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
 
+        navigationView.getMenu().findItem(R.id.nav_manage_events).setVisible(isOrganizer);
+
         // Set up menu icon to open drawer
         findViewById(R.id.menu_icon).setOnClickListener(v -> {
             if (drawerLayout != null) {
@@ -83,6 +85,7 @@ public class NewsActivity extends AppCompatActivity implements NewsAdapter.NewsI
             if (id == R.id.nav_home) {
                 Intent intent = new Intent(this, MainActivity.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                intent.putExtra("IS_ORGANISER", isOrganizer); // Add this line
                 startActivity(intent);
                 finish();
             } else if (id == R.id.nav_news) {

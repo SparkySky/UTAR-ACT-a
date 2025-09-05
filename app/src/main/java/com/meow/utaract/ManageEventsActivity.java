@@ -57,7 +57,9 @@ public class ManageEventsActivity extends AppCompatActivity implements FilterBot
             int id = item.getItemId();
 
             if (id == R.id.nav_home) {
-                startActivity(new Intent(this, MainActivity.class));
+                Intent intent = new Intent(this, MainActivity.class);
+                intent.putExtra("IS_ORGANISER", true); // Add this line
+                startActivity(intent);
             } else if (id == R.id.nav_manage_events) {
                 startActivity(new Intent(this, ManageEventsActivity.class));
             } else if (id == R.id.nav_news) {
