@@ -5,15 +5,37 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GuestProfile implements Serializable {
-    private String name;
-    private String email;
-    private String phone;
-    private String profileImageUrl;
-    private List<String> preferences;
-    private List<String> following;
-    private String socialMediaLink;
-    private String socialMediaPlatform;
 
+    private String name; // Store Name
+    private String email;// Store Email
+    private String phone; // Store Phone Number
+    private String profileImageUrl; // Store Profile Image URL
+    private List<String> preferences; // Store Food Preferences
+    private List<String> following; // Store Follower
+
+    public List<String> getFollowing() { return following; }
+
+    public void setFollowing(List<String> following) { this.following = following; }
+
+    public void addFollowing(String organizerId) {
+        if (following == null) {
+            following = new ArrayList<>();
+        }
+        if (!following.contains(organizerId)) {
+            following.add(organizerId);
+        }
+    }
+
+    public void removeFollowing(String organizerId) {
+        if (following != null) {
+            following.remove(organizerId);
+        }
+    }
+    private List<String> likedNews; // News IDs that this guest has liked
+
+    public List<String> getLikedNews() { return likedNews; }
+    public void setLikedNews(List<String> likedNews) { this.likedNews = likedNews; }
+    // Constructor
 
     public GuestProfile(String name, String email, String phone, List<String> preferences) {
         this.name = name;
@@ -40,12 +62,5 @@ public class GuestProfile implements Serializable {
 
     public String getProfileImageUrl() { return profileImageUrl; }
     public void setProfileImageUrl(String profileImageUrl) { this.profileImageUrl = profileImageUrl; }
-
-    public List<String> getFollowing() { return following; }
-    public void setFollowing(List<String> following) { this.following = following; }
-
-    public String getSocialMediaLink() { return socialMediaLink; }
-    public void setSocialMediaLink(String socialMediaLink) { this.socialMediaLink = socialMediaLink; }
-    public String getSocialMediaPlatform() { return socialMediaPlatform; }
-    public void setSocialMediaPlatform(String socialMediaPlatform) { this.socialMediaPlatform = socialMediaPlatform; }
 }
+

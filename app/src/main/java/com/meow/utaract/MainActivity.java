@@ -3,7 +3,7 @@ package com.meow.utaract;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
-import android.view.MenuItem;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.lifecycle.ViewModelProvider;
@@ -19,6 +19,11 @@ public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
     private MainViewModel mainViewModel;
+    private boolean isOrganiser;
+
+    public boolean isOrganiser() {
+        return isOrganiser;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,7 +32,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
 
         mainViewModel = new ViewModelProvider(this).get(MainViewModel.class);
-        boolean isOrganiser = getIntent().getBooleanExtra("IS_ORGANISER", false);
+        isOrganiser = getIntent().getBooleanExtra("IS_ORGANISER", false);
         mainViewModel.setOrganiser(isOrganiser);
 
         setupNavigation(isOrganiser);
@@ -82,6 +87,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // The onSupportNavigateUp method is no longer needed.
+
+    private void openNewsActivity() {
+        Intent intent = new Intent(this, NewsActivity.class);
+        intent.putExtra("IS_ORGANISER", isOrganiser); // PASS THE FLAG
+        startActivity(intent);
+    }
 
     private void loadUserProfile(boolean isOrganiser) {
         GuestProfileStorage storage = new GuestProfileStorage(this);

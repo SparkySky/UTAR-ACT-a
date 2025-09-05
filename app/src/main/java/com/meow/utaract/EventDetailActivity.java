@@ -156,6 +156,29 @@ public class EventDetailActivity extends AppCompatActivity {
                 });
     }
 
+    private void toggleFollowStatus() {
+        if (userProfile == null) return;
+
+        String organizerId = event.getOrganizerId();
+        String organizerName = (organizerProfile != null) ? organizerProfile.getName() : "the organizer";
+
+        GuestProfileStorage storage = new GuestProfileStorage(this);
+
+        if (userProfile.getFollowing() != null && userProfile.getFollowing().contains(organizerId)) {
+            // Unfollow
+            userProfile.removeFollowing(organizerId);
+            Toast.makeText(this, "Unfollowed " + organizerName, Toast.LENGTH_SHORT).show();
+        } else {
+            // Follow
+            userProfile.addFollowing(organizerId);
+            Toast.makeText(this, "Followed " + organizerName, Toast.LENGTH_SHORT).show();
+        }
+
+        // Save locally (guests don't save to Firestore)
+        storage.saveProfile(userProfile);
+        updateFollowButtonState();
+    }
+
     private void populateViews() {
         ImageView eventPosterImage = findViewById(R.id.event_poster_image);
         TextView eventTitleText = findViewById(R.id.event_title_text);
@@ -228,9 +251,9 @@ public class EventDetailActivity extends AppCompatActivity {
 
     private void setupListeners() {
         followButton.setOnClickListener(v -> toggleFollowStatus());
-        qrCodeButton.setOnClickListener(v -> generateAndShowQrCode());
+//        qrCodeButton.setOnClickListener(v -> generateAndShowQrCode());
         registerButton.setOnClickListener(v -> handleRegistrationClick());
-        qrCodeButton.setOnClickListener(v -> generateAndShowQrCode());
+//        qrCodeButton.setOnClickListener(v -> generateAndShowQrCode());
     }
 
     private void populateCatalogueImages() {
@@ -424,33 +447,6 @@ public class EventDetailActivity extends AppCompatActivity {
         }
     }
 
-    private void toggleFollowStatus() {
-        if (userProfile == null) return;
-
-        List<String> followingList = userProfile.getFollowing();
-        if (followingList == null) {
-            followingList = new java.util.ArrayList<>();
-        }
-        String organizerId = event.getOrganizerId();
-        String organizerName = (organizerProfile != null) ? organizerProfile.getName() : "the organizer";
-
-        if (followingList.contains(organizerId)) {
-            followingList.remove(organizerId);
-            Toast.makeText(this, "Unfollowed " + organizerName, Toast.LENGTH_SHORT).show();
-        } else {
-            followingList.add(organizerId);
-            Toast.makeText(this, "Followed " + organizerName, Toast.LENGTH_SHORT).show();
-        }
-
-        userProfile.setFollowing(followingList);
-        profileStorage.saveProfile(userProfile);
-
-        boolean isCurrentUserOrganiser = getIntent().getBooleanExtra("IS_ORGANISER", false);
-        if (isCurrentUserOrganiser) {
-            profileStorage.uploadProfileToFirestore(userProfile);
-        }
-        updateFollowButtonState();
-    }
     private void showErrorAndFinish(String message) {
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
         finish();
