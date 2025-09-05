@@ -83,6 +83,17 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView4" />
     <TextView
+        android:id="@+id/forgotPasswordLink"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Forgot Password?"
+        android:textColor="?attr/colorPrimary"
+        android:layout_marginTop="12dp"
+        android:clickable="true"
+        android:focusable="true"
+        app:layout_constraintStart_toStartOf="@+id/passwordInputLogin"
+        app:layout_constraintTop_toBottomOf="@+id/passwordInputLogin"/>
+    <TextView
         android:id="@+id/signupTextLink"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -93,7 +104,7 @@
         android:textColor="?attr/colorPrimary"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="@+id/passwordInputLogin"
-        app:layout_constraintTop_toBottomOf="@+id/passwordInputLogin" />
+        app:layout_constraintTop_toBottomOf="@+id/forgotPasswordLink" />
 
     <LinearLayout
         android:id="@+id/actionButtonLayout"
