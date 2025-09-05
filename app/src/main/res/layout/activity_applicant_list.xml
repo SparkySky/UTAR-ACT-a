@@ -26,56 +26,39 @@
         app:iconifiedByDefault="false"
         app:queryHint="Search by name..." />
 
-    <HorizontalScrollView
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/filterChipGroup"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:scrollbars="none">
-        <com.google.android.material.chip.ChipGroup
-            android:id="@+id/filterChipGroup"
+        android:paddingHorizontal="10dp"
+        app:singleSelection="true">
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipAll"
+            style="@style/Widget.MaterialComponents.Chip.Filter"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:paddingHorizontal="16dp"
-            app:singleSelection="true"
-            app:chipSpacingHorizontal="8dp">
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipAll"
-                style="@style/Widget.App.Chip.Filter"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:checked="true"
-                tools:text="All (15)" />
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipPending"
-                style="@style/Widget.MaterialComponents.Chip.Filter"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:chipBackgroundColor="@color/status_pending_background"
-                android:textColor="@android:color/white"
-                android:textStyle="bold"
-                tools:text="Pending (12)" />
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipAccepted"
-                style="@style/Widget.MaterialComponents.Chip.Filter"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:chipBackgroundColor="@color/status_confirmed_background"
-                android:textColor="@android:color/white"
-                android:textStyle="bold"
-                tools:text="Accepted (2)" />
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipRejected"
-                style="@style/Widget.MaterialComponents.Chip.Filter"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:chipBackgroundColor="@color/status_rejected_background"
-                android:textColor="@android:color/white"
-                android:textStyle="bold"
-                tools:text="Rejected (1)" />
-        </com.google.android.material.chip.ChipGroup>
-    </HorizontalScrollView>
-
+            android:text="All"
+            android:checked="true" />
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipPending"
+            style="@style/Widget.MaterialComponents.Chip.Filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Pending" />
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipAccepted"
+            style="@style/Widget.MaterialComponents.Chip.Filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Accepted" />
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipRejected"
+            style="@style/Widget.MaterialComponents.Chip.Filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Rejected" />
+    </com.google.android.material.chip.ChipGroup>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/applicantsRecyclerView"

@@ -31,12 +31,8 @@ public class NewsActivity extends AppCompatActivity implements NewsAdapter.NewsI
 
     private RecyclerView newsRecyclerView;
     private ProgressBar progressBar;
-
     private TextView emptyView;
     private NewsAdapter newsAdapter;
-
-    private EditText searchInput;
-
     private NewsStorage newsStorage;
     private GuestProfileStorage profileStorage;
     private boolean isOrganiser;
@@ -52,27 +48,13 @@ public class NewsActivity extends AppCompatActivity implements NewsAdapter.NewsI
         setSupportActionBar(toolbar);
         toolbar.setNavigationOnClickListener(v -> finish());
 
-
-        // Initialize NewsStorage
-        newsStorage = new NewsStorage(this);
-        currentUserId = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid();
-
-        // Get user type from intent
-        isOrganiser = getIntent().getBooleanExtra("IS_ORGANISER", false);
-
-        // Set up navigation drawer
         drawerLayout = findViewById(R.id.drawer_layout);
         menuIcon = findViewById(R.id.menu_icon);
         NavigationView navView = findViewById(R.id.nav_view);
 
-
-        navigationView.getMenu().findItem(R.id.nav_manage_events).setVisible(isOrganiser);
-
-        // Set up menu icon to open drawer
-        findViewById(R.id.menu_icon).setOnClickListener(v -> {
-            if (drawerLayout != null) {
-                drawerLayout.openDrawer(GravityCompat.START);
-            }
+        menuIcon.setOnClickListener(v -> {
+            // Open the drawer when icon is clicked
+            drawerLayout.openDrawer(GravityCompat.START);
         });
 
         isOrganiser = getIntent().getBooleanExtra("IS_ORGANISER", false);
@@ -96,41 +78,23 @@ public class NewsActivity extends AppCompatActivity implements NewsAdapter.NewsI
             int id = item.getItemId();
 
             if (id == R.id.nav_home) {
-                Intent intent = new Intent(this, MainActivity.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                intent.putExtra("IS_ORGANISER", isOrganiser);
-                startActivity(intent);
-                finish();
+                startActivity(new Intent(this, MainActivity.class));
             } else if (id == R.id.nav_manage_events) {
-                Intent intent = new Intent(this, ManageEventsActivity.class);
-                intent.putExtra("IS_ORGANISER", isOrganiser);
-                startActivity(intent);
-                finish();
+                startActivity(new Intent(this, ManageEventsActivity.class));
+            } else if (id == R.id.nav_news) {
+                startActivity(new Intent(this, NewsCreationActivity.class));
             }
+            // Close drawer after selection
             drawerLayout.closeDrawer(GravityCompat.START);
             return true;
         });
+
 
         if (isOrganiser) {
             setupOrganiserView();
         } else {
             setupGuestView();
         }
-      
-        // Initialize views
-        newsRecyclerView = findViewById(R.id.newsRecyclerView);
-        emptyView = findViewById(R.id.emptyView);
-        progressBar = findViewById(R.id.progressBar);
-        searchInput = findViewById(R.id.search_input);
-        FloatingActionButton fabAddNews = findViewById(R.id.fabAddNews);
-
-        // Show FAB only for organizers
-        fabAddNews.setVisibility(isOrganiser ? View.VISIBLE : View.GONE);
-        fabAddNews.setOnClickListener(v -> showAddNewsDialog());
-
-        setupRecyclerView();
-        setupSearchFunctionality();
-        loadNews();
     }
 
     private void initializeViews() {
@@ -212,7 +176,6 @@ public class NewsActivity extends AppCompatActivity implements NewsAdapter.NewsI
             newsAdapter.updateNews(newsList);
         }
     }
-
     @Override
     public void onEditClicked(News news, int position) {
         // Open NewsCreationActivity in edit mode
@@ -220,62 +183,6 @@ public class NewsActivity extends AppCompatActivity implements NewsAdapter.NewsI
         intent.putExtra("EDIT_NEWS", news);
         intent.putExtra("IS_EDIT_MODE", true);
         startActivity(intent);
-
-
-    private void loadNews() {
-        progressBar.setVisibility(View.VISIBLE);
-        emptyView.setVisibility(View.GONE);
-
-        if (isOrganiser) {
-            // Organizers see all news
-            newsStorage.getAllNews(new NewsStorage.NewsFetchCallback() {
-                @Override
-                public void onSuccess(List<News> newsList) {
-                    allNews = newsList;
-                    progressBar.setVisibility(View.GONE);
-
-                    if (newsList.isEmpty()) {
-                        emptyView.setText("No news yet. Be the first to post!");
-                        emptyView.setVisibility(View.VISIBLE);
-                    } else {
-                        newsAdapter.updateNews(newsList);
-                    }
-                }
-
-                @Override
-                public void onFailure(Exception e) {
-                    progressBar.setVisibility(View.GONE);
-                    emptyView.setText("Failed to load news");
-                    emptyView.setVisibility(View.VISIBLE);
-                    Toast.makeText(NewsActivity.this, "Error loading news: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-            });
-        } else {
-            // Guests see only news from followed organizers
-            newsStorage.getNewsFromFollowedOrganizers(new NewsStorage.NewsFetchCallback() {
-                @Override
-                public void onSuccess(List<News> newsList) {
-                    allNews = newsList;
-                    progressBar.setVisibility(View.GONE);
-
-                    if (newsList.isEmpty()) {
-                        emptyView.setText("No news from followed organizers yet");
-                        emptyView.setVisibility(View.VISIBLE);
-                    } else {
-                        newsAdapter.updateNews(newsList);
-                    }
-                }
-
-                @Override
-                public void onFailure(Exception e) {
-                    progressBar.setVisibility(View.GONE);
-                    emptyView.setText("Failed to load news");
-                    emptyView.setVisibility(View.VISIBLE);
-                    Toast.makeText(NewsActivity.this, "Error loading news: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-            });
-        }
-
     }
 
     @Override

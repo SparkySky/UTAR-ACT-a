@@ -206,19 +206,9 @@ public class GuestFormActivity extends AppCompatActivity {
             return;
         }
 
-        if (!phone.matches("^0\\d{2}-\\d{7,8}$")) {
-            Toast.makeText(this, "Invalid phone number format (e.g., 012-1234567)", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        if (!email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
-            Toast.makeText(this, "Invalid email format", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
         List<String> selectedPreferences = getSelectedPreferences();
-        if (!isRegistrationMode && selectedPreferences.size() < 3) {
-            Toast.makeText(this, "Please select at least 3 preferences", Toast.LENGTH_SHORT).show();
+        if (!isRegistrationMode && selectedPreferences.isEmpty()) {
+            Toast.makeText(this, "Please select at least one preference", Toast.LENGTH_SHORT).show();
             return;
         }
 

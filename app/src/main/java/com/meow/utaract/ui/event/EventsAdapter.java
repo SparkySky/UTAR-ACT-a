@@ -30,16 +30,10 @@ import java.util.Random;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.EventViewHolder> {
-    private boolean isOrganiser = false; // Add this variable
     private List<HomeViewModel.EventItem> eventItemList;
-    // Just placeholder image colours
+    // Jus placeholder image colours
     private final int[] placeholderColors;
     private final Random random = new Random();
-
-    public void setOrganiser(boolean isOrganiser) {
-        this.isOrganiser = isOrganiser;
-        notifyDataSetChanged(); // Refresh the list with the new state
-    }
     public EventsAdapter(List<HomeViewModel.EventItem> eventItemList, View context) {
         this.eventItemList = eventItemList;
         // Define a palette of colors for the image placeholders
@@ -86,7 +80,7 @@ public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.EventViewH
     @Override
     public void onBindViewHolder(@NonNull EventViewHolder holder, int position) {
         HomeViewModel.EventItem eventItem = eventItemList.get(position);
-        holder.bind(eventItem, placeholderColors[random.nextInt(placeholderColors.length)], isOrganiser);
+        holder.bind(eventItem, placeholderColors[random.nextInt(placeholderColors.length)]);
     }
 
     @Override
@@ -96,7 +90,6 @@ public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.EventViewH
 
     // Class for the view holder
     static class EventViewHolder extends RecyclerView.ViewHolder {
-
         ImageView eventBanner;
         TextView dateBadge, categoryTag, eventTitle, eventAudience, eventDate, eventLocation, organizerName;
         View bannerContainer;
@@ -118,7 +111,7 @@ public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.EventViewH
             editEventButton = itemView.findViewById(R.id.editEventButton);
         }
 
-        void bind(final HomeViewModel.EventItem eventItem, int placeholderColor, boolean isOrganiser) {
+        void bind(final HomeViewModel.EventItem eventItem, int placeholderColor) {
             final Event event = eventItem.event;
             GuestProfile organizer = eventItem.organizer;
             String currentUserId = FirebaseAuth.getInstance().getUid();
@@ -141,7 +134,6 @@ public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.EventViewH
             }
 
             // Set Organizer Name and Profile Picture
-            // Set Organizer Name and Profile Picture
             if (organizer != null) {
                 organizerName.setText(organizer.getName());
                 if (organizer.getProfileImageUrl() != null && !organizer.getProfileImageUrl().isEmpty()) {
@@ -153,7 +145,8 @@ public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.EventViewH
                     organizerAvatar.setImageResource(R.drawable.ic_person);
                 }
             } else {
-                editEventButton.setVisibility(View.GONE);
+                organizerName.setText("Unknown Organizer");
+                organizerAvatar.setImageResource(R.drawable.ic_person);
             }
 
             // Set Event Banner or set color for placeholder image
