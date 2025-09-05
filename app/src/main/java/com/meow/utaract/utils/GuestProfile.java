@@ -12,6 +12,28 @@ public class GuestProfile implements Serializable {
     private List<String> preferences; // Store Food Preferences
     private List<String> following; // Store Follower
 
+    public List<String> getFollowing() { return following; }
+
+    public void setFollowing(List<String> following) { this.following = following; }
+
+    public void addFollowing(String organizerId) {
+        if (following == null) {
+            following = new ArrayList<>();
+        }
+        if (!following.contains(organizerId)) {
+            following.add(organizerId);
+        }
+    }
+
+    public void removeFollowing(String organizerId) {
+        if (following != null) {
+            following.remove(organizerId);
+        }
+    }
+    private List<String> likedNews; // News IDs that this guest has liked
+
+    public List<String> getLikedNews() { return likedNews; }
+    public void setLikedNews(List<String> likedNews) { this.likedNews = likedNews; }
     // Constructor
     public GuestProfile(String name, String email, String phone, List<String> preferences) {
         this.name = name;
@@ -37,7 +59,4 @@ public class GuestProfile implements Serializable {
 
     public String getProfileImageUrl() { return profileImageUrl; }
     public void setProfileImageUrl(String profileImageUrl) { this.profileImageUrl = profileImageUrl; }
-
-    public List<String> getFollowing() { return following; }
-    public void setFollowing(List<String> following) { this.following = following; }
 }
