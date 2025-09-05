@@ -62,7 +62,7 @@ public class EventDetailActivity extends AppCompatActivity {
     private Bitmap qrCodeToSave;
     private LinearLayout catalogueImagesLayout;
 
-     Permission Launcher: Request storage permission
+    // Permission Launcher: Request storage permission
     private final ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
                 if (isGranted) {
@@ -332,7 +332,7 @@ public class EventDetailActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> Toast.makeText(this, "Failed to cancel registration.", Toast.LENGTH_SHORT).show());
     }
 
-     Display QR code
+    // Display QR code
     private void generateAndShowQrCode() {
         String deepLink = "https://utaract.page.link/event?id=" + event.getEventId();
         QRCodeWriter writer = new QRCodeWriter();
