@@ -16,7 +16,7 @@ import com.meow.utaract.utils.GuestProfile;
 import com.meow.utaract.utils.GuestProfileStorage;
 
 public class MainActivity extends AppCompatActivity {
-
+    private boolean isOrganiser = false;
     private ActivityMainBinding binding;
     private MainViewModel mainViewModel;
 
@@ -27,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
 
         mainViewModel = new ViewModelProvider(this).get(MainViewModel.class);
-        boolean isOrganiser = getIntent().getBooleanExtra("IS_ORGANISER", false);
+        isOrganiser = getIntent().getBooleanExtra("IS_ORGANISER", false);
         mainViewModel.setOrganiser(isOrganiser);
 
         setupNavigation(isOrganiser);
@@ -51,33 +51,17 @@ public class MainActivity extends AppCompatActivity {
             if (id == R.id.nav_manage_events) {
                 // Launch ManageEventsActivity instead of using navigation component
                 Intent intent = new Intent(MainActivity.this, ManageEventsActivity.class);
-                startActivity(intent);
-
-                // Close the drawer
-                binding.drawerLayout.closeDrawer(binding.navView);
-                return true;
-            } else if (id == R.id.nav_news) {
-                // Launch NewsActivity
-                Intent intent = new Intent(MainActivity.this, NewsActivity.class);
                 intent.putExtra("IS_ORGANISER", isOrganiser);
                 startActivity(intent);
-                binding.drawerLayout.closeDrawer(binding.navView);
-                return true;
-            } else {
-                // For all other items, use the default navigation
-                try {
-                    NavigationUI.onNavDestinationSelected(item, navController);
-                    binding.drawerLayout.closeDrawer(binding.navView);
-                    return true;
-                } catch (IllegalArgumentException e) {
-                    // Handle case where the destination doesn't exist in the navigation graph
-                    return false;
-                }
+                finish();
+            } else if (id == R.id.nav_news) {
+                Intent intent = new Intent(this, NewsActivity.class);
+                intent.putExtra("IS_ORGANISER", isOrganiser);
+                startActivity(intent);
+                finish();
             }
+            return true;
         });
-
-        Menu navMenu = navigationView.getMenu();
-        navMenu.findItem(R.id.nav_manage_events).setVisible(isOrganiser);
     }
 
     // The onSupportNavigateUp method is no longer needed.

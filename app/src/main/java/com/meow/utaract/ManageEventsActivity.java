@@ -36,6 +36,7 @@ public class ManageEventsActivity extends AppCompatActivity implements FilterBot
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_manage_events);
 
@@ -45,25 +46,30 @@ public class ManageEventsActivity extends AppCompatActivity implements FilterBot
 
         drawerLayout = findViewById(R.id.drawer_layout_manage);
         menuIcon = findViewById(R.id.menu_icon);
-        NavigationView navView = findViewById(R.id.nav_view_manage);
+        NavigationView navigationView = findViewById(R.id.nav_view_manage);
 
         menuIcon.setOnClickListener(v -> {
             // Open the drawer when icon is clicked
             drawerLayout.openDrawer(GravityCompat.START);
         });
 
+        boolean isOrganiser = getIntent().getBooleanExtra("IS_ORGANISER", false);
+
         // Handle navigation item clicks
-        navView.setNavigationItemSelectedListener(item -> {
+        navigationView.setNavigationItemSelectedListener(item -> {
             int id = item.getItemId();
 
             if (id == R.id.nav_home) {
                 Intent intent = new Intent(this, MainActivity.class);
-                intent.putExtra("IS_ORGANISER", true); // Add this line
+                intent.putExtra("IS_ORGANISER", isOrganiser);
                 startActivity(intent);
-            } else if (id == R.id.nav_manage_events) {
-                startActivity(new Intent(this, ManageEventsActivity.class));
+                finish();
             } else if (id == R.id.nav_news) {
-                startActivity(new Intent(this, NewsActivity.class));
+                drawerLayout.closeDrawer(GravityCompat.START);
+                Intent intent = new Intent(this, NewsActivity.class);
+                intent.putExtra("IS_ORGANISER", isOrganiser);
+                startActivity(intent);
+                finish();
             }
             // Close drawer after selection
             drawerLayout.closeDrawer(GravityCompat.START);

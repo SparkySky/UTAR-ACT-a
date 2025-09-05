@@ -33,9 +33,9 @@ public class NewsActivity extends AppCompatActivity implements NewsAdapter.NewsI
     private NewsAdapter newsAdapter;
     private TextView emptyView;
     private ProgressBar progressBar;
+    private boolean isOrganiser;
     private EditText searchInput;
     private DrawerLayout drawerLayout;
-    private boolean isOrganizer;
 
     private NewsStorage newsStorage;
     private List<News> allNews = new ArrayList<>();
@@ -54,13 +54,13 @@ public class NewsActivity extends AppCompatActivity implements NewsAdapter.NewsI
         currentUserId = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid();
 
         // Get user type from intent
-        isOrganizer = getIntent().getBooleanExtra("IS_ORGANISER", false);
+        isOrganiser = getIntent().getBooleanExtra("IS_ORGANISER", false);
 
         // Set up navigation drawer
         drawerLayout = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
 
-        navigationView.getMenu().findItem(R.id.nav_manage_events).setVisible(isOrganizer);
+        navigationView.getMenu().findItem(R.id.nav_manage_events).setVisible(isOrganiser);
 
         // Set up menu icon to open drawer
         findViewById(R.id.menu_icon).setOnClickListener(v -> {
@@ -85,20 +85,16 @@ public class NewsActivity extends AppCompatActivity implements NewsAdapter.NewsI
             if (id == R.id.nav_home) {
                 Intent intent = new Intent(this, MainActivity.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                intent.putExtra("IS_ORGANISER", isOrganizer); // Add this line
+                intent.putExtra("IS_ORGANISER", isOrganiser);
                 startActivity(intent);
                 finish();
-            } else if (id == R.id.nav_news) {
-                drawerLayout.closeDrawer(GravityCompat.START);
-                Intent intent = new Intent(this, NewsActivity.class);
-                intent.putExtra("IS_ORGANISER", true); // or false for guests
-                startActivity(intent);
             } else if (id == R.id.nav_manage_events) {
                 Intent intent = new Intent(this, ManageEventsActivity.class);
+                intent.putExtra("IS_ORGANISER", isOrganiser);
                 startActivity(intent);
                 finish();
             }
-
+            drawerLayout.closeDrawer(GravityCompat.START);
             return true;
         });
 
@@ -110,7 +106,7 @@ public class NewsActivity extends AppCompatActivity implements NewsAdapter.NewsI
         FloatingActionButton fabAddNews = findViewById(R.id.fabAddNews);
 
         // Show FAB only for organizers
-        fabAddNews.setVisibility(isOrganizer ? View.VISIBLE : View.GONE);
+        fabAddNews.setVisibility(isOrganiser ? View.VISIBLE : View.GONE);
         fabAddNews.setOnClickListener(v -> showAddNewsDialog());
 
         setupRecyclerView();
@@ -133,7 +129,6 @@ public class NewsActivity extends AppCompatActivity implements NewsAdapter.NewsI
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 filterNews(s.toString());
             }
-
             @Override
             public void afterTextChanged(Editable s) {}
         });
@@ -163,7 +158,7 @@ public class NewsActivity extends AppCompatActivity implements NewsAdapter.NewsI
         progressBar.setVisibility(View.VISIBLE);
         emptyView.setVisibility(View.GONE);
 
-        if (isOrganizer) {
+        if (isOrganiser) {
             // Organizers see all news
             newsStorage.getAllNews(new NewsStorage.NewsFetchCallback() {
                 @Override
