@@ -186,7 +186,18 @@
                 android:visibility="gone"
                 app:icon="@android:drawable/ic_menu_edit"
                 tools:visibility="visible" />
+
+            <Button
+                android:id="@+id/askBotButton"
+
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:text="Ask Bot"
+                app:icon="@android:drawable/ic_menu_help" />
         </LinearLayout>
 
     </LinearLayout>
 </androidx.cardview.widget.CardView>
+
+<!--    style="@style/Widget.Material3.Button.FilledTonalButton"-->

@@ -8,6 +8,7 @@ public class Event implements Serializable {
     private String eventId;
     private String eventName;
     private String description;
+    private String summary;
     private String category;
     private String date;
     private String time;
@@ -29,6 +30,7 @@ public class Event implements Serializable {
                  String time, String location, String organizerId, int maxGuests, double fee, long publishAt) {
         this.eventName = eventName;
         this.description = description;
+        this.summary = "";
         this.category = category;
         this.date = date;
         this.time = time;
@@ -53,6 +55,8 @@ public class Event implements Serializable {
     public void setEventName(String eventName) { this.eventName = eventName; }
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
+    public String getSummary() { return summary; }
+    public void setSummary(String summary) { this.summary = summary; }
     public String getCategory() { return category; }
     public void setCategory(String category) { this.category = category; }
     public String getDate() { return date; }

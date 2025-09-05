@@ -152,6 +152,7 @@
                         android:nestedScrollingEnabled="false"
                         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                         tools:listitem="@layout/list_item_event" />
+
                 </LinearLayout>
             </androidx.core.widget.NestedScrollView>
         </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
@@ -166,5 +167,17 @@
         android:contentDescription="@string/btn_create_event"
         android:visibility="gone"
         app:srcCompat="@android:drawable/ic_input_add"
+        tools:visibility="visible" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/ask_bot_general"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        android:layout_marginBottom="80dp"
+        android:contentDescription="Ask Bot"
+        android:visibility="gone"
+        app:srcCompat="@drawable/ic_help"
         tools:visibility="visible" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

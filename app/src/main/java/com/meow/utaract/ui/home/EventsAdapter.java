@@ -91,6 +91,7 @@ public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.EventViewH
         View bannerContainer;
         CircleImageView organizerAvatar;
         Button editEventButton;
+        Button askBotButton;
 
         EventViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -105,6 +106,7 @@ public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.EventViewH
             organizerAvatar = itemView.findViewById(R.id.organizer_avatar);
             organizerName = itemView.findViewById(R.id.organizer_name);
             editEventButton = itemView.findViewById(R.id.editEventButton);
+            askBotButton = itemView.findViewById(R.id.askBotButton);
         }
 
         void bind(final HomeViewModel.EventItem eventItem, int placeholderColor) {
@@ -198,6 +200,14 @@ public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.EventViewH
             } else {
                 editEventButton.setVisibility(View.GONE);
             }
+
+            // Ask Bot button: event-specific chat
+            askBotButton.setOnClickListener(v -> {
+                Intent intent = new Intent(itemView.getContext(), com.meow.utaract.chat.ChatActivity.class);
+                intent.putExtra("MODE", "EVENT");
+                intent.putExtra("EVENT_ID", event.getEventId());
+                itemView.getContext().startActivity(intent);
+            });
         }
     }
 }

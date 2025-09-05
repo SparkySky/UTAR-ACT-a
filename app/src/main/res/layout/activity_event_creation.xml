@@ -256,6 +256,20 @@
                     android:orientation="horizontal"/>
             </HorizontalScrollView>
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Upload a document (txt, pdf, doc) to auto-summarize"
+                android:layout_marginTop="16dp"
+                android:textAppearance="?attr/textAppearanceTitleMedium"/>
+
+            <Button
+                android:id="@+id/btnUploadDoc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Upload Document"
+                app:icon="@android:drawable/ic_menu_upload"/>
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
