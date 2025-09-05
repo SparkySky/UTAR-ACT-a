@@ -20,6 +20,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.meow.utaract.firebase.AuthService;
 
@@ -29,7 +30,7 @@ public class LoginActivity extends AppCompatActivity {
 
     private EditText emailInput, passwordInput;
     private Button loginButton, guestButton, resendEmailButton;
-    private TextView signupTextLink, verificationStatusText;
+    private TextView signupTextLink, verificationStatusText, forgotPasswordLink;
     private ImageButton themeToggleButton;
     private CountDownTimer resendTimer;
     private long resendCooldownEndTime = 0;
@@ -40,6 +41,8 @@ public class LoginActivity extends AppCompatActivity {
     private static final String PREFS_NAME = "ThemePrefs";
     private static final String KEY_THEME = "SelectedTheme";
 
+    private FirebaseAuth auth;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,6 +50,7 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
 
         initializeViews();
+        auth = FirebaseAuth.getInstance();
         setupListeners();
         handleIntent(getIntent());
     }
@@ -56,6 +60,7 @@ public class LoginActivity extends AppCompatActivity {
         passwordInput = findViewById(R.id.passwordInputLogin);
         loginButton = findViewById(R.id.loginButton);
         guestButton = findViewById(R.id.guestButton);
+        forgotPasswordLink = findViewById(R.id.forgotPasswordLink);
         signupTextLink = findViewById(R.id.signupTextLink);
         verificationStatusText = findViewById(R.id.verificationStatusText);
         themeToggleButton = findViewById(R.id.themeToggleButton);
@@ -67,6 +72,7 @@ public class LoginActivity extends AppCompatActivity {
         themeToggleButton.setOnClickListener(v -> toggleTheme());
         loginButton.setOnClickListener(v -> loginUser());
         guestButton.setOnClickListener(v -> continueAsGuest());
+        forgotPasswordLink.setOnClickListener(v -> resetPassword());
         signupTextLink.setOnClickListener(v -> {
             Intent intent = new Intent(LoginActivity.this, SignupActivity.class);
             startActivityForResult(intent, SIGNUP_REQUEST_CODE);
@@ -82,6 +88,29 @@ public class LoginActivity extends AppCompatActivity {
                 });
             }
         });
+    }
+
+    private void resetPassword() {
+        String email = emailInput.getText().toString().trim();
+
+        if (TextUtils.isEmpty(email) || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            emailInput.setError("Enter a valid email address");
+            emailInput.requestFocus();
+            return;
+        }
+
+        auth.sendPasswordResetEmail(email)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Toast.makeText(LoginActivity.this,
+                                "Password reset email sent to " + email,
+                                Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(LoginActivity.this,
+                                "Error: " + task.getException().getMessage(),
+                                Toast.LENGTH_LONG).show();
+                    }
+                });
     }
 
     private void loginUser() {
