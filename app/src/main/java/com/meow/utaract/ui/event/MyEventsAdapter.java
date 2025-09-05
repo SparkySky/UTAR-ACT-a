@@ -111,6 +111,7 @@ public class MyEventsAdapter extends RecyclerView.Adapter<MyEventsAdapter.MyEven
             viewApplicantsButton.setOnClickListener(v -> {
                 Intent intent = new Intent(context, ApplicantListActivity.class);
                 intent.putExtra("EVENT_ID", event.getEventId());
+                intent.putExtra("ORGANIZER_ID", event.getOrganizerId()); // Add this line
                 context.startActivity(intent);
             });
 

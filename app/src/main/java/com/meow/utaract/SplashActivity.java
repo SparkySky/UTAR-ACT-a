@@ -1,90 +1,133 @@
 package com.meow.utaract;
 
-import com.meow.utaract.firebase.AuthService;
-
+import android.animation.ArgbEvaluator; // Import for color interpolation
+import android.animation.ValueAnimator; // Import for value animation
 import android.content.Intent;
+import android.graphics.Color; // Import for Color class
+import android.graphics.PorterDuff; // Import for PorterDuff
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat; // For getting colors reliably
 
 import com.google.firebase.auth.FirebaseUser;
-
+import com.meow.utaract.firebase.AuthService;
 
 public class SplashActivity extends AppCompatActivity {
+
+    private static final int SPLASH_DELAY = 3500;
+    private static final int TYPEWRITER_DELAY = 36;
+
     private ImageView ivLogo;
-    private TextView tvAppName, tvTagline;
-    private ProgressBar progressBar;
-    private Handler handler;
+    private TextView tvSlogan;
+    private View rippleView;
+    private CharSequence sloganText;
+    private int sloganIndex;
+    private final Handler typewriterHandler = new Handler(Looper.getMainLooper());
+    private ValueAnimator glowAnimator; // Declare the ValueAnimator
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
 
-        // Initialize views
         ivLogo = findViewById(R.id.iv_logo);
-        tvAppName = findViewById(R.id.tv_app_name);
-        tvTagline = findViewById(R.id.tv_tagline);
-        progressBar = findViewById(R.id.progress_bar);
+        tvSlogan = findViewById(R.id.tv_slogan);
+        rippleView = findViewById(R.id.ripple_view);
 
-        handler = new Handler(Looper.getMainLooper());
+        ivLogo.setVisibility(View.INVISIBLE);
+        rippleView.setVisibility(View.INVISIBLE);
 
-        // Start animations
+        sloganText = "Activity . Community . Togetherness";
+        tvSlogan.setText("");
+
+        setupGlowAnimator(); // Initialize the glow animator
         startAnimations();
     }
 
-    private void startAnimations() {
-        // Logo animation - scale, rotate, and bounce
-        Animation logoAnimation = AnimationUtils.loadAnimation(this, R.anim.logo_animation);
-        ivLogo.startAnimation(logoAnimation);
+    private void setupGlowAnimator() {
+        // --- THIS IS THE FIX ---
+        // Animate from a bright white overlay to fully transparent (normal)
+        int startColor = Color.parseColor("#A0FFFFFF"); // A semi-transparent white for the "bright" effect
+        int endColor = Color.TRANSPARENT; // Fades to no overlay
 
-        // App name animation - fade in with delay
-        handler.postDelayed(() -> {
-            Animation appNameAnimation = AnimationUtils.loadAnimation(this, R.anim.fade_in);
-            tvAppName.startAnimation(appNameAnimation);
-            tvAppName.animate().alpha(1.0f).setDuration(1000).start();
-        }, 800);
+        glowAnimator = ValueAnimator.ofObject(new ArgbEvaluator(), startColor, endColor);
+        glowAnimator.setDuration(1000); // Duration of the fade
 
-        // Tagline animation - slide up with delay
-        handler.postDelayed(() -> {
-            Animation taglineAnimation = AnimationUtils.loadAnimation(this, R.anim.slide_up);
-            tvTagline.startAnimation(taglineAnimation);
-            tvTagline.animate().alpha(1.0f).setDuration(600).start();
-        }, 1200);
-
-        // Progress bar pulse animation
-        handler.postDelayed(() -> {
-            Animation pulseAnimation = AnimationUtils.loadAnimation(this, R.anim.pulse);
-            progressBar.startAnimation(pulseAnimation);
-        }, 1500);
-
-        // Navigate to LoginActivity after animations complete
-        handler.postDelayed(this::nextActivity, 3000);
+        // This animation will only run once, not repeat.
+        glowAnimator.addUpdateListener(animation -> {
+            int animatedValue = (int) animation.getAnimatedValue();
+            ivLogo.setColorFilter(animatedValue, PorterDuff.Mode.SRC_ATOP);
+        });
     }
+
+    private void startAnimations() {
+        Animation scaleIn = AnimationUtils.loadAnimation(this, R.anim.scale_in);
+        Animation ripple = AnimationUtils.loadAnimation(this, R.anim.ripple_effect);
+        Animation zoomInOut = AnimationUtils.loadAnimation(this, R.anim.zoom_in_out);
+
+        ripple.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {}
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                rippleView.setVisibility(View.GONE);
+            }
+            @Override
+            public void onAnimationRepeat(Animation animation) {}
+        });
+
+        scaleIn.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+                rippleView.setVisibility(View.VISIBLE);
+                rippleView.startAnimation(ripple);
+            }
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                // Start continuous zoom and the new brightening effect
+                ivLogo.startAnimation(zoomInOut);
+                glowAnimator.start(); // Start the glow animator
+                typewriterHandler.postDelayed(characterAdder, TYPEWRITER_DELAY);
+            }
+            @Override
+            public void onAnimationRepeat(Animation animation) {}
+        });
+
+        ivLogo.setVisibility(View.VISIBLE);
+        ivLogo.startAnimation(scaleIn);
+
+        new Handler(Looper.getMainLooper()).postDelayed(this::nextActivity, SPLASH_DELAY);
+    }
+
+    private final Runnable characterAdder = new Runnable() {
+        @Override
+        public void run() {
+            if (sloganIndex <= sloganText.length()) {
+                tvSlogan.setText(sloganText.subSequence(0, sloganIndex++));
+                typewriterHandler.postDelayed(this, TYPEWRITER_DELAY);
+            }
+        }
+    };
 
     private void nextActivity() {
         FirebaseUser currentUser = new AuthService().getAuth().getCurrentUser();
         if (currentUser != null && !currentUser.isAnonymous() && currentUser.isEmailVerified()) {
-            // Case 1: A verified organizer is signed in. Go to MainActivity.
             Intent intent = new Intent(this, MainActivity.class);
             intent.putExtra("IS_ORGANISER", true);
             startActivity(intent);
         } else if (currentUser != null && currentUser.isAnonymous()) {
-            // Case 2: A guest is signed in. Go to MainActivity.
             Intent intent = new Intent(this, MainActivity.class);
             intent.putExtra("IS_ORGANISER", false);
             startActivity(intent);
-        }
-        else {
-            // Case 3: No user is signed in, OR a user is signed in but NOT verified.
-            // In both cases, go to LoginActivity.
+        } else {
             startActivity(new Intent(this, LoginActivity.class));
         }
         finish();
@@ -93,8 +136,11 @@ public class SplashActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (handler != null) {
-            handler.removeCallbacksAndMessages(null);
+        typewriterHandler.removeCallbacks(characterAdder);
+        ivLogo.clearAnimation();
+        rippleView.clearAnimation();
+        if (glowAnimator != null && glowAnimator.isRunning()) {
+            glowAnimator.cancel(); // Cancel the glow animator
         }
     }
 }

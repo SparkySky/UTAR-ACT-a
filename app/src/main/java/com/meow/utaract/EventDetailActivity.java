@@ -156,29 +156,6 @@ public class EventDetailActivity extends AppCompatActivity {
                 });
     }
 
-    private void toggleFollowStatus() {
-        if (userProfile == null) return;
-
-        String organizerId = event.getOrganizerId();
-        String organizerName = (organizerProfile != null) ? organizerProfile.getName() : "the organizer";
-
-        GuestProfileStorage storage = new GuestProfileStorage(this);
-
-        if (userProfile.getFollowing() != null && userProfile.getFollowing().contains(organizerId)) {
-            // Unfollow
-            userProfile.removeFollowing(organizerId);
-            Toast.makeText(this, "Unfollowed " + organizerName, Toast.LENGTH_SHORT).show();
-        } else {
-            // Follow
-            userProfile.addFollowing(organizerId);
-            Toast.makeText(this, "Followed " + organizerName, Toast.LENGTH_SHORT).show();
-        }
-
-        // Save locally (guests don't save to Firestore)
-        storage.saveProfile(userProfile);
-        updateFollowButtonState();
-    }
-
     private void populateViews() {
         ImageView eventPosterImage = findViewById(R.id.event_poster_image);
         TextView eventTitleText = findViewById(R.id.event_title_text);
@@ -197,30 +174,63 @@ public class EventDetailActivity extends AppCompatActivity {
     private void displayOrganizerInfo() {
         CircleImageView organizerAvatarImage = findViewById(R.id.organizer_avatar_image);
         TextView organizerNameText = findViewById(R.id.organizer_name_text);
+        ImageView socialMediaIcon = findViewById(R.id.organizer_social_media_icon);
 
         if (organizerProfile != null) {
             organizerNameText.setText(organizerProfile.getName());
+
             Glide.with(this)
                     .load(organizerProfile.getProfileImageUrl())
                     .placeholder(R.drawable.ic_person)
                     .into(organizerAvatarImage);
+
+            if (organizerProfile.getSocialMediaPlatform() != null
+                    && !organizerProfile.getSocialMediaPlatform().equals("None")
+                    && organizerProfile.getSocialMediaLink() != null
+                    && !organizerProfile.getSocialMediaLink().isEmpty()) {
+
+                socialMediaIcon.setVisibility(View.VISIBLE);
+
+                switch (organizerProfile.getSocialMediaPlatform()) {
+                    case "Instagram":
+                        socialMediaIcon.setImageResource(R.drawable.ic_instagram);
+                        break;
+                    case "Facebook":
+                        socialMediaIcon.setImageResource(R.drawable.ic_facebook);
+                        break;
+                    case "Other":
+                        socialMediaIcon.setImageResource(R.drawable.ic_link);
+                        break;
+                }
+
+                socialMediaIcon.setOnClickListener(v -> {
+                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(organizerProfile.getSocialMediaLink()));
+                    startActivity(intent);
+                });
+
+            } else {
+                socialMediaIcon.setVisibility(View.GONE);
+            }
+
         } else {
             organizerNameText.setText("Unknown Organizer");
             organizerAvatarImage.setImageResource(R.drawable.ic_person);
+            socialMediaIcon.setVisibility(View.GONE);
         }
+
         updateFollowButtonState();
 
-        // Show the content now that everything is ready
         pageProgressBar.setVisibility(View.GONE);
         contentScrollView.setVisibility(View.VISIBLE);
         registrationLayout.setVisibility(View.VISIBLE);
     }
 
+
     private void setupListeners() {
         followButton.setOnClickListener(v -> toggleFollowStatus());
-//        qrCodeButton.setOnClickListener(v -> generateAndShowQrCode());
+        qrCodeButton.setOnClickListener(v -> generateAndShowQrCode());
         registerButton.setOnClickListener(v -> handleRegistrationClick());
-//        qrCodeButton.setOnClickListener(v -> generateAndShowQrCode());
+        qrCodeButton.setOnClickListener(v -> generateAndShowQrCode());
     }
 
     private void populateCatalogueImages() {
@@ -414,6 +424,33 @@ public class EventDetailActivity extends AppCompatActivity {
         }
     }
 
+    private void toggleFollowStatus() {
+        if (userProfile == null) return;
+
+        List<String> followingList = userProfile.getFollowing();
+        if (followingList == null) {
+            followingList = new java.util.ArrayList<>();
+        }
+        String organizerId = event.getOrganizerId();
+        String organizerName = (organizerProfile != null) ? organizerProfile.getName() : "the organizer";
+
+        if (followingList.contains(organizerId)) {
+            followingList.remove(organizerId);
+            Toast.makeText(this, "Unfollowed " + organizerName, Toast.LENGTH_SHORT).show();
+        } else {
+            followingList.add(organizerId);
+            Toast.makeText(this, "Followed " + organizerName, Toast.LENGTH_SHORT).show();
+        }
+
+        userProfile.setFollowing(followingList);
+        profileStorage.saveProfile(userProfile);
+
+        boolean isCurrentUserOrganiser = getIntent().getBooleanExtra("IS_ORGANISER", false);
+        if (isCurrentUserOrganiser) {
+            profileStorage.uploadProfileToFirestore(userProfile);
+        }
+        updateFollowButtonState();
+    }
     private void showErrorAndFinish(String message) {
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
         finish();

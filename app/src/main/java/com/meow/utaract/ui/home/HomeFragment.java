@@ -14,7 +14,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.Toast;
 
@@ -30,8 +29,6 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.ChecksumException;
@@ -50,14 +47,11 @@ import com.meow.utaract.GuestFormActivity;
 import com.meow.utaract.LoginActivity;
 import com.meow.utaract.MainActivity;
 import com.meow.utaract.MainViewModel;
-import com.meow.utaract.utils.NewsAdapter;
 import com.meow.utaract.R;
 import com.meow.utaract.databinding.FragmentHomeBinding;
 import com.meow.utaract.ui.event.EventsAdapter;
 import com.meow.utaract.utils.GuestProfile;
 import com.meow.utaract.utils.GuestProfileStorage;
-import com.meow.utaract.utils.News;
-import com.meow.utaract.utils.NewsStorage;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
@@ -72,7 +66,6 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
     private MainViewModel mainViewModel;
     private MotionLayout motionLayoutHeader;
     private EditText searchInput;
-    private boolean isOrganiser;
 
     // QR Scanner Launcher
     private final ActivityResultLauncher<ScanOptions> qrScannerLauncher =
@@ -169,17 +162,8 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
-        // GET FLAG FROM MAIN ACTIVITY
-        if (getActivity() instanceof MainActivity) {
-            MainActivity activity = (MainActivity) getActivity();
-
-            isOrganiser = activity.isOrganiser();
-        }
-
         updateHeaderOnScroll();
     }
-
 
     @Override
     public void onResume() {
@@ -242,7 +226,7 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
             }
         });
 
-//        binding.searchContainer.setOnClickListener(v -> showScanOptionsDialog());
+        binding.searchContainer.setOnClickListener(v -> showScanOptionsDialog());
 
         binding.userAvatar.setOnClickListener(this::showPopupMenu);
         binding.filterButton.setOnClickListener(v -> showFilterDialog());
@@ -357,7 +341,6 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
         });
         popup.show();
     }
-
 
     @Override
     public void onDestroyView() {

@@ -77,9 +77,6 @@
         <activity
             android:name=".NewsActivity"
             android:theme="@style/Theme.UTARACT" />
-        <activity
-            android:name=".NewsCreationActivity"
-            android:theme="@style/Theme.UTARACT" />
     </application>
 
 </manifest>
