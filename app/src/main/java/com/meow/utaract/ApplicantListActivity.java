@@ -14,9 +14,7 @@ import com.google.android.material.chip.ChipGroup;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.gson.Gson;
 import com.meow.utaract.utils.GuestProfile;
-import com.google.android.material.chip.Chip;
 
-import java.util.Locale;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,7 +25,6 @@ public class ApplicantListActivity extends AppCompatActivity {
     private ApplicantAdapter adapter;
     private List<Applicant> allApplicants = new ArrayList<>();
     private String eventId;
-    private String organizerId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,7 +32,6 @@ public class ApplicantListActivity extends AppCompatActivity {
         setContentView(R.layout.activity_applicant_list);
 
         eventId = getIntent().getStringExtra("EVENT_ID");
-        organizerId = getIntent().getStringExtra("ORGANIZER_ID");
         if (eventId == null) {
             finish(); // Cannot function without an event ID
             return;
@@ -51,11 +47,11 @@ public class ApplicantListActivity extends AppCompatActivity {
         adapter = new ApplicantAdapter(new ArrayList<>(), new ApplicantAdapter.OnApplicantActionListener() {
             @Override
             public void onAccept(Applicant applicant) {
-                viewModel.updateApplicantStatus(eventId, applicant.getUserId(), "accepted", organizerId);
+                viewModel.updateApplicantStatus(eventId, applicant.getUserId(), "accepted");
             }
             @Override
             public void onReject(Applicant applicant) {
-                viewModel.updateApplicantStatus(eventId, applicant.getUserId(), "rejected", organizerId);
+                viewModel.updateApplicantStatus(eventId, applicant.getUserId(), "rejected");
             }
             @Override
             public void onViewDetails(Applicant applicant) {
@@ -63,29 +59,19 @@ public class ApplicantListActivity extends AppCompatActivity {
             }
         });
 
+
         recyclerView.setAdapter(adapter);
 
         viewModel = new ViewModelProvider(this).get(ApplicantListViewModel.class);
         viewModel.getApplicants().observe(this, applicants -> {
             allApplicants = applicants;
-            updateChipCounts(); // Update counts whenever the applicant list changes
             filterAndDisplayApplicants(); // Initial display
         });
-        viewModel.fetchApplicants(eventId, organizerId);
+        viewModel.fetchApplicants(eventId);
+
+
 
         setupFilters();
-    }
-
-    private void updateChipCounts() {
-        long all = allApplicants.size();
-        long pending = allApplicants.stream().filter(a -> "pending".equals(a.getStatus())).count();
-        long accepted = allApplicants.stream().filter(a -> "accepted".equals(a.getStatus())).count();
-        long rejected = allApplicants.stream().filter(a -> "rejected".equals(a.getStatus())).count();
-
-        ((Chip) findViewById(R.id.chipAll)).setText(String.format(Locale.getDefault(), "All (%d)", all));
-        ((Chip) findViewById(R.id.chipPending)).setText(String.format(Locale.getDefault(), "Pending (%d)", pending));
-        ((Chip) findViewById(R.id.chipAccepted)).setText(String.format(Locale.getDefault(), "Accepted (%d)", accepted));
-        ((Chip) findViewById(R.id.chipRejected)).setText(String.format(Locale.getDefault(), "Rejected (%d)", rejected));
     }
 
     private void setupFilters() {

@@ -55,20 +55,7 @@ public class SignupActivity extends AppCompatActivity {
             return;
         }
 
-
-        if (isOrganiserEmail(email) == false && (email.endsWith("@utar.my") || email.endsWith("@1utar.my"))) {
-        }
-        if (isOrganiserEmail(email) && !(email.endsWith("@utar.my") || email.endsWith("@1utar.my"))) {
-            emailInput.setError("Organiser must use @utar.my or @1utar.my email");
-            emailInput.requestFocus();
-            return;
-        }
-
-        progressBar.setVisibility(View.VISIBLE);
-        signupButton.setEnabled(false);
-//
         setLoading(true);
-
 
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
@@ -84,11 +71,6 @@ public class SignupActivity extends AppCompatActivity {
                         setLoading(false);
                     }
                 });
-    }
-
-
-    private boolean isOrganiserEmail(String email) {
-        return email.endsWith("@utar.my") || email.endsWith("@1utar.my");
     }
 
     private void sendVerificationEmail(FirebaseUser firebaseUser, String email) {
@@ -121,7 +103,6 @@ public class SignupActivity extends AppCompatActivity {
                     signupButton.setEnabled(true);
                 });
     }
-
 
     private boolean isFormValid(String email, String password, String confirmPassword) {
         if (email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {

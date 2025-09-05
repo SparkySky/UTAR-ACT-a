@@ -126,17 +126,6 @@ public class LoginActivity extends AppCompatActivity {
         resendEmailButton.setVisibility(View.GONE);
         setLoginButtonWeight(1.0f);
 
-        boolean isOrganiser = isOrganiserEmail(email);
-
-        if (email.endsWith("@utar.my") == false && email.endsWith("@1utar.my") == false && isOrganiser) {
-            emailInput.setError("Organiser must use @utar.my or @1utar.my email");
-            emailInput.requestFocus();
-            return;
-        }
-
-        setButtonsEnabled(false);
-        verificationStatusText.setVisibility(View.GONE);
-        
         new AuthService().getAuth().signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
                     setButtonsEnabled(true);
@@ -162,9 +151,6 @@ public class LoginActivity extends AppCompatActivity {
                 });
     }
 
-    private boolean isOrganiserEmail(String email) {
-        return email.endsWith("@utar.my") || email.endsWith("@1utar.my");
-    }
     private void continueAsGuest() {
         verificationStatusText.setVisibility(View.GONE);
         setButtonsEnabled(false);

@@ -1,26 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_marginHorizontal="16dp"
     android:layout_marginVertical="4dp">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="12dp">
+        android:orientation="vertical"
+        android:padding="16dp">
 
         <TextView
             android:id="@+id/applicantNameText"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?attr/textAppearanceTitleMedium"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/statusText"
-            android:layout_marginEnd="8dp"
             tools:text="Applicant Name" />
 
         <TextView
@@ -28,45 +24,40 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:text="Pending"
-            tools:textColor="@color/status_pending_text"/>
+            tools:text="Status: Pending" />
 
         <Button
             android:id="@+id/viewDetailsButton"
-            style="@style/Widget.Material3.Button.TextButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="View Details"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/applicantNameText"/>
+            android:text="View Details" />
 
         <LinearLayout
             android:id="@+id/actionButtonsLayout"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/statusText"
+            android:layout_marginTop="8dp"
             android:visibility="gone"
             tools:visibility="visible">
 
             <Button
-                android:id="@+id/rejectButton"
-                style="?attr/materialButtonOutlinedStyle"
-                android:layout_width="wrap_content"
+                android:id="@+id/acceptButton"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:text="Reject" />
+                android:layout_weight="1"
+                android:text="Accept"
+                android:layout_marginEnd="8dp"/>
 
             <Button
-                android:id="@+id/acceptButton"
-                android:layout_width="wrap_content"
+                android:id="@+id/rejectButton"
+                style="?attr/materialButtonOutlinedStyle"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="Accept" />
-        </LinearLayout>
+                android:layout_weight="1"
+                android:text="Reject"
+                />
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+        </LinearLayout>
+    </LinearLayout>
 </com.google.android.material.card.MaterialCardView>
