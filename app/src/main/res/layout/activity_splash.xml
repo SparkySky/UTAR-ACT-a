@@ -9,8 +9,8 @@
 
     <ImageView
         android:id="@+id/iv_logo"
-        android:layout_width="120dp"
-        android:layout_height="120dp"
+        android:layout_width="90dp"
+        android:layout_height="110dp"
         android:src="@drawable/icon_utaract_minimal_tranparent"
         android:contentDescription="@string/app_logo"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -38,9 +38,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:text="Your Academic Companion"
+        android:text="Activity . Community . Togetherness"
         android:textColor="@color/utaract_white"
         android:textSize="16sp"
+        android:textStyle="bold"
         android:alpha="0"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
