@@ -8,6 +8,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.RadioGroup;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.auth.ActionCodeSettings;
@@ -21,6 +22,7 @@ public class SignupActivity extends AppCompatActivity {
     private Button signupButton;
     private ProgressBar progressBar;
     private FirebaseAuth mAuth;
+    private RadioGroup roleRadioGroup;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,8 +41,16 @@ public class SignupActivity extends AppCompatActivity {
         confirmPasswordInput = findViewById(R.id.confirmPasswordInputSignup);
         signupButton = findViewById(R.id.signupButton);
         progressBar = findViewById(R.id.signupProgressBar);
+        roleRadioGroup = findViewById(R.id.roleRadioGroup);
     }
-
+    private String getSelectedRole() {
+        int selectedId = roleRadioGroup.getCheckedRadioButtonId();
+        if (selectedId == R.id.radioOrganiser) {
+            return "organiser";
+        } else {
+            return "guest";
+        }
+    }
     private void setupListeners() {
         signupButton.setOnClickListener(v -> attemptRegistration());
         findViewById(R.id.loginLinkFromSignup).setOnClickListener(v -> finish());
@@ -55,20 +65,19 @@ public class SignupActivity extends AppCompatActivity {
             return;
         }
 
+        String role = getSelectedRole();
 
-        if (isOrganiserEmail(email) == false && (email.endsWith("@utar.my") || email.endsWith("@1utar.my"))) {
-        }
-        if (isOrganiserEmail(email) && !(email.endsWith("@utar.my") || email.endsWith("@1utar.my"))) {
-            emailInput.setError("Organiser must use @utar.my or @1utar.my email");
-            emailInput.requestFocus();
-            return;
+        if ("organiser".equalsIgnoreCase(role)) {
+            if (!isOrganiserEmail(email)) {
+                emailInput.setError("Organiser must use @utar.my or @1utar.my email");
+                emailInput.requestFocus();
+                return;
+            }
         }
 
         progressBar.setVisibility(View.VISIBLE);
         signupButton.setEnabled(false);
-//
         setLoading(true);
-
 
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {

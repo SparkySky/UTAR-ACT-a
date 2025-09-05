@@ -101,26 +101,34 @@
                     android:layout_marginTop="8dp"
                     android:textAppearance="?attr/textAppearanceBodyLarge"
                     tools:text="Event description here ..." />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="24dp"
-                    android:text="Catalogue"
-                    android:textAppearance="?attr/textAppearanceTitleMedium"
-                    android:textStyle="bold" />
-
-                <HorizontalScrollView
+                <LinearLayout
+                    android:id="@+id/catalogueSection"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp">
+                    android:orientation="vertical"
+                    android:layout_marginTop="24dp"
+                    android:visibility="gone">
 
-                    <LinearLayout
-                        android:id="@+id/catalogueImagesLayout"
+                    <TextView
                         android:layout_width="wrap_content"
-                        android:layout_height="120dp"
-                        android:orientation="horizontal" />
-                </HorizontalScrollView>
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="24dp"
+                        android:text="Catalogue"
+                        android:textAppearance="?attr/textAppearanceTitleMedium"
+                        android:textStyle="bold" />
+
+                    <HorizontalScrollView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp">
+
+                        <LinearLayout
+                            android:id="@+id/catalogueImagesLayout"
+                            android:layout_width="wrap_content"
+                            android:layout_height="120dp"
+                            android:orientation="horizontal" />
+                    </HorizontalScrollView>
+                </LinearLayout>
 
                 <ImageView
                     android:id="@+id/organizer_social_media_icon"
@@ -200,8 +208,8 @@
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/qrCodeButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
             android:layout_alignParentStart="true"
             android:layout_centerVertical="true"
             android:contentDescription="Generate QR Code"
@@ -209,20 +217,26 @@
             app:maxImageSize="35dp"
             app:srcCompat="@drawable/ic_qr" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/registerButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            style="@style/Widget.MaterialComponents.Button"
+            android:layout_width="200dp"
+            android:layout_height="56dp"
             android:layout_centerInParent="true"
             android:text="Register Now"
+            android:textAllCaps="false"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
             android:paddingStart="32dp"
             android:paddingEnd="32dp"
+            app:iconPadding="8dp"
+            app:cornerRadius="28dp"
             app:icon="@android:drawable/ic_menu_send" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/askButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
             android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
             android:contentDescription="Ask a question"
@@ -237,6 +251,7 @@
             tools:visibility="visible"/>
 
     </RelativeLayout>
+
     <ProgressBar
         android:id="@+id/pageProgressBar"
         style="?android:attr/progressBarStyleLarge"
@@ -244,4 +259,13 @@
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
         android:visibility="visible" />
+
+    <include
+        layout="@layout/back_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="12dp"/>
 </RelativeLayout>
