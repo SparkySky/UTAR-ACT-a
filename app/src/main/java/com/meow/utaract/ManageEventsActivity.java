@@ -18,7 +18,6 @@ import com.meow.utaract.ui.home.FilterBottomSheetDialogFragment;
 import com.meow.utaract.ui.manage.ManageEventsViewModel;
 import com.meow.utaract.utils.EventCreationStorage;
 import java.util.ArrayList;
-import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import com.google.android.material.navigation.NavigationView;
@@ -66,7 +65,7 @@ public class ManageEventsActivity extends AppCompatActivity implements FilterBot
                 finish();
             } else if (id == R.id.nav_news) {
                 drawerLayout.closeDrawer(GravityCompat.START);
-                Intent intent = new Intent(this, NewsActivity.class);
+                Intent intent = new Intent(this, NewsCreationActivity.class);
                 intent.putExtra("IS_ORGANISER", isOrganiser);
                 startActivity(intent);
                 finish();
