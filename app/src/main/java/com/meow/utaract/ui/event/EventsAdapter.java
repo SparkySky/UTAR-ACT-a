@@ -141,14 +141,17 @@ public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.EventViewH
             }
 
             // Set Organizer Name and Profile Picture
-            if (isOrganiser && currentUserId != null && currentUserId.equals(event.getOrganizerId())) {
-                editEventButton.setVisibility(View.VISIBLE);
-                editEventButton.setOnClickListener(v -> {
-                    Intent intent = new Intent(itemView.getContext(), EventCreationActivity.class);
-                    intent.putExtra("IS_EDIT_MODE", true);
-                    intent.putExtra("EDIT_EVENT_DATA", event);
-                    itemView.getContext().startActivity(intent);
-                });
+            // Set Organizer Name and Profile Picture
+            if (organizer != null) {
+                organizerName.setText(organizer.getName());
+                if (organizer.getProfileImageUrl() != null && !organizer.getProfileImageUrl().isEmpty()) {
+                    Glide.with(itemView.getContext())
+                            .load(organizer.getProfileImageUrl())
+                            .placeholder(R.drawable.ic_person)
+                            .into(organizerAvatar);
+                } else {
+                    organizerAvatar.setImageResource(R.drawable.ic_person);
+                }
             } else {
                 editEventButton.setVisibility(View.GONE);
             }
