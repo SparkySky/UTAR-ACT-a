@@ -5,24 +5,27 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GuestProfile implements Serializable {
-    private String name; // Store Name
-    private String email;// Store Email
-    private String phone; // Store Phone Number
-    private String profileImageUrl; // Store Profile Image URL
-    private List<String> preferences; // Store Food Preferences
-    private List<String> following; // Store Follower
+    private String name;
+    private String email;
+    private String phone;
+    private String profileImageUrl;
+    private List<String> preferences;
+    private List<String> following;
+    private String socialMediaLink;
+    private String socialMediaPlatform;
 
-    // Constructor
+
     public GuestProfile(String name, String email, String phone, List<String> preferences) {
         this.name = name;
         this.email = email;
         this.phone = phone;
         this.preferences = preferences;
-        this.profileImageUrl = ""; // Default to empty string
+        this.profileImageUrl = "";
         this.following = new ArrayList<>();
+        this.socialMediaLink = "";
+        this.socialMediaPlatform = "None";
     }
 
-    // Getters and Setters
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
@@ -40,4 +43,9 @@ public class GuestProfile implements Serializable {
 
     public List<String> getFollowing() { return following; }
     public void setFollowing(List<String> following) { this.following = following; }
+
+    public String getSocialMediaLink() { return socialMediaLink; }
+    public void setSocialMediaLink(String socialMediaLink) { this.socialMediaLink = socialMediaLink; }
+    public String getSocialMediaPlatform() { return socialMediaPlatform; }
+    public void setSocialMediaPlatform(String socialMediaPlatform) { this.socialMediaPlatform = socialMediaPlatform; }
 }
