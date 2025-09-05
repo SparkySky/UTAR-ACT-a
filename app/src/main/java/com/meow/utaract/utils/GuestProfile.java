@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GuestProfile implements Serializable {
-
     private String name; // Store Name
     private String email;// Store Email
     private String phone; // Store Phone Number
@@ -36,18 +35,16 @@ public class GuestProfile implements Serializable {
     public List<String> getLikedNews() { return likedNews; }
     public void setLikedNews(List<String> likedNews) { this.likedNews = likedNews; }
     // Constructor
-
     public GuestProfile(String name, String email, String phone, List<String> preferences) {
         this.name = name;
         this.email = email;
         this.phone = phone;
         this.preferences = preferences;
-        this.profileImageUrl = "";
+        this.profileImageUrl = ""; // Default to empty string
         this.following = new ArrayList<>();
-        this.socialMediaLink = "";
-        this.socialMediaPlatform = "None";
     }
 
+    // Getters and Setters
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
@@ -63,4 +60,3 @@ public class GuestProfile implements Serializable {
     public String getProfileImageUrl() { return profileImageUrl; }
     public void setProfileImageUrl(String profileImageUrl) { this.profileImageUrl = profileImageUrl; }
 }
-

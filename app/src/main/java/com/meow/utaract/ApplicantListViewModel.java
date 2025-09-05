@@ -13,66 +13,42 @@ import java.util.Map;
 public class ApplicantListViewModel extends ViewModel {
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final MutableLiveData<List<Applicant>> applicants = new MutableLiveData<>();
-    private List<String> existingApplicantIds = new ArrayList<>(); // 用于检测新申请
 
     public LiveData<List<Applicant>> getApplicants() {
         return applicants;
     }
 
-    // Obtain the list of applicants
-    public void fetchApplicants(String eventId, String organizerId) {
+    public void fetchApplicants(String eventId) {
         db.collection("events").document(eventId).collection("registrations")
                 .addSnapshotListener((snapshots, e) -> {
                     if (e != null || snapshots == null) return;
-
                     List<Applicant> applicantList = new ArrayList<>();
-                    List<String> newApplicantIds = new ArrayList<>();
-
                     for (QueryDocumentSnapshot doc : snapshots) {
-                        Applicant applicant = doc.toObject(Applicant.class);
-                        applicantList.add(applicant);
-                        newApplicantIds.add(applicant.getUserId());
-
-                        // Test new applications
-                        if (!existingApplicantIds.contains(applicant.getUserId())) {
-                            sendOrganizerNotificationForNewApplicant(organizerId, eventId, applicant.getUserName());
-                        }
+                        applicantList.add(doc.toObject(Applicant.class));
                     }
-
-                    existingApplicantIds = newApplicantIds;
                     applicants.setValue(applicantList);
                 });
     }
 
-    // Update the application status
-    public void updateApplicantStatus(String eventId, String userId, String newStatus, String organizerId) {
+    public void updateApplicantStatus(String eventId, String userId, String newStatus) {
         db.collection("events").document(eventId).collection("registrations").document(userId)
-                .get().addOnSuccessListener(snapshot -> {
-                    if (!snapshot.exists()) return;
-                    String oldStatus = snapshot.getString("status");
-
-                    // Update status
-                    snapshot.getReference().update("status", newStatus)
-                            .addOnSuccessListener(aVoid -> {
-                                // Create user notifications
-                                createUserNotification(userId, eventId, newStatus);
-                                // Create Organizer Notice
-                                createOrganizerNotification(organizerId, eventId, userId, newStatus);
-                                // Save status history
-                                saveStatusHistory(eventId, userId, oldStatus, newStatus, organizerId);
-                            });
+                .update("status", newStatus)
+                .addOnSuccessListener(aVoid -> {
+                    // On success, create a notification for the user
+                    createUserNotification(userId, eventId, newStatus);
                 });
     }
 
-    // User Notification
     private void createUserNotification(String userId, String eventId, String status) {
+        // This is a placeholder for a robust notification system, which would
+        // ideally be handled by Cloud Functions for security and scalability.
         String message;
         if ("accepted".equals(status)) {
             message = "Your registration for an event has been accepted!";
         } else if ("rejected".equals(status)) {
             message = "Your registration for an event has been rejected.";
         } else {
-            return;
+            return; // Don't notify for other statuses
         }
 
         Map<String, Object> notification = new HashMap<>();
@@ -81,44 +57,7 @@ public class ApplicantListViewModel extends ViewModel {
         notification.put("timestamp", System.currentTimeMillis());
         notification.put("isRead", false);
 
+        // Add to a user's subcollection of notifications
         db.collection("users").document(userId).collection("notifications").add(notification);
-    }
-
-    // Organizer Notice (Status Change)
-    private void createOrganizerNotification(String organizerId, String eventId, String userId, String status) {
-        String message = "Applicant " + userId + " status changed to " + status;
-
-        Map<String, Object> notification = new HashMap<>();
-        notification.put("message", message);
-        notification.put("eventId", eventId);
-        notification.put("timestamp", System.currentTimeMillis());
-        notification.put("isRead", false);
-
-        db.collection("users").document(organizerId).collection("notifications").add(notification);
-    }
-
-    // Notify the organizer of the new application
-    private void sendOrganizerNotificationForNewApplicant(String organizerId, String eventId, String applicantName) {
-        String message = "New applicant: " + applicantName + " has registered for your event";
-
-        Map<String, Object> notification = new HashMap<>();
-        notification.put("message", message);
-        notification.put("eventId", eventId);
-        notification.put("timestamp", System.currentTimeMillis());
-        notification.put("isRead", false);
-
-        db.collection("users").document(organizerId).collection("notifications").add(notification);
-    }
-
-    // Save historical records
-    private void saveStatusHistory(String eventId, String userId, String oldStatus, String newStatus, String operatorId) {
-        Map<String, Object> history = new HashMap<>();
-        history.put("userId", userId);
-        history.put("oldStatus", oldStatus);
-        history.put("newStatus", newStatus);
-        history.put("operatorId", operatorId);
-        history.put("timestamp", System.currentTimeMillis());
-
-        db.collection("events").document(eventId).collection("history").add(history);
     }
 }
