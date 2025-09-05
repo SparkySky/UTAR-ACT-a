@@ -56,6 +56,7 @@ public class MainActivity extends AppCompatActivity {
             if (id == R.id.nav_manage_events) {
                 // Launch ManageEventsActivity instead of using navigation component
                 Intent intent = new Intent(MainActivity.this, ManageEventsActivity.class);
+                intent.putExtra("IS_ORGANISER", isOrganiser);
                 startActivity(intent);
 
                 // Close the drawer
