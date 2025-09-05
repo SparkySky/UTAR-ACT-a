@@ -11,8 +11,28 @@ public class GuestProfile implements Serializable {
     private String profileImageUrl;
     private List<String> preferences;
     private List<String> following;
-    private String socialMediaLink;
-    private String socialMediaPlatform;
+    public List<String> getFollowing() { return following; }
+
+    public void setFollowing(List<String> following) { this.following = following; }
+
+    public void addFollowing(String organizerId) {
+        if (following == null) {
+            following = new ArrayList<>();
+        }
+        if (!following.contains(organizerId)) {
+            following.add(organizerId);
+        }
+    }
+
+    public void removeFollowing(String organizerId) {
+        if (following != null) {
+            following.remove(organizerId);
+        }
+    }
+    private List<String> likedNews; // News IDs that this guest has liked
+
+    public List<String> getLikedNews() { return likedNews; }
+    public void setLikedNews(List<String> likedNews) { this.likedNews = likedNews; }
 
 
     public GuestProfile(String name, String email, String phone, List<String> preferences) {
@@ -22,8 +42,6 @@ public class GuestProfile implements Serializable {
         this.preferences = preferences;
         this.profileImageUrl = "";
         this.following = new ArrayList<>();
-        this.socialMediaLink = "";
-        this.socialMediaPlatform = "None";
     }
 
     public String getName() { return name; }
@@ -40,12 +58,4 @@ public class GuestProfile implements Serializable {
 
     public String getProfileImageUrl() { return profileImageUrl; }
     public void setProfileImageUrl(String profileImageUrl) { this.profileImageUrl = profileImageUrl; }
-
-    public List<String> getFollowing() { return following; }
-    public void setFollowing(List<String> following) { this.following = following; }
-
-    public String getSocialMediaLink() { return socialMediaLink; }
-    public void setSocialMediaLink(String socialMediaLink) { this.socialMediaLink = socialMediaLink; }
-    public String getSocialMediaPlatform() { return socialMediaPlatform; }
-    public void setSocialMediaPlatform(String socialMediaPlatform) { this.socialMediaPlatform = socialMediaPlatform; }
 }

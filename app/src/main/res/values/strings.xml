@@ -43,6 +43,18 @@
     <string name="news_content">This is the news content that will be displayed here. It can be multiple lines of text.</string>
     <string name="desc_like_news">Like news</string>
     <string name="like_count">0</string>
+    <string name="news_title_hint">News Title</string>
+    <string name="news_message_hint">News Message</string>
+    <string name="upload_images">Upload Images (Max 5)</string>
+    <string name="select_images">Select Images</string>
+    <string name="create_news">Create News</string>
+    <string name="update_news">Update News</string>
+    <string name="news_feed">News Feed</string>
+    <string name="no_news_available">No news available</string>
+    <string name="latest_news">Latest News</string>
+    <string name="view_all">View All</string>
+    <string name="follow_organizers_prompt">Follow organizers to see their latest news</string>
+    <string name="swipe_for_more">Swipe for more images</string>
 
     <!-- New strings for Guest Form -->
     <string name="title_guest_form">Guest Details</string>

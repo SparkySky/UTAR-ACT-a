@@ -2,44 +2,42 @@ package com.meow.utaract;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.View;
-import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
+import com.meow.utaract.utils.GuestProfile;
+import com.meow.utaract.utils.GuestProfileStorage;
 import com.meow.utaract.utils.News;
 import com.meow.utaract.utils.NewsAdapter;
 import com.meow.utaract.utils.NewsStorage;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
-public class NewsActivity extends AppCompatActivity implements NewsAdapter.NewsInteractionListener {
+public class NewsActivity extends AppCompatActivity implements NewsAdapter.NewsItemClickListener {
 
     private RecyclerView newsRecyclerView;
-    private NewsAdapter newsAdapter;
-    private TextView emptyView;
     private ProgressBar progressBar;
-    private EditText searchInput;
-    private DrawerLayout drawerLayout;
-    private boolean isOrganizer;
-
+    private TextView emptyView;
+    private NewsAdapter newsAdapter;
     private NewsStorage newsStorage;
-    private List<News> allNews = new ArrayList<>();
-    private String currentUserId;
+    private GuestProfileStorage profileStorage;
+    private boolean isOrganiser;
+    private DrawerLayout drawerLayout;
+    private ImageView menuIcon;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,264 +46,238 @@ public class NewsActivity extends AppCompatActivity implements NewsAdapter.NewsI
 
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        toolbar.setNavigationOnClickListener(v -> finish());
 
-        // Initialize NewsStorage
-        newsStorage = new NewsStorage(this);
-        currentUserId = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid();
-
-        // Get user type from intent
-        isOrganizer = getIntent().getBooleanExtra("IS_ORGANISER", false);
-
-        // Set up navigation drawer
         drawerLayout = findViewById(R.id.drawer_layout);
-        NavigationView navigationView = findViewById(R.id.nav_view);
+        menuIcon = findViewById(R.id.menu_icon);
+        NavigationView navView = findViewById(R.id.nav_view);
 
-        // Set up menu icon to open drawer
-        findViewById(R.id.menu_icon).setOnClickListener(v -> {
-            if (drawerLayout != null) {
-                drawerLayout.openDrawer(GravityCompat.START);
-            }
+        menuIcon.setOnClickListener(v -> {
+            // Open the drawer when icon is clicked
+            drawerLayout.openDrawer(GravityCompat.START);
         });
 
-        // Set up back button in toolbar
-        toolbar.setNavigationOnClickListener(v -> {
-            if (drawerLayout != null && drawerLayout.isDrawerOpen(GravityCompat.START)) {
-                drawerLayout.closeDrawer(GravityCompat.START);
-            } else {
-                finish();
-            }
+        isOrganiser = getIntent().getBooleanExtra("IS_ORGANISER", false);
+
+        initializeViews();
+        newsStorage = new NewsStorage();
+        profileStorage = new GuestProfileStorage(this);
+
+        // Set up FAB click listener
+        FloatingActionButton fabCreateNews = findViewById(R.id.fabCreateNews);
+        fabCreateNews.setOnClickListener(v -> {
+            Intent intent = new Intent(NewsActivity.this, NewsCreationActivity.class);
+            startActivity(intent);
         });
 
-        // Set up navigation item selection
-        navigationView.setNavigationItemSelectedListener(item -> {
+        // Show/hide FAB based on user type
+        fabCreateNews.setVisibility(isOrganiser ? View.VISIBLE : View.GONE);
+
+        // Handle navigation item clicks
+        navView.setNavigationItemSelectedListener(item -> {
             int id = item.getItemId();
 
             if (id == R.id.nav_home) {
-                Intent intent = new Intent(this, MainActivity.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                Intent intent = new Intent(NewsActivity.this, MainActivity.class);
+                intent.putExtra("IS_ORGANISER", isOrganiser);
                 startActivity(intent);
                 finish();
-            } else if (id == R.id.nav_news) {
-                drawerLayout.closeDrawer(GravityCompat.START);
-                Intent intent = new Intent(this, NewsActivity.class);
-                intent.putExtra("IS_ORGANISER", true); // or false for guests
-                startActivity(intent);
             } else if (id == R.id.nav_manage_events) {
-                Intent intent = new Intent(this, ManageEventsActivity.class);
+                Intent intent = new Intent(NewsActivity.this, ManageEventsActivity.class);
+                intent.putExtra("IS_ORGANISER", isOrganiser);
                 startActivity(intent);
                 finish();
             }
-
+            // Close drawer after selection
+            drawerLayout.closeDrawer(GravityCompat.START);
             return true;
         });
 
-        // Initialize views
-        newsRecyclerView = findViewById(R.id.newsRecyclerView);
-        emptyView = findViewById(R.id.emptyView);
-        progressBar = findViewById(R.id.progressBar);
-        searchInput = findViewById(R.id.search_input);
-        FloatingActionButton fabAddNews = findViewById(R.id.fabAddNews);
 
-        // Show FAB only for organizers
-        fabAddNews.setVisibility(isOrganizer ? View.VISIBLE : View.GONE);
-        fabAddNews.setOnClickListener(v -> showAddNewsDialog());
-
-        setupRecyclerView();
-        setupSearchFunctionality();
-        loadNews();
+        if (isOrganiser) {
+            setupOrganiserView();
+        } else {
+            setupGuestView();
+        }
     }
 
-    private void setupRecyclerView() {
-        newsAdapter = new NewsAdapter(new ArrayList<>(), this, this);
+    private void initializeViews() {
+        newsRecyclerView = findViewById(R.id.newsRecyclerView);
+        progressBar = findViewById(R.id.newsProgressBar);
+        emptyView = findViewById(R.id.newsEmptyView);
+
+        newsAdapter = new NewsAdapter(new ArrayList<>(), this, true, isOrganiser);
         newsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         newsRecyclerView.setAdapter(newsAdapter);
     }
 
-    private void setupSearchFunctionality() {
-        searchInput.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
+    private void setupOrganiserView() {
+        // Organizers can create news and see their own news
+        findViewById(R.id.fabCreateNews).setVisibility(View.VISIBLE);
+        findViewById(R.id.fabCreateNews).setOnClickListener(v -> {
+            startActivity(new Intent(this, NewsCreationActivity.class));
+        });
+        loadOrganiserNews();
+    }
+
+    private void setupGuestView() {
+        // Guests can only view news from organizers they follow
+        findViewById(R.id.fabCreateNews).setVisibility(View.GONE);
+        loadGuestNews();
+    }
+
+    private void loadOrganiserNews() {
+        progressBar.setVisibility(View.VISIBLE);
+        String organizerId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+        newsStorage.getNewsByOrganizer(organizerId, new NewsStorage.NewsListCallback() {
             @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                filterNews(s.toString());
+            public void onSuccess(List<News> newsList) {
+                progressBar.setVisibility(View.GONE);
+                updateUI(newsList);
             }
-
             @Override
-            public void afterTextChanged(Editable s) {}
+            public void onFailure(Exception e) {
+                progressBar.setVisibility(View.GONE);
+                emptyView.setVisibility(View.VISIBLE);
+            }
         });
     }
 
-    private void filterNews(String query) {
-        if (query.isEmpty()) {
-            newsAdapter.updateNews(allNews);
+    private void loadGuestNews() {
+        progressBar.setVisibility(View.VISIBLE);
+
+        GuestProfile profile = new GuestProfileStorage(this).loadProfile();
+        if (profile == null || profile.getFollowing() == null || profile.getFollowing().isEmpty()) {
+            progressBar.setVisibility(View.GONE);
+            emptyView.setText("You're not following any organizers yet.");
+            emptyView.setVisibility(View.VISIBLE);
             return;
         }
 
-        List<News> filteredNews = allNews.stream()
-                .filter(news -> news.getContent().toLowerCase().contains(query.toLowerCase()))
-                .collect(Collectors.toList());
+        newsStorage.getNewsForGuest(profile.getFollowing(), new NewsStorage.NewsListCallback() {
+            @Override
+            public void onSuccess(List<News> newsList) {
+                progressBar.setVisibility(View.GONE);
+                updateUI(newsList);
+            }
+            @Override
+            public void onFailure(Exception e) {
+                progressBar.setVisibility(View.GONE);
+                emptyView.setVisibility(View.VISIBLE);
+            }
+        });
+    }
 
-        newsAdapter.updateNews(filteredNews);
-
-        if (filteredNews.isEmpty()) {
-            emptyView.setText("No news matching your search");
+    private void updateUI(List<News> newsList) {
+        if (newsList.isEmpty()) {
             emptyView.setVisibility(View.VISIBLE);
+            newsRecyclerView.setVisibility(View.GONE);
         } else {
             emptyView.setVisibility(View.GONE);
+            newsRecyclerView.setVisibility(View.VISIBLE);
+            newsAdapter.updateNews(newsList);
         }
     }
-
-    private void loadNews() {
-        progressBar.setVisibility(View.VISIBLE);
-        emptyView.setVisibility(View.GONE);
-
-        if (isOrganizer) {
-            // Organizers see all news
-            newsStorage.getAllNews(new NewsStorage.NewsFetchCallback() {
-                @Override
-                public void onSuccess(List<News> newsList) {
-                    allNews = newsList;
-                    progressBar.setVisibility(View.GONE);
-
-                    if (newsList.isEmpty()) {
-                        emptyView.setText("No news yet. Be the first to post!");
-                        emptyView.setVisibility(View.VISIBLE);
-                    } else {
-                        newsAdapter.updateNews(newsList);
-                    }
-                }
-
-                @Override
-                public void onFailure(Exception e) {
-                    progressBar.setVisibility(View.GONE);
-                    emptyView.setText("Failed to load news");
-                    emptyView.setVisibility(View.VISIBLE);
-                    Toast.makeText(NewsActivity.this, "Error loading news: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-            });
-        } else {
-            // Guests see only news from followed organizers
-            newsStorage.getNewsFromFollowedOrganizers(new NewsStorage.NewsFetchCallback() {
-                @Override
-                public void onSuccess(List<News> newsList) {
-                    allNews = newsList;
-                    progressBar.setVisibility(View.GONE);
-
-                    if (newsList.isEmpty()) {
-                        emptyView.setText("No news from followed organizers yet");
-                        emptyView.setVisibility(View.VISIBLE);
-                    } else {
-                        newsAdapter.updateNews(newsList);
-                    }
-                }
-
-                @Override
-                public void onFailure(Exception e) {
-                    progressBar.setVisibility(View.GONE);
-                    emptyView.setText("Failed to load news");
-                    emptyView.setVisibility(View.VISIBLE);
-                    Toast.makeText(NewsActivity.this, "Error loading news: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-            });
-        }
+    @Override
+    public void onEditClicked(News news, int position) {
+        // Open NewsCreationActivity in edit mode
+        Intent intent = new Intent(this, NewsCreationActivity.class);
+        intent.putExtra("EDIT_NEWS", news);
+        intent.putExtra("IS_EDIT_MODE", true);
+        startActivity(intent);
     }
 
-    private void showAddNewsDialog() {
-        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
-        builder.setTitle("Add News");
-
-        final EditText input = new EditText(this);
-        input.setHint("Enter your news content");
-        input.setMinLines(3);
-        input.setMaxLines(5);
-
-        builder.setView(input);
-
-        builder.setPositiveButton("Post", (dialog, which) -> {
-            String content = input.getText().toString().trim();
-            if (!content.isEmpty()) {
-                postNews(content);
-            } else {
-                Toast.makeText(this, "Please enter news content", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        builder.setNegativeButton("Cancel", null);
-        builder.show();
+    @Override
+    public void onDeleteClicked(News news, int position) {
+        // Show confirmation dialog before deletion
+        new AlertDialog.Builder(this)
+                .setTitle("Delete News")
+                .setMessage("Are you sure you want to delete this news? This action cannot be undone.")
+                .setPositiveButton("Delete", (dialog, which) -> deleteNews(news, position))
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 
-    private void postNews(String content) {
-        progressBar.setVisibility(View.VISIBLE);
-
-        newsStorage.createNews(content, new NewsStorage.NewsCreationCallback() {
+    private void deleteNews(News news, int position) {
+        NewsStorage newsStorage = new NewsStorage();
+        newsStorage.deleteNews(news.getNewsId(), new NewsStorage.NewsCallback() {
             @Override
             public void onSuccess(String newsId) {
-                progressBar.setVisibility(View.GONE);
-                Toast.makeText(NewsActivity.this, "News posted successfully!", Toast.LENGTH_SHORT).show();
-
-                // Add the new news to local list immediately for better UX
-                News newNews = new News();
-                newNews.setNewsId(newsId);
-                newNews.setOrganizerId(currentUserId);
-                newNews.setContent(content);
-                newNews.setPostedDate(new Date());
-                newNews.setLikeCount(0);
-                newNews.setLikedBy(new ArrayList<>());
-
-                // Add to beginning of list
-                allNews.add(0, newNews);
-                newsAdapter.updateNews(allNews);
+                runOnUiThread(() -> {
+                    Toast.makeText(NewsActivity.this, "News deleted successfully", Toast.LENGTH_SHORT).show();
+                    // Refresh the news list
+                    if (isOrganiser) {
+                        loadOrganiserNews();
+                    } else {
+                        loadGuestNews();
+                    }
+                });
             }
 
             @Override
             public void onFailure(Exception e) {
-                progressBar.setVisibility(View.GONE);
-                if (e.getMessage().contains("PERMISSION_DENIED")) {
-                    Toast.makeText(NewsActivity.this, "Permission denied. Please check your organizer status.", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(NewsActivity.this, "Failed to post news: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                }
+                runOnUiThread(() -> {
+                    Toast.makeText(NewsActivity.this, "Failed to delete news: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
             }
         });
     }
 
     @Override
-    public void onLikeNews(News news) {
-        newsStorage.likeNews(news.getNewsId(), currentUserId, new NewsStorage.LikeCallback() {
-            @Override
-            public void onSuccess() {
-                // Update local data
-                news.setLikeCount(news.getLikeCount() + 1);
-                if (!news.getLikedBy().contains(currentUserId)) {
-                    news.getLikedBy().add(currentUserId);
-                }
-                newsAdapter.notifyDataSetChanged();
+    public void onLikeClicked(News news, int position) {
+        // For guests, likes are stored locally since they don't have Firestore accounts
+        if (!isOrganiser) {
+            handleGuestLike(news, position);
+        } else {
+            handleOrganiserLike(news, position);
+        }
+    }
+
+    private void handleGuestLike(News news, int position) {
+        // Guests store likes locally in their profile
+        GuestProfile profile = new GuestProfileStorage(this).loadProfile();
+        if (profile != null) {
+            // Create a likedNews list in GuestProfile if it doesn't exist
+            if (profile.getLikedNews() == null) {
+                profile.setLikedNews(new ArrayList<>());
             }
 
+            if (profile.getLikedNews().contains(news.getNewsId())) {
+                profile.getLikedNews().remove(news.getNewsId());
+            } else {
+                profile.getLikedNews().add(news.getNewsId());
+            }
+
+            new GuestProfileStorage(this).saveProfile(profile);
+            newsAdapter.notifyItemChanged(position);
+        }
+    }
+
+    private void handleOrganiserLike(News news, int position) {
+        // Organizers can like directly in Firestore
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        newsStorage.toggleLike(news.getNewsId(), userId, new NewsStorage.NewsCallback() {
+            @Override
+            public void onSuccess(String newsId) {
+                loadOrganiserNews(); // Refresh
+            }
             @Override
             public void onFailure(Exception e) {
-                Toast.makeText(NewsActivity.this, "Failed to like news", Toast.LENGTH_SHORT).show();
+                Toast.makeText(NewsActivity.this, "Failed to like", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
     @Override
-    public void onUnlikeNews(News news) {
-        newsStorage.unlikeNews(news.getNewsId(), currentUserId, new NewsStorage.LikeCallback() {
-            @Override
-            public void onSuccess() {
-                // Update local data
-                news.setLikeCount(news.getLikeCount() - 1);
-                news.getLikedBy().remove(currentUserId);
-                newsAdapter.notifyDataSetChanged();
-            }
-
-            @Override
-            public void onFailure(Exception e) {
-                Toast.makeText(NewsActivity.this, "Failed to unlike news", Toast.LENGTH_SHORT).show();
-            }
-        });
+    protected void onResume() {
+        super.onResume();
+        // Refresh news when returning to this activity
+        if (isOrganiser) {
+            loadOrganiserNews();
+        } else {
+            loadGuestNews();
+        }
     }
-
 }
