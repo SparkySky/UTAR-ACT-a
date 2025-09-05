@@ -7,34 +7,47 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.meow.utaract.ManagedEventItem;
+import com.meow.utaract.ui.home.FilterBottomSheetDialogFragment;
 import com.meow.utaract.utils.Event;
 import com.meow.utaract.utils.EventCreationStorage;
+import android.content.Context;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 public class ManageEventsViewModel extends ViewModel {
 
     private final MutableLiveData<List<ManagedEventItem>> myEvents = new MutableLiveData<>();
+    private final MutableLiveData<List<ManagedEventItem>> filteredEvents = new MutableLiveData<>();
     private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>();
+    private final MutableLiveData<List<String>> activeFilters = new MutableLiveData<>(new ArrayList<>());
     private final EventCreationStorage eventStorage;
+
+    private List<ManagedEventItem> allEvents = new ArrayList<>();
+    private String currentSearchQuery = "";
 
     public ManageEventsViewModel() {
         eventStorage = new EventCreationStorage();
     }
 
     public LiveData<List<ManagedEventItem>> getMyEvents() {
-        return myEvents;
+        return filteredEvents;
     }
 
     public LiveData<Boolean> getIsLoading() {
         return isLoading;
     }
 
+    public LiveData<List<String>> getActiveFilters() {
+        return activeFilters;
+    }
+
     public void fetchMyEvents() {
         String currentUserId = FirebaseAuth.getInstance().getUid();
         if (currentUserId == null) {
             myEvents.setValue(new ArrayList<>());
+            filteredEvents.setValue(new ArrayList<>());
             return;
         }
 
@@ -43,7 +56,9 @@ public class ManageEventsViewModel extends ViewModel {
             @Override
             public void onSuccess(List<Event> events) {
                 if (events.isEmpty()) {
-                    myEvents.setValue(new ArrayList<>());
+                    allEvents = new ArrayList<>();
+                    myEvents.setValue(allEvents);
+                    filteredEvents.setValue(allEvents);
                     isLoading.setValue(false);
                     return;
                 }
@@ -52,7 +67,9 @@ public class ManageEventsViewModel extends ViewModel {
 
             @Override
             public void onFailure(Exception e) {
+                allEvents = new ArrayList<>();
                 myEvents.setValue(null);
+                filteredEvents.setValue(null);
                 isLoading.setValue(false);
             }
         });
@@ -64,7 +81,9 @@ public class ManageEventsViewModel extends ViewModel {
         AtomicInteger tasksCompleted = new AtomicInteger(0);
 
         if (events.isEmpty()) {
+            allEvents = managedEventItems;
             myEvents.setValue(managedEventItems);
+            filteredEvents.setValue(managedEventItems);
             isLoading.setValue(false);
             return;
         }
@@ -93,10 +112,64 @@ public class ManageEventsViewModel extends ViewModel {
                         }
 
                         if (tasksCompleted.incrementAndGet() == events.size()) {
+                            allEvents = managedEventItems;
                             myEvents.setValue(managedEventItems);
+                            applyFilters();
                             isLoading.setValue(false);
                         }
                     });
         }
+    }
+
+    public void setSearchQuery(String query) {
+        currentSearchQuery = query;
+        applyFilters();
+    }
+
+    public void setCategoryFilters(List<String> categories) {
+        activeFilters.setValue(categories);
+        applyFilters();
+    }
+
+    private void applyFilters() {
+        if (allEvents == null) {
+            filteredEvents.setValue(new ArrayList<>());
+            return;
+        }
+
+        List<ManagedEventItem> filteredList = allEvents.stream()
+                .filter(eventItem -> {
+                    List<String> categories = activeFilters.getValue();
+                    return categories == null || categories.isEmpty() ||
+                            categories.contains(eventItem.getEvent().getCategory());
+                })
+                .filter(eventItem -> {
+                    if (currentSearchQuery == null || currentSearchQuery.trim().isEmpty()) return true;
+                    String normalizedQuery = currentSearchQuery.toLowerCase().replaceAll("\\s", "");
+                    return isSubsequence(normalizedQuery, eventItem.getEvent().getEventName().toLowerCase().replaceAll("\\s", ""));
+                })
+                .collect(Collectors.toList());
+
+        filteredEvents.setValue(filteredList);
+    }
+
+    private boolean isSubsequence(String s1, String s2) {
+        int i = 0, j = 0;
+        while (i < s1.length() && j < s2.length()) {
+            if (s1.charAt(i) == s2.charAt(j)) {
+                i++;
+            }
+            j++;
+        }
+        return i == s1.length();
+    }
+
+    public void showFilterDialog(Context context, String[] categories, FilterBottomSheetDialogFragment.FilterListener listener) {
+        List<String> currentFilters = activeFilters.getValue();
+        ArrayList<String> selected = (currentFilters != null) ? new ArrayList<>(currentFilters) : new ArrayList<>();
+
+        FilterBottomSheetDialogFragment bottomSheet = FilterBottomSheetDialogFragment.newInstance(categories, selected);
+        bottomSheet.setFilterListener(listener);
+        bottomSheet.show(((androidx.fragment.app.FragmentActivity) context).getSupportFragmentManager(), "FilterBottomSheet");
     }
 }

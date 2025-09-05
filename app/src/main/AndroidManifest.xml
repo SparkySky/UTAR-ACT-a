@@ -74,6 +74,9 @@
         <activity
             android:name=".ApplicantListActivity"
             android:theme="@style/Theme.UTARACT" />
+        <activity
+            android:name=".NewsActivity"
+            android:theme="@style/Theme.UTARACT" />
     </application>
 
 </manifest>
