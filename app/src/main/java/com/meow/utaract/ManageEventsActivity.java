@@ -30,10 +30,6 @@ public class ManageEventsActivity extends AppCompatActivity implements FilterBot
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_manage_events);
 
-        MaterialToolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        toolbar.setNavigationOnClickListener(v -> finish());
-
         myEventsRecyclerView = findViewById(R.id.myEventsRecyclerView);
         emptyView = findViewById(R.id.emptyView);
         searchInput = findViewById(R.id.search_input);
