@@ -41,6 +41,8 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.meow.utaract.utils.Event;
 import com.meow.utaract.utils.EventCreationStorage;
+import com.tom_roush.pdfbox.pdmodel.PDDocument;
+import com.tom_roush.pdfbox.text.PDFTextStripper;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -51,15 +53,21 @@ import java.util.Objects;
 import java.util.UUID;
 import android.widget.ProgressBar;
 
+//// PDFBox imports for PDF text extraction
+//import org.apache.pdfbox.pdmodel.PDDocument;
+//import org.apache.pdfbox.text.PDFTextStripper;
+
 public class EventCreationActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     private TextInputEditText etEventName, etDescription, etDate, etTime, etLocation, etMaxGuests, etFee, etPublishDate, etPublishTime;
     private Spinner spinnerCategory;
     private DrawerLayout drawerLayout;
     private EventCreationStorage eventStorage;
     private Button btnUploadPoster, btnUploadCatalog, btnCreate;
+    private Button btnUploadDoc;
     private ImageView ivPosterPreview;
     private LinearLayout layoutCatalogPreview;
     private ActivityResultLauncher<Intent> posterImageLauncher, catalogImageLauncher;
+    private ActivityResultLauncher<Intent> docPickerLauncher;
     private MaterialSwitch scheduleSwitch;
     private LinearLayout scheduleLayout;
     private ProgressBar progressBar;
@@ -67,6 +75,7 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
     private ImageView removePosterButton;
 
     private String posterImageUrl = "";
+    private String uploadedDocText = "";
     private List<String> catalogImageUrls = new ArrayList<>();
     private boolean isEditMode = false;
     private Event eventToEdit;
@@ -116,6 +125,9 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         drawerLayout = findViewById(R.id.drawer_layout);
         btnUploadPoster = findViewById(R.id.buttonSelectPoster);
         btnUploadCatalog = findViewById(R.id.buttonAddCatalogImage);
+        btnUploadPoster = findViewById(R.id.btnUploadPoster);
+        btnUploadCatalog = findViewById(R.id.btnUploadCatalog);
+        btnUploadDoc = findViewById(R.id.btnUploadDoc);
         ivPosterPreview = findViewById(R.id.ivPosterPreview);
         posterFrame = findViewById(R.id.posterFrame);
         removePosterButton = findViewById(R.id.removePosterButton);
@@ -178,6 +190,7 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         findViewById(R.id.btnReset).setOnClickListener(v -> resetForm());
         btnUploadPoster.setOnClickListener(v -> openImagePicker(posterImageLauncher, false));
         btnUploadCatalog.setOnClickListener(v -> openImagePicker(catalogImageLauncher, true));
+        btnUploadDoc.setOnClickListener(v -> openDocPicker());
         scheduleSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             scheduleLayout.setVisibility(isChecked ? View.VISIBLE : View.GONE);
         });
@@ -242,6 +255,56 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         btnCreate.setEnabled(false);
 
         uploadAllImagesAndSaveEvent();
+        boolean isVisible;
+        long publishAt;
+
+        if (scheduleSwitch.isChecked()) {
+            publishAt = publishCalendar.getTimeInMillis();
+            if (publishAt <= System.currentTimeMillis()) {
+                Toast.makeText(this, "Scheduled time must be in the future.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+        } else {
+            // If not scheduled, publish immediately
+            publishAt = System.currentTimeMillis();
+        }
+
+        String organizerId = isEditMode ? eventToEdit.getOrganizerId() : FirebaseAuth.getInstance().getUid();
+
+        Event event = new Event(eventName, description, category, date, time, location, organizerId, maxGuests, fee, publishAt);
+        event.setCoverImageUrl(posterImageUrl);
+        event.setAdditionalImageUrls(catalogImageUrls);
+
+        if (uploadedDocText != null && !uploadedDocText.isEmpty() && 
+            !uploadedDocText.contains("Note:") && !uploadedDocText.contains("requires additional library setup")) {
+            // Only process if we have actual text content (not placeholder messages)
+            String apiKey = getString(R.string.gemini_api_key);
+            new com.meow.utaract.AiService(apiKey).summarizeText(uploadedDocText, new com.meow.utaract.AiService.AiCallback() {
+                @Override
+                public void onSuccess(String text) {
+                    runOnUiThread(() -> {
+                        event.setSummary(text);
+                        persistEvent(event);
+                    });
+                }
+                @Override
+                public void onError(Exception e) {
+                    runOnUiThread(() -> persistEvent(event));
+                }
+            });
+        } else {
+            persistEvent(event);
+        }
+    }
+
+    private void persistEvent(Event event) {
+        if (isEditMode) {
+            event.setEventId(eventToEdit.getEventId());
+            event.setCreatedAt(eventToEdit.getCreatedAt()); // Preserve original creation date
+            eventStorage.updateEvent(event.getEventId(), event, getEventCreationCallback());
+        } else {
+            eventStorage.createEvent(event, getEventCreationCallback());
+        }
     }
 
     private EventCreationStorage.EventCreationCallback getEventCreationCallback() {
@@ -264,6 +327,196 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
                 });
             }
         };
+    }
+
+    private void initializeImageLaunchers() {
+        posterImageLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+            if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                uploadImageToStorage(result.getData().getData(), true);
+            }
+        });
+
+        catalogImageLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+            if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                if (result.getData().getClipData() != null) {
+                    int count = result.getData().getClipData().getItemCount();
+                    for (int i = 0; i < count; i++) {
+                        uploadImageToStorage(result.getData().getClipData().getItemAt(i).getUri(), false);
+                    }
+                } else if (result.getData().getData() != null) {
+                    uploadImageToStorage(result.getData().getData(), false);
+                }
+            }
+        });
+
+        docPickerLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+            if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                Uri uri = result.getData().getData();
+                uploadedDocText = readTextFromUri(uri);
+                if (uploadedDocText != null) {
+                    if (uploadedDocText.contains("Error extracting") || uploadedDocText.contains("Could not extract") || uploadedDocText.contains("not supported")) {
+                        Toast.makeText(this, uploadedDocText, Toast.LENGTH_LONG).show();
+                    } else if (uploadedDocText.trim().isEmpty()) {
+                        Toast.makeText(this, "Document is empty or contains no readable text", Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(this, "Document ready for summarization (" + uploadedDocText.length() + " characters)", Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    Toast.makeText(this, "Failed to read document", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
+
+    private void openDocPicker() {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("*/*");
+        intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{
+            "text/plain",
+            "application/pdf",
+            "application/msword",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "application/vnd.ms-excel",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "application/vnd.ms-powerpoint",
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+        });
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        docPickerLauncher.launch(intent);
+    }
+
+    private String readTextFromUri(Uri uri) {
+        try {
+            String mimeType = getContentResolver().getType(uri);
+            if (mimeType == null) {
+                // Try to determine from file extension
+                String fileName = getFileName(uri);
+                if (fileName != null) {
+                    if (fileName.toLowerCase().endsWith(".pdf")) {
+                        mimeType = "application/pdf";
+                    } else if (fileName.toLowerCase().endsWith(".doc") || fileName.toLowerCase().endsWith(".docx")) {
+                        mimeType = "application/msword";
+                    } else if (fileName.toLowerCase().endsWith(".txt")) {
+                        mimeType = "text/plain";
+                    }
+                }
+            }
+            
+            if (mimeType != null && mimeType.startsWith("text/")) {
+                // Handle text files
+                StringBuilder sb = new StringBuilder();
+                try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(getContentResolver().openInputStream(uri)))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        sb.append(line).append('\n');
+                    }
+                }
+                return sb.toString();
+            } else if (mimeType != null && mimeType.equals("application/pdf")) {
+                // Handle PDF files using PDFBox
+                return extractTextFromPdf(uri);
+            } else if (mimeType != null && (mimeType.equals("application/msword") || mimeType.equals("application/vnd.openxmlformats-officedocument.wordprocessingml.document"))) {
+                // Handle Word documents
+                if (mimeType.equals("application/vnd.openxmlformats-officedocument.wordprocessingml.document")) {
+                    return extractTextFromDocx(uri);
+                } else {
+                    return "Legacy .doc format not supported. Please use .docx format.";
+                }
+            } else {
+                // For other file types, try to read as text anyway
+                StringBuilder sb = new StringBuilder();
+                try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(getContentResolver().openInputStream(uri)))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        sb.append(line).append('\n');
+                    }
+                }
+                return sb.toString();
+            }
+        } catch (Exception e) {
+            Log.e("DocumentReader", "Error reading document", e);
+            return null;
+        }
+    }
+    
+    private String getFileName(Uri uri) {
+        String result = null;
+        if (uri.getScheme().equals("content")) {
+            try (android.database.Cursor cursor = getContentResolver().query(uri, null, null, null, null)) {
+                if (cursor != null && cursor.moveToFirst()) {
+                    int nameIndex = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME);
+                    if (nameIndex >= 0) {
+                        result = cursor.getString(nameIndex);
+                    }
+                }
+            }
+        }
+        if (result == null) {
+            result = uri.getPath();
+            int cut = result.lastIndexOf('/');
+            if (cut != -1) {
+                result = result.substring(cut + 1);
+            }
+        }
+        return result;
+    }
+
+    private String extractTextFromPdf(Uri uri) {
+        try {
+            java.io.InputStream inputStream = getContentResolver().openInputStream(uri);
+            if (inputStream == null) return null;
+            
+            // Use PDFBox to extract text
+            PDDocument document = PDDocument.load(inputStream);
+            PDFTextStripper pdfStripper = new PDFTextStripper();
+            String text = pdfStripper.getText(document);
+            document.close();
+            inputStream.close();
+            
+            return text.trim();
+        } catch (Exception e) {
+            Log.e("PDFExtraction", "Error extracting PDF text", e);
+            return "Error extracting text from PDF: " + e.getMessage();
+        }
+    }
+
+    private String extractTextFromDocx(Uri uri) {
+        java.io.InputStream is = null;
+        java.util.zip.ZipInputStream zis = null;
+        try {
+            is = getContentResolver().openInputStream(uri);
+            if (is == null) return null;
+            zis = new java.util.zip.ZipInputStream(is);
+            java.util.zip.ZipEntry entry;
+            while ((entry = zis.getNextEntry()) != null) {
+                if ("word/document.xml".equals(entry.getName())) {
+                    java.io.ByteArrayOutputStream bos = new java.io.ByteArrayOutputStream();
+                    byte[] buffer = new byte[4096];
+                    int len;
+                    while ((len = zis.read(buffer)) > 0) {
+                        bos.write(buffer, 0, len);
+                    }
+                    String xml = bos.toString("UTF-8");
+                    // Very naive XML to text: remove tags and decode minimal entities
+                    String text = xml.replaceAll("<[^>]+>", " ")
+                                     .replace("&amp;", "&")
+                                     .replace("&lt;", "<")
+                                     .replace("&gt;", ">")
+                                     .replace("&quot;", "\"")
+                                     .replace("&apos;", "'")
+                                     .replaceAll("\\s+", " ")
+                                     .trim();
+                    return text;
+                }
+            }
+            return "Could not extract text from DOCX file.";
+        } catch (Exception e) {
+            Log.e("DOCXExtraction", "Error extracting DOCX text", e);
+            return "Error extracting text from DOCX: " + e.getMessage();
+        } finally {
+            try { if (zis != null) zis.close(); } catch (Exception ignored) {}
+            try { if (is != null) is.close(); } catch (Exception ignored) {}
+        }
     }
 
     private void openImagePicker(ActivityResultLauncher<Intent> launcher, boolean allowMultiple) {

@@ -231,6 +231,7 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
         binding.userAvatar.setOnClickListener(this::showPopupMenu);
         binding.filterButton.setOnClickListener(v -> showFilterDialog());
 
+
         binding.nestedScrollView.setOnScrollChangeListener((NestedScrollView.OnScrollChangeListener) (v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
             updateHeaderOnScroll();
         });
@@ -304,8 +305,16 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
                 binding.addEventFab.setVisibility(View.VISIBLE);
                 binding.addEventFab.setOnClickListener(v ->
                         startActivity(new Intent(getActivity(), EventCreationActivity.class)));
+                // Hide Ask Bot button for organizers
+                binding.askBotGeneral.setVisibility(View.GONE);
             } else {
                 binding.addEventFab.setVisibility(View.GONE);
+                // Show Ask Bot button for guests
+                binding.askBotGeneral.setVisibility(View.VISIBLE);
+                binding.askBotGeneral.setOnClickListener(v -> {
+                    startActivity(new Intent(getActivity(), com.meow.utaract.chat.ChatActivity.class)
+                            .putExtra("MODE", "GENERAL"));
+                });
             }
         });
     }
