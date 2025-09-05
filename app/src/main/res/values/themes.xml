@@ -36,36 +36,22 @@
         <item name="colorSurfaceInverse">@color/md_theme_light_inverseSurface</item>
         <item name="colorPrimaryInverse">@color/md_theme_light_inversePrimary</item>
 
-        <!-- Status bar color (optional, but good for consistency) -->
-        <!-- For API 23+, you can use android:windowLightStatusBar to make status bar icons dark on light backgrounds -->
+        <!-- For API 23+, use android:windowLightStatusBar to make status bar icons dark on light backgrounds -->
         <item name="android:statusBarColor">@color/md_theme_light_surface</item> <!-- Or ?attr/colorSurface -->
         <item name="android:windowLightStatusBar" tools:targetApi="m">true</item> <!-- Make status bar icons dark -->
 
-        <!-- Navigation bar color (optional) -->
-        <!-- For API 27+, you can use android:windowLightNavigationBar -->
+        <!-- For API 27+,  use android:windowLightNavigationBar -->
         <item name="android:navigationBarColor">@android:color/transparent</item> <!-- Or a specific color -->
-        <!-- <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">true</item> -->
 
-
-        <!-- You can also define custom styles for widgets here, or shape appearances -->
-        <!--
-        <item name="materialCardViewStyle">@style/Widget.App.CardView</item>
-        <item name="materialButtonStyle">@style/Widget.App.Button</item>
-        <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.App.SmallComponent</item>
-        -->
     </style>
 
-    <!-- Example of a custom widget style inheriting from Material 3 -->
-    <!--
-    <style name="Widget.App.Button" parent="Widget.Material3.Button">
-        <item name="android:textColor">@color/my_custom_button_text_color</item>
+    <style name="Widget.App.Chip.Filter" parent="Widget.MaterialComponents.Chip.Filter">
+        <item name="chipIconVisible">false</item>
+        <item name="chipBackgroundColor">@color/filter_chip_background_state</item>
+        <item name="chipStrokeColor">@color/filter_chip_stroke_state</item>
+        <item name="chipStrokeWidth">1dp</item>
+        <item name="android:textStyle">bold</item>
     </style>
-
-    <style name="ShapeAppearance.App.SmallComponent" parent="ShapeAppearance.Material3.SmallComponent">
-        <item name="cornerFamily">rounded</item>
-        <item name="cornerSize">8dp</item>
-    </style>
-    -->
 
     <!-- Splash screen theme - full screen with no action bar -->
     <style name="Theme.UTARACT.NoActionBar" parent="Theme.UTARACT">

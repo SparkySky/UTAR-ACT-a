@@ -14,7 +14,9 @@ import com.google.android.material.chip.ChipGroup;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.gson.Gson;
 import com.meow.utaract.utils.GuestProfile;
+import com.google.android.material.chip.Chip;
 
+import java.util.Locale;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -66,11 +68,24 @@ public class ApplicantListActivity extends AppCompatActivity {
         viewModel = new ViewModelProvider(this).get(ApplicantListViewModel.class);
         viewModel.getApplicants().observe(this, applicants -> {
             allApplicants = applicants;
+            updateChipCounts(); // Update counts whenever the applicant list changes
             filterAndDisplayApplicants(); // Initial display
         });
         viewModel.fetchApplicants(eventId, organizerId);
 
         setupFilters();
+    }
+
+    private void updateChipCounts() {
+        long all = allApplicants.size();
+        long pending = allApplicants.stream().filter(a -> "pending".equals(a.getStatus())).count();
+        long accepted = allApplicants.stream().filter(a -> "accepted".equals(a.getStatus())).count();
+        long rejected = allApplicants.stream().filter(a -> "rejected".equals(a.getStatus())).count();
+
+        ((Chip) findViewById(R.id.chipAll)).setText(String.format(Locale.getDefault(), "All (%d)", all));
+        ((Chip) findViewById(R.id.chipPending)).setText(String.format(Locale.getDefault(), "Pending (%d)", pending));
+        ((Chip) findViewById(R.id.chipAccepted)).setText(String.format(Locale.getDefault(), "Accepted (%d)", accepted));
+        ((Chip) findViewById(R.id.chipRejected)).setText(String.format(Locale.getDefault(), "Rejected (%d)", rejected));
     }
 
     private void setupFilters() {

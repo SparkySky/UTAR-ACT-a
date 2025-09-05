@@ -300,12 +300,9 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
         });
 
         mainViewModel.isOrganiser().observe(getViewLifecycleOwner(), isOrganiser -> {
-            if (isOrganiser != null && isOrganiser) {
-                binding.addEventFab.setVisibility(View.VISIBLE);
-                binding.addEventFab.setOnClickListener(v ->
-                        startActivity(new Intent(getActivity(), EventCreationActivity.class)));
-            } else {
-                binding.addEventFab.setVisibility(View.GONE);
+            if (isOrganiser != null && eventsAdapter != null) {
+                // When the status is available, pass it to the adapter
+                eventsAdapter.setOrganiser(isOrganiser);
             }
         });
     }
