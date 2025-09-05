@@ -71,18 +71,20 @@ public class SplashActivity extends AppCompatActivity {
 
     private void nextActivity() {
         FirebaseUser currentUser = new AuthService().getAuth().getCurrentUser();
-        if (currentUser != null) {
-            // User is signed in, determine if they are an organizer or guest
+        if (currentUser != null && !currentUser.isAnonymous() && currentUser.isEmailVerified()) {
+            // Case 1: A verified organizer is signed in. Go to MainActivity.
             Intent intent = new Intent(this, MainActivity.class);
-            boolean isAnonymous = currentUser.isAnonymous();
-
-            // If the user is NOT anonymous, they are an organizer.
-            // This is the critical line that was missing the logic.
-            intent.putExtra("IS_ORGANISER", !isAnonymous);
-
+            intent.putExtra("IS_ORGANISER", true);
             startActivity(intent);
-        } else {
-            // No user session, go to login
+        } else if (currentUser != null && currentUser.isAnonymous()) {
+            // Case 2: A guest is signed in. Go to MainActivity.
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.putExtra("IS_ORGANISER", false);
+            startActivity(intent);
+        }
+        else {
+            // Case 3: No user is signed in, OR a user is signed in but NOT verified.
+            // In both cases, go to LoginActivity.
             startActivity(new Intent(this, LoginActivity.class));
         }
         finish();

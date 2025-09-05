@@ -6,6 +6,7 @@
         android:maxSdkVersion="28" />
 
     <application
+        android:name=".MyApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -16,19 +17,10 @@
         android:theme="@style/Theme.UTARACT">
 
         <activity
-            android:name=".SplashActivity"
-            android:exported="true"
-            android:theme="@style/Theme.UTARACT.NoActionBar">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-
-        <activity
             android:name=".LoginActivity"
             android:exported="true"
             android:theme="@style/Theme.UTARACT" >
+
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -38,9 +30,23 @@
                     android:pathPrefix="/verify"
                     android:scheme="https" />
             </intent-filter>
+
             <intent-filter>
-                <action android:name="com.meow.utaract.EMAIL_VERIFIED" />
-                <category android:name="android.intent.category.DEFAULT" />
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:host="utar-act.firebaseapp.com" android:scheme="https"/>
+            </intent-filter>
+
+        </activity>
+
+        <activity
+            android:name=".SplashActivity"
+            android:exported="true"
+            android:theme="@style/Theme.UTARACT.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
@@ -67,6 +73,9 @@
             android:theme="@style/Theme.UTARACT" />
         <activity
             android:name=".ApplicantListActivity"
+            android:theme="@style/Theme.UTARACT" />
+        <activity
+            android:name=".NewsActivity"
             android:theme="@style/Theme.UTARACT" />
     </application>
 

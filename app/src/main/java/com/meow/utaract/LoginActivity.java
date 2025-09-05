@@ -5,12 +5,14 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.text.TextUtils;
 import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -21,12 +23,16 @@ import androidx.appcompat.app.AppCompatDelegate;
 import com.google.firebase.auth.FirebaseUser;
 import com.meow.utaract.firebase.AuthService;
 
+import java.util.Locale;
+
 public class LoginActivity extends AppCompatActivity {
 
     private EditText emailInput, passwordInput;
-    private Button loginButton, guestButton;
+    private Button loginButton, guestButton, resendEmailButton;
     private TextView signupTextLink, verificationStatusText;
     private ImageButton themeToggleButton;
+    private CountDownTimer resendTimer;
+    private long resendCooldownEndTime = 0;
 
     public static final String EXTRA_EMAIL_FOR_VERIFICATION_CHECK = "email_for_verification_check";
     public static final String ACTION_EMAIL_VERIFIED = "com.meow.utaract.EMAIL_VERIFIED";
@@ -53,6 +59,7 @@ public class LoginActivity extends AppCompatActivity {
         signupTextLink = findViewById(R.id.signupTextLink);
         verificationStatusText = findViewById(R.id.verificationStatusText);
         themeToggleButton = findViewById(R.id.themeToggleButton);
+        resendEmailButton = findViewById(R.id.resendEmailButton);
         updateToggleIcon();
     }
 
@@ -64,18 +71,31 @@ public class LoginActivity extends AppCompatActivity {
             Intent intent = new Intent(LoginActivity.this, SignupActivity.class);
             startActivityForResult(intent, SIGNUP_REQUEST_CODE);
         });
+        resendEmailButton.setOnClickListener(v -> {
+            FirebaseUser user = new AuthService().getAuth().getCurrentUser();
+            if (user != null && !user.isEmailVerified()) {
+                user.sendEmailVerification().addOnSuccessListener(aVoid -> {
+                    Toast.makeText(LoginActivity.this, "Verification email sent.", Toast.LENGTH_SHORT).show();
+                    startResendCooldown(60000); // Start 60-second cooldown
+                }).addOnFailureListener(e -> {
+                    Toast.makeText(LoginActivity.this, "Failed to send email.", Toast.LENGTH_SHORT).show();
+                });
+            }
+        });
     }
 
     private void loginUser() {
         String email = emailInput.getText().toString().trim();
         String password = passwordInput.getText().toString().trim();
 
+        if (!isFormValid(email, password)) return;
+        setButtonsEnabled(false);
 
-        if (!isFormValid(email, password)) {
-            return;
-        }
+        // Hide verification views on new login attempt
         setButtonsEnabled(false);
         verificationStatusText.setVisibility(View.GONE);
+        resendEmailButton.setVisibility(View.GONE);
+        setLoginButtonWeight(1.0f);
 
         boolean isOrganiser = isOrganiserEmail(email);
 
@@ -90,20 +110,22 @@ public class LoginActivity extends AppCompatActivity {
         
         new AuthService().getAuth().signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
+                    setButtonsEnabled(true);
                     if (task.isSuccessful()) {
                         FirebaseUser user = new AuthService().getAuth().getCurrentUser();
                         if (user != null && user.isEmailVerified()) {
-                            Toast.makeText(LoginActivity.this, "Login Successful.", Toast.LENGTH_SHORT).show();
+                            // Start MainActivity immediately after successful login
                             Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                             intent.putExtra("IS_ORGANISER", true);
                             startActivity(intent);
-                            finish();
+                            finish(); // Finish LoginActivity so user can't go back to it
                         } else {
-                            Toast.makeText(LoginActivity.this, "Please verify your email address.", Toast.LENGTH_LONG).show();
-                            setButtonsEnabled(true);
-                            if (user != null) {
-                                user.sendEmailVerification();
-                            }
+                            // User is not verified
+                            verificationStatusText.setText("Please verify your email to continue.");
+                            verificationStatusText.setVisibility(View.VISIBLE);
+                            resendEmailButton.setVisibility(View.VISIBLE);
+                            // Adjust button weights to show both
+                            setLoginButtonWeight(0.5f);
                         }
                     } else {
                         Toast.makeText(LoginActivity.this, "Login failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
@@ -243,10 +265,16 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
+        // This part is still useful for users who are ALREADY logged in when they open the app.
         FirebaseUser currentUser = new AuthService().getAuth().getCurrentUser();
-        if (currentUser != null && currentUser.isEmailVerified()) {
+        if (currentUser != null && !currentUser.isAnonymous() && currentUser.isEmailVerified()) {
             Intent intent = new Intent(LoginActivity.this, MainActivity.class);
             intent.putExtra("IS_ORGANISER", true);
+            startActivity(intent);
+            finish();
+        } else if (currentUser != null && currentUser.isAnonymous()) {
+            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+            intent.putExtra("IS_ORGANISER", false);
             startActivity(intent);
             finish();
         }
@@ -258,8 +286,49 @@ public class LoginActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         setButtonsEnabled(true);
+        // If a cooldown was active, resume it
+        long timeLeft = resendCooldownEndTime - System.currentTimeMillis();
+        if (timeLeft > 0) {
+            startResendCooldown(timeLeft);
+        }
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (resendTimer != null) {
+            resendTimer.cancel(); // Stop the timer when the activity is not visible
+        }
+    }
+
+    private void startResendCooldown(long durationMillis) {
+        resendCooldownEndTime = System.currentTimeMillis() + durationMillis;
+        resendEmailButton.setEnabled(false);
+
+        if (resendTimer != null) {
+            resendTimer.cancel();
+        }
+
+        resendTimer = new CountDownTimer(durationMillis, 1000) {
+            @Override
+            public void onTick(long millisUntilFinished) {
+                resendEmailButton.setText(String.format(Locale.getDefault(), "Resend in %ds", millisUntilFinished / 1000));
+            }
+            @Override
+            public void onFinish() {
+                resendEmailButton.setText("Resend Verification");
+                resendEmailButton.setEnabled(true);
+                resendCooldownEndTime = 0;
+            }
+        }.start();
+    }
+
+    // Helper method to dynamically adjust the login button's width
+    private void setLoginButtonWeight(float weight) {
+        LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) loginButton.getLayoutParams();
+        params.weight = weight;
+        loginButton.setLayoutParams(params);
+    }
 
     // Helper method to control the state of both buttons (Login and Guest)
     private void setButtonsEnabled(boolean enabled) {
