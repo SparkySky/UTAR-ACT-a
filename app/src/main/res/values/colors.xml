@@ -27,10 +27,8 @@
     <color name="md_theme_light_inverseSurface">#313033</color>
     <color name="md_theme_light_inverseOnSurface">#F4EFF4</color>
     <color name="md_theme_light_inversePrimary">#D0BCFF</color>
-    <color name="md_theme_light_shadow">#000000</color>
     <color name="md_theme_light_surfaceTint">#6750A4</color>
     <color name="md_theme_light_outlineVariant">#CAC4D0</color>
-    <color name="md_theme_light_scrim">#000000</color>
 
     <!-- Dark Theme Colors -->
     <color name="md_theme_dark_primary">#D0BCFF</color>
@@ -59,17 +57,9 @@
     <color name="md_theme_dark_inverseSurface">#E6E1E5</color>
     <color name="md_theme_dark_inverseOnSurface">#313033</color>
     <color name="md_theme_dark_inversePrimary">#6750A4</color>
-    <color name="md_theme_dark_shadow">#000000</color>
-    <color name="md_theme_dark_surfaceTint">#D0BCFF</color>
-    <color name="md_theme_dark_outlineVariant">#49454F</color>
-    <color name="md_theme_dark_scrim">#000000</color>
 
     <!-- UTARACT Brand Colors -->
-    <color name="utaract_blue">#3B82F6</color>
-    <color name="utaract_dark_blue">#1E3A8A</color>
     <color name="utaract_light_blue">#60A5FA</color>
-    <color name="utaract_white">#FFFFFF</color>
-    <color name="utaract_black">#000000</color>
 
     <color name="pink_event_bg">#EB5757</color>
     <color name="chip_background_selected">#E8F0FE</color>
@@ -85,8 +75,6 @@
     <color name="status_rejected_text">#FFD32F2F</color>
 
     <!--Splash screen-->
-    <color name="white">#FFFFFFFF</color>
-    <color name="white_transparent_30">#4DFFFFFF</color>
 
 
 </resources>

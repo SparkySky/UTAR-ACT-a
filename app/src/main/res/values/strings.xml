@@ -1,37 +1,20 @@
 <resources>
     <string name="app_name">UTAR ACT</string>    
     <string name="app_logo">UTAR ACT App Logo</string>
-    <string name="navigation_drawer_open">Open navigation drawer</string>
-    <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="nav_header_title">Android Studio</string>
-    <string name="nav_header_subtitle">android.studio@android.com</string>
-    <string name="nav_header_desc">Navigation header</string>
     <string name="action_profile_setting">Edit Profile</string>
 
     <string name="menu_home">Home</string>
-    <string name="menu_gallery">Gallery</string>
-    <string name="menu_slideshow">Slideshow</string>
     <string name="logo_utar_act">Logo: UTAR ACT</string>
 
     <!-- New strings for Event Creation Form -->
     <string name="event_creation_form">Event Creation</string>
-    <string name="event_name">Event Name</string>
     <string name="hint_event_name">Enter event name</string>
-    <string name="event_description">Event Description</string>
     <string name="hint_description">Enter event description</string>
-    <string name="event_category">Event Category</string>
-    <string name="event_date_time">Event Date &amp; Time</string>
     <string name="hint_date">Select date</string>
     <string name="hint_time">Select time</string>
-    <string name="location">Location</string>
     <string name="hint_location">Enter event location</string>
-    <string name="cover_poster_image">Cover/Poster Image</string>
-    <string name="upload_cover">Upload Cover</string>
-    <string name="additional_images">Additional Images</string>
-    <string name="upload_pictures">Upload Pictures</string>
     <string name="btn_reset">Reset</string>
     <string name="btn_create_event">Create Event</string>
-    <string name="btn_nav_event">Test - Event Creation</string>
 
     <!-- New strings for News -->
     <string name="hint_search_news">Search news...</string>
@@ -41,45 +24,13 @@
     <string name="organizer_name">Organizer Name</string>
     <string name="posted_time">2 hours ago</string>
     <string name="news_content">This is the news content that will be displayed here. It can be multiple lines of text.</string>
-    <string name="desc_like_news">Like news</string>
-    <string name="like_count">0</string>
-    <string name="news_title_hint">News Title</string>
-    <string name="news_message_hint">News Message</string>
-    <string name="upload_images">Upload Images (Max 5)</string>
-    <string name="select_images">Select Images</string>
-    <string name="create_news">Create News</string>
-    <string name="update_news">Update News</string>
-    <string name="news_feed">News Feed</string>
-    <string name="no_news_available">No news available</string>
-    <string name="latest_news">Latest News</string>
-    <string name="view_all">View All</string>
-    <string name="follow_organizers_prompt">Follow organizers to see their latest news</string>
-    <string name="swipe_for_more">Swipe for more images</string>
 
     <!-- New strings for Guest Form -->
     <string name="title_guest_form">Guest Details</string>
     <string name="hint_full_name">Full Name</string>
     <string name="hint_email">Email (Contact)</string>
     <string name="hint_phone">Phone Number</string>
-    <string name="label_gender">Gender</string>
-    <string name="gender_male">Male</string>
-    <string name="gender_female">Female</string>
-    <string name="label_guest_type">Guest Type</string>
-    <string name="utar_individual">UTAR Student/Staff</string>
-    <string name="public_guest">Public</string>
-    <string name="hint_student_id">Student ID</string>
-    <string name="hint_course">Course / Faculty</string>
     <string name="label_preferences">Select Event Preferences (Min.3)</string>
-    <string name="pref_music_concert">Music</string>
-    <string name="pref_sports_competition">Sport</string>
-    <string name="pref_volunteering">Volunteering</string>
-    <string name="pref_workshops">Workshop</string>
-    <string name="pref_exhibition">Exhibition</string>
-    <string name="pref_seminar">Seminar</string>
-    <string name="pref_networking">Networking</string>
-    <string name="pref_cultural_fest">Cultural Fest</string>
-    <string name="pref_talk">Talk</string>
-    <string name="checkbox_updates">Send me event updates and recommendations</string>
     <string name="btn_save">Save</string>
     <string name="gemini_api_key">AIzaSyDQSMQS2qUTZqEZ1yemd2roSDUH6IcFS-E</string>
 </resources>
