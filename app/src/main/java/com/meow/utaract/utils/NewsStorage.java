@@ -10,12 +10,12 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.SetOptions;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
 public class NewsStorage {
     private static final String NEWS_COLLECTION = "news";
-    private static final String LIKES_SUBCOLLECTION = "likes";
     private final FirebaseFirestore firestore;
 
     public NewsStorage() {
@@ -75,10 +75,24 @@ public class NewsStorage {
                 .addOnFailureListener(callback::onFailure);
     }
 
-    public void getNewsByOrganizer(String organizerId, NewsListCallback callback) {
-        // Only organizers can access this
+    public void getNewsForOrganizerWithFollowing(String organizerId, List<String> followedOrganizerIds, NewsListCallback callback) {
+        List<String> allOrganizerIds = new ArrayList<>();
+        allOrganizerIds.add(organizerId); // Include own news
+        if (followedOrganizerIds != null) {
+            allOrganizerIds.addAll(followedOrganizerIds); // Include followed organizers
+        }
+
+        // Remove duplicates
+        allOrganizerIds = new ArrayList<>(new HashSet<>(allOrganizerIds));
+
+        if (allOrganizerIds.isEmpty()) {
+            callback.onSuccess(new ArrayList<>());
+            return;
+        }
+
+        // Get news from all organizers (own + followed)
         firestore.collection(NEWS_COLLECTION)
-                .whereEqualTo("organizerId", organizerId)
+                .whereIn("organizerId", allOrganizerIds)
                 .orderBy("createdAt", Query.Direction.DESCENDING)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
@@ -92,31 +106,6 @@ public class NewsStorage {
                 .addOnFailureListener(callback::onFailure);
     }
 
-    public void toggleLike(String newsId, String userId, NewsCallback callback) {
-        firestore.collection(NEWS_COLLECTION).document(newsId)
-                .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        News news = documentSnapshot.toObject(News.class);
-                        if (news != null) {
-                            Map<String, Boolean> likes = news.getLikes();
-                            if (likes == null) {
-                                likes = new HashMap<>();
-                            }
-
-                            if (likes.containsKey(userId)) {
-                                likes.remove(userId); // Unlike
-                            } else {
-                                likes.put(userId, true); // Like
-                            }
-
-                            news.setLikes(likes);
-                            updateNews(newsId, news, callback);
-                        }
-                    }
-                })
-                .addOnFailureListener(callback::onFailure);
-    }
 
     public interface NewsCallback {
         void onSuccess(String newsId);

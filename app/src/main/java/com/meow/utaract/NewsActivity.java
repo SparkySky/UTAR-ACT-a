@@ -2,6 +2,7 @@ package com.meow.utaract;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -63,6 +64,8 @@ public class NewsActivity extends AppCompatActivity implements NewsAdapter.NewsI
         newsStorage = new NewsStorage();
         profileStorage = new GuestProfileStorage(this);
 
+        navView.getMenu().findItem(R.id.nav_manage_events).setVisible(isOrganiser);
+
         // Set up FAB click listener
         FloatingActionButton fabCreateNews = findViewById(R.id.fabCreateNews);
         fabCreateNews.setOnClickListener(v -> {
@@ -118,7 +121,7 @@ public class NewsActivity extends AppCompatActivity implements NewsAdapter.NewsI
         findViewById(R.id.fabCreateNews).setOnClickListener(v -> {
             startActivity(new Intent(this, NewsCreationActivity.class));
         });
-        loadOrganiserNews();
+        loadOrganiserNewsWithFollowing();
     }
 
     private void setupGuestView() {
@@ -127,22 +130,30 @@ public class NewsActivity extends AppCompatActivity implements NewsAdapter.NewsI
         loadGuestNews();
     }
 
-    private void loadOrganiserNews() {
+    private void loadOrganiserNewsWithFollowing() {
         progressBar.setVisibility(View.VISIBLE);
-        String organizerId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        String currentOrganizerId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
-        newsStorage.getNewsByOrganizer(organizerId, new NewsStorage.NewsListCallback() {
-            @Override
-            public void onSuccess(List<News> newsList) {
-                progressBar.setVisibility(View.GONE);
-                updateUI(newsList);
-            }
-            @Override
-            public void onFailure(Exception e) {
-                progressBar.setVisibility(View.GONE);
-                emptyView.setVisibility(View.VISIBLE);
-            }
-        });
+        // Load the organizer's profile to get followed organizers
+        GuestProfile profile = profileStorage.loadProfile();
+        List<String> followedOrganizerIds = (profile != null && profile.getFollowing() != null) ?
+                profile.getFollowing() : new ArrayList<>();
+
+        // Get news from current organizer + followed organizers
+        newsStorage.getNewsForOrganizerWithFollowing(currentOrganizerId, followedOrganizerIds,
+                new NewsStorage.NewsListCallback() {
+                    @Override
+                    public void onSuccess(List<News> newsList) {
+                        progressBar.setVisibility(View.GONE);
+                        updateUI(newsList);
+                    }
+                    @Override
+                    public void onFailure(Exception e) {
+                        progressBar.setVisibility(View.GONE);
+                        emptyView.setVisibility(View.VISIBLE);
+                        Log.e("NewsDebug", "Failed to load organizer news with following: " + e.getMessage());
+                    }
+                });
     }
 
     private void loadGuestNews() {
@@ -209,7 +220,7 @@ public class NewsActivity extends AppCompatActivity implements NewsAdapter.NewsI
                     Toast.makeText(NewsActivity.this, "News deleted successfully", Toast.LENGTH_SHORT).show();
                     // Refresh the news list
                     if (isOrganiser) {
-                        loadOrganiserNews();
+                        loadOrganiserNewsWithFollowing();
                     } else {
                         loadGuestNews();
                     }
@@ -226,56 +237,11 @@ public class NewsActivity extends AppCompatActivity implements NewsAdapter.NewsI
     }
 
     @Override
-    public void onLikeClicked(News news, int position) {
-        // For guests, likes are stored locally since they don't have Firestore accounts
-        if (!isOrganiser) {
-            handleGuestLike(news, position);
-        } else {
-            handleOrganiserLike(news, position);
-        }
-    }
-
-    private void handleGuestLike(News news, int position) {
-        // Guests store likes locally in their profile
-        GuestProfile profile = new GuestProfileStorage(this).loadProfile();
-        if (profile != null) {
-            // Create a likedNews list in GuestProfile if it doesn't exist
-            if (profile.getLikedNews() == null) {
-                profile.setLikedNews(new ArrayList<>());
-            }
-
-            if (profile.getLikedNews().contains(news.getNewsId())) {
-                profile.getLikedNews().remove(news.getNewsId());
-            } else {
-                profile.getLikedNews().add(news.getNewsId());
-            }
-
-            new GuestProfileStorage(this).saveProfile(profile);
-            newsAdapter.notifyItemChanged(position);
-        }
-    }
-
-    private void handleOrganiserLike(News news, int position) {
-        // Organizers can like directly in Firestore
-        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        newsStorage.toggleLike(news.getNewsId(), userId, new NewsStorage.NewsCallback() {
-            @Override
-            public void onSuccess(String newsId) {
-                loadOrganiserNews(); // Refresh
-            }
-            @Override
-            public void onFailure(Exception e) {
-                Toast.makeText(NewsActivity.this, "Failed to like", Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    @Override
     protected void onResume() {
         super.onResume();
         // Refresh news when returning to this activity
         if (isOrganiser) {
-            loadOrganiserNews();
+            loadOrganiserNewsWithFollowing();
         } else {
             loadGuestNews();
         }

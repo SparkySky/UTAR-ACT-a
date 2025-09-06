@@ -61,45 +61,5 @@ public class News implements Serializable {
 
     public long getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(long updatedAt) { this.updatedAt = updatedAt; }
-
-    public Map<String, Boolean> getLikes() { return likes; }
-    public void setLikes(Map<String, Boolean> likes) { this.likes = likes; }
-
-    public int getLikeCount() { return likes != null ? likes.size() : 0; }
-
-    public boolean isLikedByUser(String userId) {
-        return likes != null && likes.containsKey(userId) && likes.get(userId);
-    }
-
-    public int getTotalLikeCount(Context context) {
-        int firestoreLikes = getLikeCount(); // From Firestore
-
-        // Get local guest likes
-        GuestProfileStorage storage = new GuestProfileStorage(context);
-        GuestProfile profile = storage.loadProfile();
-        int localLikes = 0;
-
-        if (profile != null && profile.getLikedNews() != null &&
-                profile.getLikedNews().contains(getNewsId())) {
-            localLikes = 1; // This guest has liked it
-        }
-
-        return firestoreLikes + localLikes;
-    }
-
-    // Add this method to check if current user liked (both types)
-    public boolean isLikedByCurrentUser(Context context, boolean isOrganiser) {
-        if (isOrganiser) {
-            // Organizers: check Firestore
-            String userId = FirebaseAuth.getInstance().getCurrentUser() != null ?
-                    FirebaseAuth.getInstance().getCurrentUser().getUid() : "";
-            return isLikedByUser(userId);
-        } else {
-            // Guests: check local storage
-            GuestProfileStorage storage = new GuestProfileStorage(context);
-            GuestProfile profile = storage.loadProfile();
-            return profile != null && profile.getLikedNews() != null &&
-                    profile.getLikedNews().contains(getNewsId());
-        }
-    }
+    
 }

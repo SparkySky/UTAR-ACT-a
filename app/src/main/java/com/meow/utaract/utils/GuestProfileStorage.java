@@ -69,6 +69,8 @@ public class GuestProfileStorage {
         db.collection("guest_profiles").document(uid)
                 .set(new HashMap<String, Object>() {{
                     put("profile_json", json);
+                    put("is_organiser", true); // Mark as organizer
+                    put("following", profile.getFollowing()); // Store following list
                 }})
                 .addOnSuccessListener(aVoid -> {
                     // Optional: show success message

@@ -162,6 +162,13 @@ public class EventDetailActivity extends AppCompatActivity {
         String organizerId = event.getOrganizerId();
         String organizerName = (organizerProfile != null) ? organizerProfile.getName() : "the organizer";
 
+        // Check if current user is trying to follow themselves
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null && currentUser.getUid().equals(organizerId)) {
+            Toast.makeText(this, "You cannot follow yourself", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         GuestProfileStorage storage = new GuestProfileStorage(this);
 
         if (userProfile.getFollowing() != null && userProfile.getFollowing().contains(organizerId)) {
@@ -176,6 +183,12 @@ public class EventDetailActivity extends AppCompatActivity {
 
         // Save locally (guests don't save to Firestore)
         storage.saveProfile(userProfile);
+
+        // If user is organizer, also update Firestore
+        if (currentUser != null && !currentUser.isAnonymous()) {
+            storage.uploadProfileToFirestore(userProfile);
+        }
+
         updateFollowButtonState();
     }
 
@@ -200,6 +213,7 @@ public class EventDetailActivity extends AppCompatActivity {
 
         if (organizerProfile != null) {
             organizerNameText.setText(organizerProfile.getName());
+
             Glide.with(this)
                     .load(organizerProfile.getProfileImageUrl())
                     .placeholder(R.drawable.ic_person)
@@ -407,10 +421,19 @@ public class EventDetailActivity extends AppCompatActivity {
     }
 
     private void updateFollowButtonState() {
-        if (userProfile != null && userProfile.getFollowing() != null && userProfile.getFollowing().contains(event.getOrganizerId())) {
+        if (userProfile != null && userProfile.getFollowing() != null &&
+                userProfile.getFollowing().contains(event.getOrganizerId())) {
             followButton.setText("Following");
         } else {
             followButton.setText("Follow");
+        }
+
+        // Hide follow button if user is trying to follow themselves
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null && currentUser.getUid().equals(event.getOrganizerId())) {
+            followButton.setVisibility(View.GONE);
+        } else {
+            followButton.setVisibility(View.VISIBLE);
         }
     }
 

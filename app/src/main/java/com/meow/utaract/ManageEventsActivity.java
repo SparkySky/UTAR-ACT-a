@@ -65,7 +65,7 @@ public class ManageEventsActivity extends AppCompatActivity implements FilterBot
                 finish();
             } else if (id == R.id.nav_news) {
                 drawerLayout.closeDrawer(GravityCompat.START);
-                Intent intent = new Intent(this, NewsCreationActivity.class);
+                Intent intent = new Intent(this, NewsActivity.class);
                 intent.putExtra("IS_ORGANISER", isOrganiser);
                 startActivity(intent);
                 finish();

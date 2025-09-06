@@ -13,6 +13,10 @@ public class GuestProfile implements Serializable {
     private List<String> following;
     public List<String> getFollowing() { return following; }
 
+    public boolean isFollowing(String organizerId) {
+        return following != null && following.contains(organizerId);
+    }
+
     public void setFollowing(List<String> following) { this.following = following; }
 
     public void addFollowing(String organizerId) {
@@ -29,10 +33,6 @@ public class GuestProfile implements Serializable {
             following.remove(organizerId);
         }
     }
-    private List<String> likedNews; // News IDs that this guest has liked
-
-    public List<String> getLikedNews() { return likedNews; }
-    public void setLikedNews(List<String> likedNews) { this.likedNews = likedNews; }
 
 
     public GuestProfile(String name, String email, String phone, List<String> preferences) {

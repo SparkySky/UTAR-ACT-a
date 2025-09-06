@@ -32,7 +32,6 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.NewsViewHolder
     private boolean isOrganiser;
 
     public interface NewsItemClickListener {
-        void onLikeClicked(News news, int position);
         void onEditClicked(News news, int position);
         void onDeleteClicked(News news, int position);
     }
@@ -75,9 +74,8 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.NewsViewHolder
     }
 
     static class NewsViewHolder extends RecyclerView.ViewHolder {
-        TextView organizerName, newsTitle, newsMessage, likeCount, newsDate;
+        TextView organizerName, newsTitle, newsMessage, newsDate;
         ImageView newsImage;
-        ImageButton likeButton;
         ViewGroup imageContainer;
         Button editButton, deleteButton;
         LinearLayout organizerActions;
@@ -88,10 +86,8 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.NewsViewHolder
             organizerName = itemView.findViewById(R.id.organizerName);
             newsTitle = itemView.findViewById(R.id.newsTitle);
             newsMessage = itemView.findViewById(R.id.newsMessage);
-            likeCount = itemView.findViewById(R.id.likeCount);
             newsDate = itemView.findViewById(R.id.newsDate);
             newsImage = itemView.findViewById(R.id.newsImage);
-            likeButton = itemView.findViewById(R.id.likeButton);
             editButton = itemView.findViewById(R.id.editButton);
             deleteButton = itemView.findViewById(R.id.deleteButton);
             menuButton = itemView.findViewById(R.id.menuButton);
@@ -129,15 +125,10 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.NewsViewHolder
             String dateString = sdf.format(new Date(news.getCreatedAt()));
             newsDate.setText(dateString);
 
-            // Set like count and state
-            int totalLikes = news.getTotalLikeCount(itemView.getContext());
-            likeCount.setText(String.valueOf(totalLikes));
 
             String currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null ?
                     FirebaseAuth.getInstance().getCurrentUser().getUid() : "";
 
-            boolean isLiked = news.isLikedByCurrentUser(itemView.getContext(), isOrganiser);
-            likeButton.setImageResource(isLiked ? R.drawable.ic_heart_filled : R.drawable.ic_heart_outline);
 
             boolean isOwner = currentUserId.equals(news.getOrganizerId());
             if (isOrganiser && isOwner) {
@@ -172,13 +163,6 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.NewsViewHolder
             } else {
                 imageContainer.setVisibility(View.GONE);
             }
-
-            // Set click listeners
-            likeButton.setOnClickListener(v -> {
-                if (listener != null) {
-                    listener.onLikeClicked(news, getAdapterPosition());
-                }
-            });
 
             // Edit button
             editButton.setOnClickListener(v -> {
