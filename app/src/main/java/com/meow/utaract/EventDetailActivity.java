@@ -234,7 +234,12 @@ public class EventDetailActivity extends AppCompatActivity {
         followButton.setOnClickListener(v -> toggleFollowStatus());
         qrCodeButton.setOnClickListener(v -> generateAndShowQrCode());
         registerButton.setOnClickListener(v -> handleRegistrationClick());
-        qrCodeButton.setOnClickListener(v -> generateAndShowQrCode());
+        askButton.setOnClickListener(v -> {
+            Intent intent = new Intent(this, com.meow.utaract.chat.ChatActivity.class);
+            intent.putExtra("MODE", "EVENT");
+            intent.putExtra("EVENT_ID", event.getEventId());
+            startActivity(intent);
+        });
     }
 
     private void populateCatalogueImages() {

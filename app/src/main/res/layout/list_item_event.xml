@@ -186,6 +186,7 @@
                 android:visibility="gone"
                 app:icon="@android:drawable/ic_menu_edit"
                 tools:visibility="visible" />
+
         </LinearLayout>
 
     </LinearLayout>
