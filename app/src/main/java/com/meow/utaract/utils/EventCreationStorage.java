@@ -112,12 +112,9 @@ public class EventCreationStorage {
                     for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
                         Event event = document.toObject(Event.class);
                         if (event != null) {
-                            // *** THIS IS THE CRITICAL FIX ***
                             // Manually get the document ID from Firestore and set it on the object
                             String eventId = document.getId();
                             event.setEventId(eventId);
-                            // *** END OF FIX ***
-
                             events.add(event);
                         }
                     }

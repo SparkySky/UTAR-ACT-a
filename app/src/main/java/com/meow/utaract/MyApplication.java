@@ -1,7 +1,11 @@
 package com.meow.utaract;
 
 import android.app.Application;
+import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
+import android.preference.PreferenceManager;
+
+import androidx.appcompat.app.AppCompatDelegate;
 
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.appcheck.FirebaseAppCheck;
@@ -12,6 +16,12 @@ public class MyApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+
+        // Force light mode unless user preference overrides it
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        int themeMode = prefs.getInt("theme_mode", AppCompatDelegate.MODE_NIGHT_NO);
+        AppCompatDelegate.setDefaultNightMode(themeMode);
+
 
         FirebaseApp.initializeApp(this);
         FirebaseAppCheck firebaseAppCheck = FirebaseAppCheck.getInstance();

@@ -16,7 +16,9 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.PopupMenu;
 import android.widget.Toast;
-import android.widget.LinearLayout;
+import com.bumptech.glide.Glide;
+import de.hdodenhof.circleimageview.CircleImageView;
+import android.widget.ImageButton;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -30,7 +32,6 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.zxing.BinaryBitmap;
@@ -50,14 +51,12 @@ import com.meow.utaract.GuestFormActivity;
 import com.meow.utaract.LoginActivity;
 import com.meow.utaract.MainActivity;
 import com.meow.utaract.MainViewModel;
-import com.meow.utaract.utils.NewsAdapter;
+import com.meow.utaract.PortraitCaptureActivity;
 import com.meow.utaract.R;
 import com.meow.utaract.databinding.FragmentHomeBinding;
 import com.meow.utaract.ui.event.EventsAdapter;
 import com.meow.utaract.utils.GuestProfile;
 import com.meow.utaract.utils.GuestProfileStorage;
-import com.meow.utaract.utils.News;
-import com.meow.utaract.utils.NewsStorage;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
@@ -72,7 +71,10 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
     private MainViewModel mainViewModel;
     private MotionLayout motionLayoutHeader;
     private EditText searchInput;
+    private CircleImageView userAvatar;
+    private ImageButton moreOptionsButton;
     private boolean isOrganiser;
+
 
     // QR Scanner Launcher
     private final ActivityResultLauncher<ScanOptions> qrScannerLauncher =
@@ -102,6 +104,9 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentHomeBinding.inflate(inflater, container, false);
+
+        userAvatar = binding.userAvatar;
+        moreOptionsButton = binding.moreOptionsButton;
 
         mainViewModel = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
         homeViewModel = new ViewModelProvider(this).get(HomeViewModel.class);
@@ -138,10 +143,11 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
 
     private void launchCameraScanner() {
         ScanOptions options = new ScanOptions();
+        options.setCaptureActivity(PortraitCaptureActivity.class); // Launch in portrait
         options.setDesiredBarcodeFormats(ScanOptions.QR_CODE);
         options.setPrompt("Scan Event QR Code");
         options.setBeepEnabled(true);
-        options.setOrientationLocked(false);
+        options.setOrientationLocked(true);
         qrScannerLauncher.launch(options);
     }
 
@@ -172,11 +178,33 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
         // GET FLAG FROM MAIN ACTIVITY
         if (getActivity() instanceof MainActivity) {
             MainActivity activity = (MainActivity) getActivity();
-
             isOrganiser = activity.isOrganiser();
         }
 
+        if (isOrganiser) {
+            userAvatar.setVisibility(View.VISIBLE);
+            moreOptionsButton.setVisibility(View.GONE);
+            loadOrganiserProfilePicture();
+        } else {
+            userAvatar.setVisibility(View.GONE);
+            moreOptionsButton.setVisibility(View.VISIBLE);
+        }
+
+        userAvatar.setOnClickListener(this::showPopupMenu);
+        moreOptionsButton.setOnClickListener(this::showPopupMenu);
+
         updateHeaderOnScroll();
+    }
+
+    private void loadOrganiserProfilePicture() {
+        GuestProfileStorage storage = new GuestProfileStorage(requireContext());
+        GuestProfile profile = storage.loadProfile();
+        if (profile != null && profile.getProfileImageUrl() != null && !profile.getProfileImageUrl().isEmpty()) {
+            Glide.with(this)
+                    .load(profile.getProfileImageUrl())
+                    .placeholder(R.drawable.icon_bar_avatar) // A default placeholder
+                    .into(userAvatar);
+        }
     }
 
     @Override

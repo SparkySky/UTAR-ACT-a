@@ -23,7 +23,7 @@ import com.meow.utaract.firebase.AuthService;
 public class SplashActivity extends AppCompatActivity {
 
     private static final int SPLASH_DELAY = 3500;
-    private static final int TYPEWRITER_DELAY = 36;
+    private static final int TYPEWRITER_DELAY = 30;
 
     private ImageView ivLogo;
     private TextView tvSlogan;

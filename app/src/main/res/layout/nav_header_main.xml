@@ -1,18 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="@dimen/nav_header_height_expanded"
     android:background="@color/chip_background_selected"
-    android:gravity="center"
-    android:orientation="vertical"
-    android:padding="16dp"
     android:theme="@style/ThemeOverlay.AppCompat.Dark">
 
-    <ImageView
-        android:layout_width="181dp"
-        android:layout_height="97dp"
-        android:layout_marginTop="30dp"
-        android:contentDescription="@string/app_logo"
-        android:src="@drawable/icon_utaract_tranparent_crop" />
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="20dp"
+        android:padding="16dp">
 
-</LinearLayout>
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="193dp"
+            android:layout_height="106dp"
+            android:contentDescription="@string/app_logo"
+            android:src="@drawable/icon_utaract_tranparent_crop"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.651"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ToggleButton
+            android:id="@+id/themeToggleButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@android:color/transparent"
+            android:drawableStart="@drawable/ic_moon"
+            android:gravity="center"
+            android:textOff=""
+            android:textOn=""
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/imageView"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</RelativeLayout>

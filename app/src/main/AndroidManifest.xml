@@ -86,6 +86,10 @@
         <activity
             android:name=".NewsCreationActivity"
             android:theme="@style/Theme.UTARACT" />
+        <activity
+            android:name=".PortraitCaptureActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/zxing_CaptureTheme" />
     </application>
 
 </manifest>
