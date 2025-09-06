@@ -59,7 +59,7 @@
     <!-- New strings for Guest Form -->
     <string name="title_guest_form">Guest Details</string>
     <string name="hint_full_name">Full Name</string>
-    <string name="hint_email">Email</string>
+    <string name="hint_email">Email (Contact)</string>
     <string name="hint_phone">Phone Number</string>
     <string name="label_gender">Gender</string>
     <string name="gender_male">Male</string>
@@ -69,7 +69,7 @@
     <string name="public_guest">Public</string>
     <string name="hint_student_id">Student ID</string>
     <string name="hint_course">Course / Faculty</string>
-    <string name="label_preferences">Select Event Preferences</string>
+    <string name="label_preferences">Select Event Preferences (Min.3)</string>
     <string name="pref_music_concert">Music</string>
     <string name="pref_sports_competition">Sport</string>
     <string name="pref_volunteering">Volunteering</string>

@@ -8,6 +8,7 @@ import android.util.Log;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import java.util.ArrayList;
 import java.util.List;
@@ -101,14 +102,22 @@ public class EventCreationStorage {
     // Get all events
     public void getAllEvents(EventsFetchCallback callback) {
         Log.d(TAG, "Attempting to fetch all events from Firestore.");
+        // 'firestore' is the correct variable, as you pointed out.
         firestore.collection("events")
                 .orderBy("createdAt", Query.Direction.DESCENDING)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     List<Event> events = new ArrayList<>();
-                    for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
+                    // Note: It's better to iterate through queryDocumentSnapshots directly
+                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
                         Event event = document.toObject(Event.class);
                         if (event != null) {
+                            // *** THIS IS THE CRITICAL FIX ***
+                            // Manually get the document ID from Firestore and set it on the object
+                            String eventId = document.getId();
+                            event.setEventId(eventId);
+                            // *** END OF FIX ***
+
                             events.add(event);
                         }
                     }

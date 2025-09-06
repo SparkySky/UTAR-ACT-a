@@ -178,12 +178,16 @@ public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.EventViewH
             }
 
             // Show/Hide and set listener for the Edit Button
+            // In EventsAdapter.java -> EventViewHolder class -> bind() method
             if (currentUserId != null && currentUserId.equals(event.getOrganizerId())) {
                 editEventButton.setVisibility(View.VISIBLE);
                 editEventButton.setOnClickListener(v -> {
                     Intent intent = new Intent(itemView.getContext(), EventCreationActivity.class);
-                    intent.putExtra("IS_EDIT_MODE", true);
-                    intent.putExtra("EDIT_EVENT_DATA", event);
+
+                    // *** THE FINAL CORRECTED LOGIC ***
+                    // Send only the event's unique ID, which we fixed in Step 1
+                    intent.putExtra("eventId", event.getEventId());
+
                     itemView.getContext().startActivity(intent);
                 });
             } else {

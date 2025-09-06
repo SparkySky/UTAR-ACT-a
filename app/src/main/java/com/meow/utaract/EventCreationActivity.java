@@ -36,6 +36,7 @@ import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -107,12 +108,11 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         // Initialize document display
         updateUploadedDocumentsDisplay();
 
-        if (getIntent().hasExtra("IS_EDIT_MODE")) {
-            isEditMode = getIntent().getBooleanExtra("IS_EDIT_MODE", false);
-            eventToEdit = (Event) getIntent().getSerializableExtra("EDIT_EVENT_DATA");
-            if (isEditMode && eventToEdit != null) {
-                setupEditMode();
-            }
+        // Check for an eventId to determine if we are in edit mode
+        if (getIntent().hasExtra("eventId")) {
+            isEditMode = true;
+            String eventId = getIntent().getStringExtra("eventId");
+            loadEventDetails(eventId); // This method fetches the fresh data from Firestore
         }
     }
 
@@ -430,13 +430,6 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         intent.setType("*/*");
         intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{
             "text/plain",
-//            "application/pdf",
-//            "application/msword",
-//            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-//            "application/vnd.ms-excel",
-//            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-//            "application/vnd.ms-powerpoint",
-//            "application/vnd.openxmlformats-officedocument.presentationml.presentation"
         });
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         docPickerLauncher.launch(intent);
@@ -469,16 +462,6 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
                     }
                 }
                 return sb.toString();
-//            } else if (mimeType != null && mimeType.equals("application/pdf")) {
-//                // Handle PDF files using PDFBox
-//                return extractTextFromPdf(uri);
-//            } else if (mimeType != null && (mimeType.equals("application/msword") || mimeType.equals("application/vnd.openxmlformats-officedocument.wordprocessingml.document"))) {
-//                // Handle Word documents
-//                if (mimeType.equals("application/vnd.openxmlformats-officedocument.wordprocessingml.document")) {
-//                    return extractTextFromDocx(uri);
-//                } else {
-//                    return "Legacy .doc format not supported. Please use .docx format.";
-//                }
             } else {
                 // For other file types, try to read as text anyway
                 StringBuilder sb = new StringBuilder();
@@ -517,64 +500,6 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         }
         return result;
     }
-
-//    private String extractTextFromPdf(Uri uri) {
-//        try {
-//            java.io.InputStream inputStream = getContentResolver().openInputStream(uri);
-//            if (inputStream == null) return null;
-//
-//            // Use PDFBox to extract text
-//            PDDocument document = PDDocument.load(inputStream);
-//            PDFTextStripper pdfStripper = new PDFTextStripper();
-//            String text = pdfStripper.getText(document);
-//            document.close();
-//            inputStream.close();
-//
-//            return text.trim();
-//        } catch (Exception e) {
-//            Log.e("PDFExtraction", "Error extracting PDF text", e);
-//            return "Error extracting text from PDF: " + e.getMessage();
-//        }
-//    }
-
-//    private String extractTextFromDocx(Uri uri) {
-//        java.io.InputStream is = null;
-//        java.util.zip.ZipInputStream zis = null;
-//        try {
-//            is = getContentResolver().openInputStream(uri);
-//            if (is == null) return null;
-//            zis = new java.util.zip.ZipInputStream(is);
-//            java.util.zip.ZipEntry entry;
-//            while ((entry = zis.getNextEntry()) != null) {
-//                if ("word/document.xml".equals(entry.getName())) {
-//                    java.io.ByteArrayOutputStream bos = new java.io.ByteArrayOutputStream();
-//                    byte[] buffer = new byte[4096];
-//                    int len;
-//                    while ((len = zis.read(buffer)) > 0) {
-//                        bos.write(buffer, 0, len);
-//                    }
-//                    String xml = bos.toString("UTF-8");
-//                    // Very naive XML to text: remove tags and decode minimal entities
-//                    String text = xml.replaceAll("<[^>]+>", " ")
-//                                     .replace("&amp;", "&")
-//                                     .replace("&lt;", "<")
-//                                     .replace("&gt;", ">")
-//                                     .replace("&quot;", "\"")
-//                                     .replace("&apos;", "'")
-//                                     .replaceAll("\\s+", " ")
-//                                     .trim();
-//                    return text;
-//                }
-//            }
-//            return "Could not extract text from DOCX file.";
-//        } catch (Exception e) {
-//            Log.e("DOCXExtraction", "Error extracting DOCX text", e);
-//            return "Error extracting text from DOCX: " + e.getMessage();
-//        } finally {
-//            try { if (zis != null) zis.close(); } catch (Exception ignored) {}
-//            try { if (is != null) is.close(); } catch (Exception ignored) {}
-//        }
-//    }
 
     private void openImagePicker(ActivityResultLauncher<Intent> launcher, boolean allowMultiple) {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT).setType("image/*");
@@ -697,41 +622,6 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
             eventStorage.createEvent(event, callback);
         }
     }
-
-    /*private void uploadImageToStorage(Uri imageUri, boolean isPoster) {
-        Toast.makeText(this, "Uploading image...", Toast.LENGTH_SHORT).show();
-        String fileName = "event_images/" + UUID.randomUUID().toString();
-        StorageReference storageRef = FirebaseStorage.getInstance().getReference().child(fileName);
-
-        storageRef.putFile(imageUri)
-                .addOnSuccessListener(taskSnapshot -> storageRef.getDownloadUrl()
-                        .addOnSuccessListener(uri -> {
-                            if (isPoster) {
-                                posterImageUrl = uri.toString();
-                                newPosterUri = null; // Clear the temporary URI
-                                //ivPosterPreview.setImageURI(imageUri);
-                                //ivPosterPreview.setVisibility(View.VISIBLE);
-                            } else {
-                                catalogImageUrls.add(uri.toString());
-                                //addCatalogImageToPreview(imageUri);
-                            }
-                            Toast.makeText(this, "Image uploaded.", Toast.LENGTH_SHORT).show();
-                        }))
-                .addOnFailureListener(e -> Toast.makeText(this, "Upload failed: " + e.getMessage(), Toast.LENGTH_LONG).show());
-    }*/
-
-    /*private void addCatalogImageToPreview(Uri imageUri) {
-        ImageView imageView = new ImageView(this);
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(250, 250);
-        params.setMarginEnd(16);
-        imageView.setLayoutParams(params);
-        imageView.setImageURI(imageUri);
-        imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        // Use Glide to load the local Uri
-        Glide.with(this).load(imageUri).into(imageView);
-        layoutCatalogPreview.addView(imageView);
-    }*/
-
 
     private void updateCatalogPreview() {
         layoutCatalogPreview.removeAllViews(); // Clear all existing previews
@@ -882,7 +772,106 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         }
     }
 
+    // In EventCreationActivity.java
 
+    private void loadEventDetails(String eventId) {
+        // 1. Log the eventId to make sure we received it correctly
+        Log.d("EventCreation", "Attempting to load event with ID: " + eventId);
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("events").document(eventId).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    // 2. Log that the database call was successful
+                    Log.d("EventCreation", "Firestore call successful.");
+
+                    if (documentSnapshot.exists()) {
+                        // 3. Log that the document was found
+                        Log.d("EventCreation", "Document snapshot exists.");
+
+                        // THIS IS THE MOST LIKELY POINT OF FAILURE
+                        Event event = documentSnapshot.toObject(Event.class);
+
+                        if (event != null) {
+                            // 4. Log that the conversion to an Event object was successful
+                            Log.d("EventCreation", "Event object created successfully. Event name: " + event.getEventName());
+                            populateEventForm(event);
+                        } else {
+                            // 5. Log a critical error if the object is null after conversion
+                            Log.e("EventCreation", "ERROR: Event object is null. Check your Event.java class and Firestore fields.");
+                            Toast.makeText(this, "Error: Could not parse event data.", Toast.LENGTH_SHORT).show();
+                        }
+
+                    } else {
+                        // 6. Log that the document was not found in the database
+                        Log.e("EventCreation", "ERROR: No document found with ID: " + eventId);
+                        Toast.makeText(this, "Event not found", Toast.LENGTH_SHORT).show();
+                        finish();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    // 7. Log any failure in the database call itself
+                    Log.e("EventCreation", "Firestore call failed!", e);
+                    Toast.makeText(this, "Failed to load event details", Toast.LENGTH_SHORT).show();
+                    finish();
+                });
+    }
+
+// In EventCreationActivity.java
+
+    private void populateEventForm(Event event) {
+        // Store the fresh event data so it can be used when saving
+        eventToEdit = event;
+
+        // Set the title and button text for edit mode
+        ((TextView) findViewById(R.id.event_creation_title)).setText("Update Event");
+        btnCreate.setText("Update Event");
+
+        // Populate all the form fields using your existing view variables
+        etEventName.setText(event.getEventName());
+        etDescription.setText(event.getDescription());
+        etDate.setText(event.getDate());
+        etTime.setText(event.getTime());
+        etLocation.setText(event.getLocation());
+        etMaxGuests.setText(String.valueOf(event.getMaxGuests()));
+        etFee.setText(String.valueOf(event.getFee()));
+        if (event.getSocialMediaLink() != null) {
+            etSocialMediaLink.setText(event.getSocialMediaLink());
+        }
+
+        // Set spinner selection
+        ArrayAdapter<String> adapter = (ArrayAdapter<String>) spinnerCategory.getAdapter();
+        for (int i = 0; i < adapter.getCount(); i++) {
+            if (adapter.getItem(i).equals(event.getCategory())) {
+                spinnerCategory.setSelection(i);
+                break;
+            }
+        }
+
+        // Set image previews from URLs
+        posterImageUrl = event.getCoverImageUrl();
+        catalogImageUrls = new ArrayList<>(event.getAdditionalImageUrls());
+        updatePosterPreview();
+        updateCatalogPreview();
+
+        // Load uploaded document text and name
+        uploadedDocText = event.getUploadedDocumentText();
+        uploadedDocName = event.getUploadedDocumentName();
+        updateUploadedDocumentsDisplay();
+
+        // Handle the scheduling UI
+        if (event.getPublishAt() > System.currentTimeMillis()) {
+            scheduleSwitch.setChecked(true);
+            scheduleLayout.setVisibility(View.VISIBLE);
+            publishCalendar.setTimeInMillis(event.getPublishAt());
+            SimpleDateFormat sdfDate = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+            etPublishDate.setText(sdfDate.format(publishCalendar.getTime()));
+            SimpleDateFormat sdfTime = new SimpleDateFormat("hh:mm a", Locale.getDefault());
+            etPublishTime.setText(sdfTime.format(publishCalendar.getTime()));
+        } else {
+            scheduleSwitch.setChecked(false);
+            scheduleLayout.setVisibility(View.GONE);
+        }
+    }
 
     private boolean isFormValid() {
         if (Objects.requireNonNull(etEventName.getText()).toString().trim().isEmpty()) {
@@ -953,11 +942,6 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
                 return false;
             }
         }
-/*        if (Objects.requireNonNull(etFee.getText()).toString().trim().isEmpty()) {
-            etFee.setError("Fee is required (enter 0 for free events)");
-            etFee.requestFocus();
-            return false;
-        }*/
         return true;
     }
 
@@ -970,7 +954,7 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         etTime.setText("");
         etLocation.setText("");
         etMaxGuests.setText("");
-        //etFee.setText("");
+        etFee.setText("");
         spinnerCategory.setSelection(0);
         
         // Clear uploaded document

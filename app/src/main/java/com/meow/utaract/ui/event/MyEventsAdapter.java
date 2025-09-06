@@ -104,8 +104,8 @@ public class MyEventsAdapter extends RecyclerView.Adapter<MyEventsAdapter.MyEven
             deleteButton.setOnClickListener(v -> showDeleteConfirmation(event));
             editButton.setOnClickListener(v -> {
                 Intent intent = new Intent(context, EventCreationActivity.class);
-                intent.putExtra("IS_EDIT_MODE", true);
-                intent.putExtra("EDIT_EVENT_DATA", event);
+                // Pass only the unique ID of the event
+                intent.putExtra("eventId", event.getEventId());
                 context.startActivity(intent);
             });
             viewApplicantsButton.setOnClickListener(v -> {
