@@ -21,12 +21,26 @@ public class Event implements Serializable {
     private double fee;
     private long publishAt; // The ONLY field for visibility control
     private String socialMediaLink;
+    private String uploadedDocumentText; // Store the text content of uploaded documents
+    private String uploadedDocumentName; // Store the original name of uploaded documents
 
     public String getSocialMediaLink() {
         return socialMediaLink;
     }
     public void setSocialMediaLink(String socialMediaLink) {
         this.socialMediaLink = socialMediaLink;
+    }
+    public String getUploadedDocumentText() {
+        return uploadedDocumentText;
+    }
+    public void setUploadedDocumentText(String uploadedDocumentText) {
+        this.uploadedDocumentText = uploadedDocumentText;
+    }
+    public String getUploadedDocumentName() {
+        return uploadedDocumentName;
+    }
+    public void setUploadedDocumentName(String uploadedDocumentName) {
+        this.uploadedDocumentName = uploadedDocumentName;
     }
     public Event() {
         this.additionalImageUrls = new ArrayList<>();

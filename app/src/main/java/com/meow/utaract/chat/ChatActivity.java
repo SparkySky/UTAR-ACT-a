@@ -94,16 +94,28 @@ public class ChatActivity extends AppCompatActivity {
     private String buildEventContext(@Nullable Event e) {
         if (e == null) return "You are UTARACT assistant. Event not found.";
         String desc = e.getSummary() != null && !e.getSummary().isEmpty() ? e.getSummary() : e.getDescription();
-        return "You are UTARACT event assistant. Answer questions about this specific event. Be helpful and concise.\n\n" +
-                "EVENT DETAILS:\n" +
-                "Title: " + e.getEventName() + "\n" +
-                "Date & Time: " + e.getDate() + " at " + e.getTime() + "\n" +
-                "Location: " + e.getLocation() + "\n" +
-                "Category: " + e.getCategory() + "\n" +
-                "Fee: RM" + e.getFee() + (e.getFee() == 0 ? " (Free)" : "") + "\n" +
-                "Max Guests: " + e.getMaxGuests() + "\n\n" +
-                "EVENT SUMMARY:\n" + desc + "\n\n" +
-                "Answer user questions about this event. If asked about other events, politely redirect to the general chat.";
+        
+        StringBuilder context = new StringBuilder();
+        context.append("You are UTARACT event assistant. Answer questions about this specific event. Be helpful and concise.\n\n");
+        context.append("EVENT DETAILS:\n");
+        context.append("Title: ").append(e.getEventName()).append("\n");
+        context.append("Date & Time: ").append(e.getDate()).append(" at ").append(e.getTime()).append("\n");
+        context.append("Location: ").append(e.getLocation()).append("\n");
+        context.append("Category: ").append(e.getCategory()).append("\n");
+        context.append("Fee: RM").append(e.getFee()).append(e.getFee() == 0 ? " (Free)" : "").append("\n");
+        context.append("Max Guests: ").append(e.getMaxGuests()).append("\n\n");
+        context.append("EVENT SUMMARY:\n").append(desc).append("\n\n");
+        
+        // Include uploaded document text if available
+        if (e.getUploadedDocumentText() != null && !e.getUploadedDocumentText().isEmpty()) {
+            String docName = e.getUploadedDocumentName() != null ? e.getUploadedDocumentName() : "Uploaded Document";
+            context.append("UPLOADED DOCUMENT (").append(docName).append(") CONTENT:\n");
+            context.append(e.getUploadedDocumentText()).append("\n\n");
+            context.append("You can reference the uploaded document content to provide more detailed answers about the event.\n\n");
+        }
+        
+        context.append("Answer user questions about this event. If asked about other events, politely redirect to the general chat.");
+        return context.toString();
     }
 
     private String buildGeneralContext(List<Event> events) {
@@ -121,8 +133,13 @@ public class ChatActivity extends AppCompatActivity {
               .append("\n  Category: ").append(e.getCategory())
               .append("\n  Fee: RM").append(e.getFee()).append(e.getFee() == 0 ? " (Free)" : "")
               .append("\n  Max Guests: ").append(e.getMaxGuests())
-              .append("\n  Details: ").append(desc)
-              .append("\n\n");
+              .append("\n  Details: ").append(desc);
+            
+            // Add note if document is available
+            if (e.getUploadedDocumentText() != null && !e.getUploadedDocumentText().isEmpty()) {
+                sb.append("\n  📄 Has uploaded document with additional details");
+            }
+            sb.append("\n\n");
         }
         sb.append("Recommend events based on user preferences. Ask clarifying questions if needed to provide better suggestions.");
         return sb.toString();
