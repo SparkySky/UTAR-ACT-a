@@ -302,11 +302,18 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
 
         mainViewModel.isOrganiser().observe(getViewLifecycleOwner(), isOrganiser -> {
             if (isOrganiser != null && isOrganiser) {
+                // Show both buttons for organizers - create event button on top, ask bot button below
                 binding.addEventFab.setVisibility(View.VISIBLE);
                 binding.addEventFab.setOnClickListener(v ->
                         startActivity(new Intent(getActivity(), EventCreationActivity.class)));
-                // Hide Ask Bot button for organizers
-                binding.askBotGeneral.setVisibility(View.GONE);
+                // Show Ask Bot button for organizers too
+                binding.askBotGeneral.setVisibility(View.VISIBLE);
+                binding.askBotGeneral.setOnClickListener(v -> {
+                    startActivity(new Intent(getActivity(), com.meow.utaract.chat.ChatActivity.class)
+                            .putExtra("MODE", "GENERAL"));
+                });
+                // Debug log
+                android.util.Log.d("HomeFragment", "Organizer mode: Both buttons should be visible");
             } else {
                 binding.addEventFab.setVisibility(View.GONE);
                 // Show Ask Bot button for guests
@@ -315,6 +322,8 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
                     startActivity(new Intent(getActivity(), com.meow.utaract.chat.ChatActivity.class)
                             .putExtra("MODE", "GENERAL"));
                 });
+                // Debug log
+                android.util.Log.d("HomeFragment", "Guest mode: Only ask bot button should be visible");
             }
         });
     }
