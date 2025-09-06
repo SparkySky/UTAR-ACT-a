@@ -1,9 +1,14 @@
 package com.meow.utaract;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.Menu;
+import android.view.View;
+import android.widget.ToggleButton;
+
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
@@ -36,6 +41,35 @@ public class MainActivity extends AppCompatActivity {
 
         setupNavigation(isOrganiser);
         loadUserProfile(isOrganiser);
+
+        //// Below are for the light and dark mode toggle
+        NavigationView navigationView = binding.navView;
+        View headerView = navigationView.getHeaderView(0);
+        ToggleButton themeToggleButton = headerView.findViewById(R.id.themeToggleButton);
+
+        // Set initial state of the toggle button
+        SharedPreferences sharedPreferences = getSharedPreferences("ThemePrefs", MODE_PRIVATE);
+        boolean isNightMode = sharedPreferences.getBoolean("isNightMode", false);
+        if (isNightMode) {
+            themeToggleButton.setChecked(true);
+            themeToggleButton.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_sun, 0, 0, 0);
+        } else {
+            themeToggleButton.setChecked(false);
+            themeToggleButton.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_moon, 0, 0, 0);
+        }
+
+
+        themeToggleButton.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            if (isChecked) {
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+                editor.putBoolean("isNightMode", true);
+            } else {
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+                editor.putBoolean("isNightMode", false);
+            }
+            editor.apply();
+        });
     }
 
     private void setupNavigation(boolean isOrganiser) {

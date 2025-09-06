@@ -16,8 +16,8 @@
 
     <ImageView
         android:id="@+id/iv_logo"
-        android:layout_width="223dp"
-        android:layout_height="wrap_content"
+        android:layout_width="248dp"
+        android:layout_height="119dp"
         android:layout_centerInParent="true"
         android:contentDescription="@string/logo_utar_act"
         android:src="@drawable/icon_utaract_tranparent_crop"
@@ -30,10 +30,10 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/iv_logo"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="18dp"
         android:textAppearance="?attr/textAppearanceTitleMedium"
         android:textColor="@color/chip_background_selected"
         android:textStyle="bold|italic"
-        tools:text="Activity . Community . Togetherness"/>
+        tools:text="Activity . Community . Togetherness" />
 
 </RelativeLayout>

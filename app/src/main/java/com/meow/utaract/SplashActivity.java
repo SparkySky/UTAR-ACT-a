@@ -22,7 +22,7 @@ import com.meow.utaract.firebase.AuthService;
 
 public class SplashActivity extends AppCompatActivity {
 
-    private static final int SPLASH_DELAY = 3500;
+    private static final int SPLASH_DELAY = 3400;
     private static final int TYPEWRITER_DELAY = 30;
 
     private ImageView ivLogo;
@@ -53,13 +53,12 @@ public class SplashActivity extends AppCompatActivity {
     }
 
     private void setupGlowAnimator() {
-        // --- THIS IS THE FIX ---
         // Animate from a bright white overlay to fully transparent (normal)
         int startColor = Color.parseColor("#A0FFFFFF"); // A semi-transparent white for the "bright" effect
         int endColor = Color.TRANSPARENT; // Fades to no overlay
 
         glowAnimator = ValueAnimator.ofObject(new ArgbEvaluator(), startColor, endColor);
-        glowAnimator.setDuration(1000); // Duration of the fade
+        glowAnimator.setDuration(1100); // Duration of the fade
 
         // This animation will only run once, not repeat.
         glowAnimator.addUpdateListener(animation -> {
