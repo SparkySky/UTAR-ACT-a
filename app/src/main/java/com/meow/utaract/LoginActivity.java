@@ -128,8 +128,8 @@ public class LoginActivity extends AppCompatActivity {
 
         boolean isOrganiser = isOrganiserEmail(email);
 
-        if (email.endsWith("@utar.my") == false && email.endsWith("@1utar.my") == false && isOrganiser) {
-            emailInput.setError("Organiser must use @utar.my or @1utar.my email");
+        if (!isOrganiser && (email.endsWith("@utar.my") || email.endsWith("@1utar.my"))) {
+            emailInput.setError("Invalid organiser email.");
             emailInput.requestFocus();
             return;
         }
@@ -145,7 +145,7 @@ public class LoginActivity extends AppCompatActivity {
                         if (user != null && user.isEmailVerified()) {
                             // Start MainActivity immediately after successful login
                             Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                            intent.putExtra("IS_ORGANISER", true);
+                            intent.putExtra("IS_ORGANISER", isOrganiser);
                             startActivity(intent);
                             finish(); // Finish LoginActivity so user can't go back to it
                         } else {
@@ -296,14 +296,13 @@ public class LoginActivity extends AppCompatActivity {
         super.onStart();
         // This part is still useful for users who are ALREADY logged in when they open the app.
         FirebaseUser currentUser = new AuthService().getAuth().getCurrentUser();
-        if (currentUser != null && !currentUser.isAnonymous() && currentUser.isEmailVerified()) {
+        if (currentUser != null) {
             Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-            intent.putExtra("IS_ORGANISER", true);
-            startActivity(intent);
-            finish();
-        } else if (currentUser != null && currentUser.isAnonymous()) {
-            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-            intent.putExtra("IS_ORGANISER", false);
+            if (currentUser.isAnonymous()) {
+                intent.putExtra("IS_ORGANISER", false);
+            } else if (currentUser.isEmailVerified()) {
+                intent.putExtra("IS_ORGANISER", isOrganiserEmail(currentUser.getEmail()));
+            }
             startActivity(intent);
             finish();
         }

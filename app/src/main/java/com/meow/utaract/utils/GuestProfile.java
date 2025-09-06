@@ -13,9 +13,13 @@ public class GuestProfile implements Serializable {
     private List<String> following;
     private String socialMediaLink;
     private String socialMediaPlatform;
-
+    private boolean isOrganiser;
 
     public GuestProfile(String name, String email, String phone, List<String> preferences) {
+        this(name, email, phone, preferences, false);
+    }
+
+    public GuestProfile(String name, String email, String phone, List<String> preferences, boolean isOrganiser) {
         this.name = name;
         this.email = email;
         this.phone = phone;
@@ -24,7 +28,9 @@ public class GuestProfile implements Serializable {
         this.following = new ArrayList<>();
         this.socialMediaLink = "";
         this.socialMediaPlatform = "None";
+        this.isOrganiser = isOrganiser;
     }
+
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
@@ -48,4 +54,6 @@ public class GuestProfile implements Serializable {
     public void setSocialMediaLink(String socialMediaLink) { this.socialMediaLink = socialMediaLink; }
     public String getSocialMediaPlatform() { return socialMediaPlatform; }
     public void setSocialMediaPlatform(String socialMediaPlatform) { this.socialMediaPlatform = socialMediaPlatform; }
+    public boolean isOrganiser() { return isOrganiser; }
+    public void setOrganiser(boolean organiser) { isOrganiser = organiser; }
 }

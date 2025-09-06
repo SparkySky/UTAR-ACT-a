@@ -222,7 +222,7 @@ public class GuestFormActivity extends AppCompatActivity {
             return;
         }
 
-        GuestProfile profile = new GuestProfile(name, email, phone, selectedPreferences);
+        GuestProfile profile = new GuestProfile(name, email, phone, selectedPreferences, isOrganiser);
         if (downloadedImageUrl != null && !downloadedImageUrl.isEmpty()) {
             profile.setProfileImageUrl(downloadedImageUrl);
         }

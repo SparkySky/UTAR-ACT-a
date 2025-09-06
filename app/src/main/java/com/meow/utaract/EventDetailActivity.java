@@ -111,7 +111,18 @@ public class EventDetailActivity extends AppCompatActivity {
         registrationLayout = findViewById(R.id.registration_layout);
         catalogueImagesLayout = findViewById(R.id.catalogueImagesLayout);
         catalogueSection = findViewById(R.id.catalogueSection);
+
+        ImageView backButton = findViewById(R.id.backButton);
+        if (backButton != null) {
+            backButton.setOnClickListener(v -> {
+                v.animate().alpha(0.6f).setDuration(50).withEndAction(() -> {
+                    v.animate().alpha(1f).setDuration(50).start();
+                    finish();
+                }).start();
+            });
+        }
     }
+
 
     private void fetchEventDetails() {
         pageProgressBar.setVisibility(View.VISIBLE);

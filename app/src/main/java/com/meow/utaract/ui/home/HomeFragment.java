@@ -67,6 +67,9 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
     private MotionLayout motionLayoutHeader;
     private EditText searchInput;
 
+    public HomeFragment() {
+        super(R.layout.fragment_home);
+    }
     // QR Scanner Launcher
     private final ActivityResultLauncher<ScanOptions> qrScannerLauncher =
             registerForActivityResult(new ScanContract(), result -> {
@@ -162,10 +165,8 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        updateHeaderOnScroll();
-        mainViewModel.isOrganiser().observe(getViewLifecycleOwner(), isOrganiser -> {
-            setupHeaderIcon(isOrganiser != null && isOrganiser);
-        });
+        binding = FragmentHomeBinding.bind(view);
+        setupHeaderIcon();
     }
 
     @Override
@@ -313,22 +314,20 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
         });
     }
 
-    private void setupHeaderIcon(boolean isOrganiser) {
-        if (binding == null) return;
+    private void setupHeaderIcon() {
+        GuestProfileStorage storage = new GuestProfileStorage(requireContext());
+        GuestProfile profile = storage.loadProfile();
 
         View guestMenu = binding.menuIconGuest;
         View userAvatar = binding.userAvatar;
         View organizerAvatar = binding.organizerAvatar;
 
-        GuestProfileStorage storage = new GuestProfileStorage(requireContext());
-        boolean isLoggedIn = storage.profileExists();
-
-        if (!isLoggedIn) {
+        if (profile == null) {
             guestMenu.setVisibility(View.VISIBLE);
             userAvatar.setVisibility(View.GONE);
             organizerAvatar.setVisibility(View.GONE);
         } else {
-            if (isOrganiser) {
+            if (profile.isOrganiser()) {
                 guestMenu.setVisibility(View.GONE);
                 userAvatar.setVisibility(View.GONE);
                 organizerAvatar.setVisibility(View.VISIBLE);
