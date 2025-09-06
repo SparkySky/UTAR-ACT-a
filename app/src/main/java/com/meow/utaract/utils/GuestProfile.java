@@ -13,6 +13,10 @@ public class GuestProfile implements Serializable {
     private List<String> following;
     public List<String> getFollowing() { return following; }
 
+    public boolean isFollowing(String organizerId) {
+        return following != null && following.contains(organizerId);
+    }
+
     public void setFollowing(List<String> following) { this.following = following; }
 
     public void addFollowing(String organizerId) {

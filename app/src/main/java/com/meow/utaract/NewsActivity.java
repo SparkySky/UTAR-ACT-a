@@ -2,6 +2,7 @@ package com.meow.utaract;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -63,6 +64,8 @@ public class NewsActivity extends AppCompatActivity implements NewsAdapter.NewsI
         newsStorage = new NewsStorage();
         profileStorage = new GuestProfileStorage(this);
 
+        navView.getMenu().findItem(R.id.nav_manage_events).setVisible(isOrganiser);
+
         // Set up FAB click listener
         FloatingActionButton fabCreateNews = findViewById(R.id.fabCreateNews);
         fabCreateNews.setOnClickListener(v -> {
@@ -118,7 +121,7 @@ public class NewsActivity extends AppCompatActivity implements NewsAdapter.NewsI
         findViewById(R.id.fabCreateNews).setOnClickListener(v -> {
             startActivity(new Intent(this, NewsCreationActivity.class));
         });
-        loadOrganiserNews();
+        loadOrganiserNewsWithFollowing();
     }
 
     private void setupGuestView() {
@@ -127,22 +130,30 @@ public class NewsActivity extends AppCompatActivity implements NewsAdapter.NewsI
         loadGuestNews();
     }
 
-    private void loadOrganiserNews() {
+    private void loadOrganiserNewsWithFollowing() {
         progressBar.setVisibility(View.VISIBLE);
-        String organizerId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        String currentOrganizerId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
-        newsStorage.getNewsByOrganizer(organizerId, new NewsStorage.NewsListCallback() {
-            @Override
-            public void onSuccess(List<News> newsList) {
-                progressBar.setVisibility(View.GONE);
-                updateUI(newsList);
-            }
-            @Override
-            public void onFailure(Exception e) {
-                progressBar.setVisibility(View.GONE);
-                emptyView.setVisibility(View.VISIBLE);
-            }
-        });
+        // Load the organizer's profile to get followed organizers
+        GuestProfile profile = profileStorage.loadProfile();
+        List<String> followedOrganizerIds = (profile != null && profile.getFollowing() != null) ?
+                profile.getFollowing() : new ArrayList<>();
+
+        // Get news from current organizer + followed organizers
+        newsStorage.getNewsForOrganizerWithFollowing(currentOrganizerId, followedOrganizerIds,
+                new NewsStorage.NewsListCallback() {
+                    @Override
+                    public void onSuccess(List<News> newsList) {
+                        progressBar.setVisibility(View.GONE);
+                        updateUI(newsList);
+                    }
+                    @Override
+                    public void onFailure(Exception e) {
+                        progressBar.setVisibility(View.GONE);
+                        emptyView.setVisibility(View.VISIBLE);
+                        Log.e("NewsDebug", "Failed to load organizer news with following: " + e.getMessage());
+                    }
+                });
     }
 
     private void loadGuestNews() {
@@ -209,7 +220,7 @@ public class NewsActivity extends AppCompatActivity implements NewsAdapter.NewsI
                     Toast.makeText(NewsActivity.this, "News deleted successfully", Toast.LENGTH_SHORT).show();
                     // Refresh the news list
                     if (isOrganiser) {
-                        loadOrganiserNews();
+                        loadOrganiserNewsWithFollowing();
                     } else {
                         loadGuestNews();
                     }
@@ -261,7 +272,7 @@ public class NewsActivity extends AppCompatActivity implements NewsAdapter.NewsI
         newsStorage.toggleLike(news.getNewsId(), userId, new NewsStorage.NewsCallback() {
             @Override
             public void onSuccess(String newsId) {
-                loadOrganiserNews(); // Refresh
+                loadOrganiserNewsWithFollowing(); // Refresh
             }
             @Override
             public void onFailure(Exception e) {
@@ -275,7 +286,7 @@ public class NewsActivity extends AppCompatActivity implements NewsAdapter.NewsI
         super.onResume();
         // Refresh news when returning to this activity
         if (isOrganiser) {
-            loadOrganiserNews();
+            loadOrganiserNewsWithFollowing();
         } else {
             loadGuestNews();
         }

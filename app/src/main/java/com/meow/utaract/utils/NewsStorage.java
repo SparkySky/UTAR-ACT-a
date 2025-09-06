@@ -10,6 +10,7 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.SetOptions;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -75,10 +76,24 @@ public class NewsStorage {
                 .addOnFailureListener(callback::onFailure);
     }
 
-    public void getNewsByOrganizer(String organizerId, NewsListCallback callback) {
-        // Only organizers can access this
+    public void getNewsForOrganizerWithFollowing(String organizerId, List<String> followedOrganizerIds, NewsListCallback callback) {
+        List<String> allOrganizerIds = new ArrayList<>();
+        allOrganizerIds.add(organizerId); // Include own news
+        if (followedOrganizerIds != null) {
+            allOrganizerIds.addAll(followedOrganizerIds); // Include followed organizers
+        }
+
+        // Remove duplicates
+        allOrganizerIds = new ArrayList<>(new HashSet<>(allOrganizerIds));
+
+        if (allOrganizerIds.isEmpty()) {
+            callback.onSuccess(new ArrayList<>());
+            return;
+        }
+
+        // Get news from all organizers (own + followed)
         firestore.collection(NEWS_COLLECTION)
-                .whereEqualTo("organizerId", organizerId)
+                .whereIn("organizerId", allOrganizerIds)
                 .orderBy("createdAt", Query.Direction.DESCENDING)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
