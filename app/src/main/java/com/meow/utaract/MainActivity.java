@@ -34,7 +34,6 @@ public class MainActivity extends AppCompatActivity {
 
         setupNavigation(isOrganiser);
         loadUserProfile(isOrganiser);
-        setupHeaderIcon(isOrganiser);
     }
 
     private void setupNavigation(boolean isOrganiser) {
@@ -108,32 +107,5 @@ public class MainActivity extends AppCompatActivity {
 
     public DrawerLayout getDrawerLayout() {
         return binding.drawerLayout;
-    }
-    private void setupHeaderIcon(boolean isOrganiser) {
-        View guestMenu = findViewById(R.id.menu_icon_guest);
-        View userAvatar = findViewById(R.id.user_avatar);
-        View organizerAvatar = findViewById(R.id.organizer_avatar);
-
-        GuestProfileStorage storage = new GuestProfileStorage(this);
-        boolean isLoggedIn = storage.profileExists();
-
-        if (!isLoggedIn) {
-            // user no login
-            guestMenu.setVisibility(View.VISIBLE);
-            userAvatar.setVisibility(View.GONE);
-            organizerAvatar.setVisibility(View.GONE);
-        } else {
-            if (isOrganiser) {
-                // Organizer
-                guestMenu.setVisibility(View.GONE);
-                userAvatar.setVisibility(View.GONE);
-                organizerAvatar.setVisibility(View.VISIBLE);
-            } else {
-                // normal user
-                guestMenu.setVisibility(View.GONE);
-                userAvatar.setVisibility(View.VISIBLE);
-                organizerAvatar.setVisibility(View.GONE);
-            }
-        }
     }
 }

@@ -163,6 +163,9 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         updateHeaderOnScroll();
+        mainViewModel.isOrganiser().observe(getViewLifecycleOwner(), isOrganiser -> {
+            setupHeaderIcon(isOrganiser != null && isOrganiser);
+        });
     }
 
     @Override
@@ -310,6 +313,32 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
         });
     }
 
+    private void setupHeaderIcon(boolean isOrganiser) {
+        if (binding == null) return;
+
+        View guestMenu = binding.menuIconGuest;
+        View userAvatar = binding.userAvatar;
+        View organizerAvatar = binding.organizerAvatar;
+
+        GuestProfileStorage storage = new GuestProfileStorage(requireContext());
+        boolean isLoggedIn = storage.profileExists();
+
+        if (!isLoggedIn) {
+            guestMenu.setVisibility(View.VISIBLE);
+            userAvatar.setVisibility(View.GONE);
+            organizerAvatar.setVisibility(View.GONE);
+        } else {
+            if (isOrganiser) {
+                guestMenu.setVisibility(View.GONE);
+                userAvatar.setVisibility(View.GONE);
+                organizerAvatar.setVisibility(View.VISIBLE);
+            } else {
+                guestMenu.setVisibility(View.GONE);
+                userAvatar.setVisibility(View.VISIBLE);
+                organizerAvatar.setVisibility(View.GONE);
+            }
+        }
+    }
     private void showPopupMenu(View view) {
         PopupMenu popup = new PopupMenu(getContext(), view);
         popup.getMenuInflater().inflate(R.menu.main, popup.getMenu());

@@ -4,195 +4,208 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp"
+    android:padding="12dp"
     tools:context=".LoginActivity">
 
+    <!-- Logo -->
     <ImageView
         android:id="@+id/imageView3"
-        android:layout_width="200dp"
-        android:layout_height="80dp"
+        android:layout_width="160dp"
+        android:layout_height="64dp"
         android:layout_marginTop="8dp"
         android:contentDescription="@string/logo_utar_act"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:srcCompat="@drawable/icon_utaract_tranparent_crop" />
+
+    <!-- Slogan -->
     <TextView
         android:id="@+id/slogan"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Activity . Community . Togetherness"
+        android:text="Activity · Community · Togetherness"
         android:textColor="?attr/colorPrimary"
+        android:textSize="12sp"
         android:textStyle="bold|italic"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="4dp"
+        app:layout_constraintTop_toBottomOf="@id/imageView3"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/imageView3" />
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Title -->
     <TextView
         android:id="@+id/titleLogin"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
         android:text="Login"
-        android:textSize="28sp"
+        android:textSize="22sp"
         android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@id/slogan"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/slogan" />
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Email Label -->
     <TextView
         android:id="@+id/textView2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
         android:text="Email Address"
-        android:textSize="16sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/titleLogin" />
+        android:textSize="14sp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@id/titleLogin"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <!-- Email Input -->
     <EditText
         android:id="@+id/emailInputLogin"
         android:layout_width="0dp"
-        android:layout_height="48dp"
-        android:layout_marginTop="4dp"
+        android:layout_height="40dp"
         android:hint="Your email address"
-        android:text="alvinjiahao2003@gmail.com"
         android:background="@drawable/circle_border"
-        android:padding="8dp"
+        android:padding="6dp"
         android:inputType="textEmailAddress"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="4dp"
+        app:layout_constraintTop_toBottomOf="@id/textView2"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView2" />
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Password Label -->
     <TextView
         android:id="@+id/textView4"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
         android:text="Password"
-        android:textSize="16sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/emailInputLogin" />
+        android:textSize="14sp"
+        android:layout_marginTop="6dp"
+        app:layout_constraintTop_toBottomOf="@id/emailInputLogin"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <!-- Password Input -->
     <EditText
         android:id="@+id/passwordInputLogin"
         android:layout_width="0dp"
-        android:layout_height="48dp"
-        android:layout_marginTop="4dp"
-        android:background="@drawable/circle_border"
+        android:layout_height="40dp"
         android:hint="Password"
-        android:text="123Qwert"
+        android:background="@drawable/circle_border"
         android:inputType="textPassword"
-        android:padding="8dp"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:padding="6dp"
+        android:layout_marginTop="4dp"
+        app:layout_constraintTop_toBottomOf="@id/textView4"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView4" />
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Forgot Password -->
     <TextView
         android:id="@+id/forgotPasswordLink"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Forgot Password?"
         android:textColor="?attr/colorPrimary"
-        android:layout_marginTop="12dp"
-        android:clickable="true"
-        android:focusable="true"
-        app:layout_constraintStart_toStartOf="@+id/passwordInputLogin"
-        app:layout_constraintTop_toBottomOf="@+id/passwordInputLogin"/>
+        android:textSize="12sp"
+        android:layout_marginTop="6dp"
+        app:layout_constraintTop_toBottomOf="@id/passwordInputLogin"
+        app:layout_constraintStart_toStartOf="@id/passwordInputLogin" />
+
+    <!-- Signup Link -->
     <TextView
         android:id="@+id/signupTextLink"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:clickable="true"
-        android:focusable="true"
         android:text="> Register as Event Organiser"
         android:textColor="?attr/colorPrimary"
+        android:textSize="13sp"
         android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="@+id/passwordInputLogin"
-        app:layout_constraintTop_toBottomOf="@+id/forgotPasswordLink" />
-
-    <LinearLayout
-        android:id="@+id/actionButtonLayout"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
-        android:baselineAligned="false"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/signupTextLink">
-
-        <Button
-            android:id="@+id/loginButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Login"
-            app:cornerRadius="10dp" />
-
-        <Button
-            android:id="@+id/resendEmailButton"
-            style="?attr/materialButtonOutlinedStyle"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_weight="1"
-            android:text="Resend Verification"
-            android:visibility="gone"
-            tools:visibility="visible" />
-    </LinearLayout>
+        android:layout_marginTop="4dp"
+        app:layout_constraintTop_toBottomOf="@id/forgotPasswordLink"
+        app:layout_constraintStart_toStartOf="@id/forgotPasswordLink" />
 
     <TextView
         android:id="@+id/verificationStatusText"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="6dp"
         android:gravity="center"
         android:textColor="@android:color/holo_green_dark"
+        android:textSize="12sp"
         android:visibility="gone"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintTop_toBottomOf="@id/signupTextLink"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/signupTextLink"
+        app:layout_constraintEnd_toEndOf="parent"
         tools:text="Please verify your email to continue."
         tools:visibility="visible" />
 
+    <!-- Action Buttons -->
+    <LinearLayout
+        android:id="@+id/actionButtonLayout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toBottomOf="@id/signupTextLink"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <Button
+            android:id="@+id/loginButton"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:text="Login"
+            app:cornerRadius="6dp" />
+
+        <Button
+            android:id="@+id/resendEmailButton"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:layout_marginStart="6dp"
+            android:text="Resend"
+            android:textSize="12sp"
+            android:visibility="gone"
+            tools:visibility="visible" />
+    </LinearLayout>
+
+    <!-- Divider -->
     <TextView
         android:id="@+id/divider"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="~ or ~"
-        app:layout_constraintBottom_toTopOf="@+id/guestButton"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.50"
+        android:textSize="12sp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@id/actionButtonLayout"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/actionButtonLayout"
-        app:layout_constraintVertical_bias="0.44" />
+        app:layout_constraintEnd_toEndOf="parent" />
 
+    <!-- Guest Button -->
     <Button
         android:id="@+id/guestButton"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="132dp"
+        android:layout_height="40dp"
         android:text="Continue as Guest"
-        app:cornerRadius="10dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
+        app:cornerRadius="6dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@id/divider"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/signupTextLink"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintEnd_toEndOf="parent" />
 
+    <!-- Theme Toggle -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/themeToggleButtonContainer"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
         android:layout_marginTop="8dp"
-        app:cardCornerRadius="24dp"
+        app:cardCornerRadius="20dp"
         app:cardElevation="0dp"
         app:strokeWidth="0dp"
         android:clickable="true"
         android:focusable="true"
-        android:foreground="?attr/selectableItemBackgroundBorderless"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
 
         <ImageButton
             android:id="@+id/themeToggleButton"
@@ -200,11 +213,7 @@
             android:layout_height="match_parent"
             android:background="@android:color/transparent"
             android:contentDescription="Toggle Theme"
-            android:outlineProvider="bounds"
-            android:padding="8dp"
-            android:scaleType="fitXY"
-            android:scaleX="1.5"
-            android:scaleY="1.5"
+            android:padding="6dp"
             tools:src="@drawable/ic_moon" />
     </com.google.android.material.card.MaterialCardView>
 
