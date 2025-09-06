@@ -245,6 +245,7 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
         binding.userAvatar.setOnClickListener(this::showPopupMenu);
         binding.filterButton.setOnClickListener(v -> showFilterDialog());
 
+
         binding.nestedScrollView.setOnScrollChangeListener((NestedScrollView.OnScrollChangeListener) (v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
             updateHeaderOnScroll();
         });
@@ -315,11 +316,28 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
 
         mainViewModel.isOrganiser().observe(getViewLifecycleOwner(), isOrganiser -> {
             if (isOrganiser != null && isOrganiser) {
+                // Show both buttons for organizers - create event button on top, ask bot button below
                 binding.addEventFab.setVisibility(View.VISIBLE);
                 binding.addEventFab.setOnClickListener(v ->
                         startActivity(new Intent(getActivity(), EventCreationActivity.class)));
+                // Show Ask Bot button for organizers too
+                binding.askBotGeneral.setVisibility(View.VISIBLE);
+                binding.askBotGeneral.setOnClickListener(v -> {
+                    startActivity(new Intent(getActivity(), com.meow.utaract.chat.ChatActivity.class)
+                            .putExtra("MODE", "GENERAL"));
+                });
+                // Debug log
+                android.util.Log.d("HomeFragment", "Organizer mode: Both buttons should be visible");
             } else {
                 binding.addEventFab.setVisibility(View.GONE);
+                // Show Ask Bot button for guests
+                binding.askBotGeneral.setVisibility(View.VISIBLE);
+                binding.askBotGeneral.setOnClickListener(v -> {
+                    startActivity(new Intent(getActivity(), com.meow.utaract.chat.ChatActivity.class)
+                            .putExtra("MODE", "GENERAL"));
+                });
+                // Debug log
+                android.util.Log.d("HomeFragment", "Guest mode: Only ask bot button should be visible");
             }
         });
     }

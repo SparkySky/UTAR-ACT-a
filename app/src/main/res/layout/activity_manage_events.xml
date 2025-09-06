@@ -20,6 +20,7 @@
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
+                app:navigationIcon="@drawable/ic_arrow_back"
                 app:title="Manage Events" />
 
         </com.google.android.material.appbar.AppBarLayout>
@@ -79,16 +80,6 @@
                     app:layout_constraintStart_toEndOf="@id/menu_icon"
                     app:layout_constraintTop_toTopOf="@id/main_section">
 
-                    <ImageView
-                        android:id="@+id/qrScannerIcon"
-                        android:layout_width="30dp"
-                        android:layout_height="30dp"
-                        android:src="@drawable/ic_qr" />
-
-                    <ImageView
-                        android:layout_width="wrap_content"
-                        android:layout_height="25dp"
-                        android:src="@drawable/icon_main_line" />
 
                     <EditText
                         android:id="@+id/search_input"
