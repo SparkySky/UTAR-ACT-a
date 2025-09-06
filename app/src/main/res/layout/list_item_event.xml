@@ -189,7 +189,7 @@
 
             <Button
                 android:id="@+id/askBotButton"
-
+                style="@style/Widget.Material3.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="end"
@@ -199,5 +199,3 @@
 
     </LinearLayout>
 </androidx.cardview.widget.CardView>
-
-<!--    style="@style/Widget.Material3.Button.FilledTonalButton"-->

@@ -186,13 +186,14 @@ public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.EventViewH
             }
 
             // Set a click listener on the entire card
-            // Set a click listener on the entire card
             itemView.setOnClickListener(v -> {
                 Context context = itemView.getContext();
                 Intent intent = new Intent(context, EventDetailActivity.class);
                 // PASS ONLY THE ID, NOT THE WHOLE OBJECT
                 intent.putExtra("EVENT_ID", eventItem.event.getEventId());
                 context.startActivity(intent);
+            });
+
             // Ask Bot button: event-specific chat
             askBotButton.setOnClickListener(v -> {
                 Intent intent = new Intent(itemView.getContext(), com.meow.utaract.chat.ChatActivity.class);

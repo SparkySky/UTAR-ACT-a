@@ -125,8 +125,6 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         drawerLayout = findViewById(R.id.drawer_layout);
         btnUploadPoster = findViewById(R.id.buttonSelectPoster);
         btnUploadCatalog = findViewById(R.id.buttonAddCatalogImage);
-        btnUploadPoster = findViewById(R.id.btnUploadPoster);
-        btnUploadCatalog = findViewById(R.id.btnUploadCatalog);
         btnUploadDoc = findViewById(R.id.btnUploadDoc);
         ivPosterPreview = findViewById(R.id.ivPosterPreview);
         posterFrame = findViewById(R.id.posterFrame);
@@ -271,6 +269,15 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
 
         String organizerId = isEditMode ? eventToEdit.getOrganizerId() : FirebaseAuth.getInstance().getUid();
 
+        String eventName = Objects.requireNonNull(etEventName.getText()).toString().trim();
+        String description = Objects.requireNonNull(etDescription.getText()).toString().trim();
+        String category = spinnerCategory.getSelectedItem().toString();
+        String date = Objects.requireNonNull(etDate.getText()).toString().trim();
+        String time = Objects.requireNonNull(etTime.getText()).toString().trim();
+        String location = Objects.requireNonNull(etLocation.getText()).toString().trim();
+        int maxGuests = Integer.parseInt(Objects.requireNonNull(etMaxGuests.getText()).toString().trim());
+        double fee = Double.parseDouble(Objects.requireNonNull(etFee.getText()).toString().trim());
+        
         Event event = new Event(eventName, description, category, date, time, location, organizerId, maxGuests, fee, publishAt);
         event.setCoverImageUrl(posterImageUrl);
         event.setAdditionalImageUrls(catalogImageUrls);
@@ -332,7 +339,9 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
     private void initializeImageLaunchers() {
         posterImageLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
             if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                uploadImageToStorage(result.getData().getData(), true);
+                newPosterUri = result.getData().getData();
+                posterImageUrl = ""; // A new image overrides any existing URL
+                updatePosterPreview();
             }
         });
 
@@ -341,11 +350,12 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
                 if (result.getData().getClipData() != null) {
                     int count = result.getData().getClipData().getItemCount();
                     for (int i = 0; i < count; i++) {
-                        uploadImageToStorage(result.getData().getClipData().getItemAt(i).getUri(), false);
+                        newCatalogUris.add(result.getData().getClipData().getItemAt(i).getUri());
                     }
                 } else if (result.getData().getData() != null) {
-                    uploadImageToStorage(result.getData().getData(), false);
+                    newCatalogUris.add(result.getData().getData());
                 }
+                updateCatalogPreview();
             }
         });
 
@@ -721,25 +731,6 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         }
     }
 
-    private void initializeImageLaunchers() {
-        posterImageLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-            if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                newPosterUri = result.getData().getData();
-                posterImageUrl = ""; // A new image overrides any existing URL
-                updatePosterPreview();
-            }
-        });
-
-        catalogImageLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-            if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                // ... (your existing logic to get URI)
-                if (result.getData().getData() != null) {
-                    newCatalogUris.add(result.getData().getData());
-                    updateCatalogPreview();
-                }
-            }
-        });
-    }
 
 
     private boolean isFormValid() {

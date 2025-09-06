@@ -31,30 +31,23 @@
                     android:orientation="horizontal"
                     android:layout_marginBottom="14dp">
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
+                    <ImageButton
+                        android:id="@+id/drawerButton"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="Navigation drawer"
+                        android:src="@drawable/ic_menu" />
+
+                    <TextView
+                        android:id="@+id/event_creation_title"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
-                        android:layout_marginBottom="14dp">
-
-                        <ImageButton
-                            android:id="@+id/drawerButton"
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
-                            android:background="?attr/selectableItemBackgroundBorderless"
-                            android:contentDescription="Navigation drawer"
-                            android:src="@drawable/ic_menu" />
-
-                        <TextView
-                            android:id="@+id/event_creation_title" android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="10dp"
-                            android:text="@string/event_creation_form"
-                            android:textColor="?attr/colorPrimary"
-                            android:textSize="24sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
+                        android:layout_marginStart="10dp"
+                        android:text="@string/event_creation_form"
+                        android:textColor="?attr/colorPrimary"
+                        android:textSize="24sp"
+                        android:textStyle="bold" />
                 </LinearLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
@@ -146,7 +139,6 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="16dp"
                     android:hint="Organizer Social Media Link">
-
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etSocialMediaLink"
                         android:layout_width="match_parent"
@@ -297,6 +289,21 @@
                         android:orientation="horizontal"/>
                 </HorizontalScrollView>
 
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Upload a document (txt, pdf, doc) to auto-summarize"
+                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                    android:layout_marginTop="16dp"/>
+
+                <Button
+                    android:id="@+id/btnUploadDoc"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Upload Document"
+                    app:icon="@android:drawable/ic_menu_upload"
+                    style="@style/Widget.Material3.Button.OutlinedButton.Icon"/>
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -330,256 +337,12 @@
             app:headerLayout="@layout/nav_header_main"
             app:menu="@menu/activity_main_drawer" />
     </androidx.drawerlayout.widget.DrawerLayout>
+
     <ProgressBar
         android:id="@+id/progressBar"
         style="?android:attr/progressBarStyleLarge"
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/layoutEventName"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:hint="@string/hint_event_name">
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etEventName"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/layoutDescription"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:hint="@string/hint_description">
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etDescription"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="top"
-                    android:inputType="textMultiLine"
-                    android:minLines="3" />
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <Spinner
-                android:id="@+id/spinnerCategory"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginBottom="16dp" />
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/layoutDate"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:hint="@string/hint_date">
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etDate"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:clickable="true"
-                    android:drawableStart="@drawable/ic_calendar_clock"
-                    android:drawablePadding="8dp"
-                    android:focusable="false" />
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/layoutTime"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:hint="@string/hint_time">
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etTime"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:clickable="true"
-                    android:drawableStart="@drawable/ic_calendar_clock"
-                    android:drawablePadding="8dp"
-                    android:focusable="false" />
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/layoutLocation"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:hint="@string/hint_location">
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etLocation"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/layoutMaxGuests"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:hint="Max Guests">
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etMaxGuests"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="number" />
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/layoutFee"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:hint="Fee (MYR)">
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etFee"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="numberDecimal" />
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <com.google.android.material.materialswitch.MaterialSwitch
-                android:id="@+id/scheduleSwitch"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Schedule for Later" />
-
-            <LinearLayout
-                android:id="@+id/scheduleLayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:visibility="gone"
-                tools:visibility="visible">
-
-                <com.google.android.material.textfield.TextInputLayout
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:hint="Publish Date">
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etPublishDate"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:clickable="true"
-                        android:focusable="false" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <com.google.android.material.textfield.TextInputLayout
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:hint="Publish Time">
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etPublishTime"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:clickable="true"
-                        android:focusable="false" />
-                </com.google.android.material.textfield.TextInputLayout>
-            </LinearLayout>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Event Poster"
-                android:textAppearance="?attr/textAppearanceTitleMedium"
-                android:layout_marginTop="16dp"/>
-
-            <Button
-                android:id="@+id/btnUploadPoster"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Upload Poster"
-                app:icon="@drawable/ic_menu_gallery"/>
-
-            <ImageView
-                android:id="@+id/ivPosterPreview"
-                android:layout_width="match_parent"
-                android:layout_height="200dp"
-                android:layout_marginTop="8dp"
-                android:scaleType="centerCrop"
-                android:visibility="gone"
-                tools:visibility="visible"
-                android:background="?attr/colorSurfaceContainer"/>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Additional Catalog Images"
-                android:textAppearance="?attr/textAppearanceTitleMedium"
-                android:layout_marginTop="16dp"/>
-
-            <Button
-                android:id="@+id/btnUploadCatalog"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Upload Images"
-                app:icon="@drawable/ic_menu_gallery"/>
-
-            <HorizontalScrollView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp">
-                <LinearLayout
-                    android:id="@+id/layoutCatalogPreview"
-                    android:layout_width="wrap_content"
-                    android:layout_height="100dp"
-                    android:orientation="horizontal"/>
-            </HorizontalScrollView>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Upload a document (txt, pdf, doc) to auto-summarize"
-                android:layout_marginTop="16dp"
-                android:textAppearance="?attr/textAppearanceTitleMedium"/>
-
-            <Button
-                android:id="@+id/btnUploadDoc"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Upload Document"
-                app:icon="@android:drawable/ic_menu_upload"/>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="5dp">
-                <Button
-                    android:id="@+id/btnReset"
-                    style="?attr/materialButtonOutlinedStyle"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/btn_reset"
-                    android:layout_marginEnd="8dp" />
-                <Button
-                    android:id="@+id/btnCreate"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/btn_create_event"
-                    android:layout_marginStart="8dp" />
-            </LinearLayout>
-
-        </LinearLayout>
-    </ScrollView>
-
-    <com.google.android.material.navigation.NavigationView
-        android:id="@+id/nav_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        android:visibility="gone"
-        tools:visibility="visible" />
+        android:visibility="gone" />
 </RelativeLayout>
