@@ -16,7 +16,6 @@ import java.util.Map;
 
 public class NewsStorage {
     private static final String NEWS_COLLECTION = "news";
-    private static final String LIKES_SUBCOLLECTION = "likes";
     private final FirebaseFirestore firestore;
 
     public NewsStorage() {
@@ -107,31 +106,6 @@ public class NewsStorage {
                 .addOnFailureListener(callback::onFailure);
     }
 
-    public void toggleLike(String newsId, String userId, NewsCallback callback) {
-        firestore.collection(NEWS_COLLECTION).document(newsId)
-                .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        News news = documentSnapshot.toObject(News.class);
-                        if (news != null) {
-                            Map<String, Boolean> likes = news.getLikes();
-                            if (likes == null) {
-                                likes = new HashMap<>();
-                            }
-
-                            if (likes.containsKey(userId)) {
-                                likes.remove(userId); // Unlike
-                            } else {
-                                likes.put(userId, true); // Like
-                            }
-
-                            news.setLikes(likes);
-                            updateNews(newsId, news, callback);
-                        }
-                    }
-                })
-                .addOnFailureListener(callback::onFailure);
-    }
 
     public interface NewsCallback {
         void onSuccess(String newsId);

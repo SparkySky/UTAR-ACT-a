@@ -33,10 +33,6 @@ public class GuestProfile implements Serializable {
             following.remove(organizerId);
         }
     }
-    private List<String> likedNews; // News IDs that this guest has liked
-
-    public List<String> getLikedNews() { return likedNews; }
-    public void setLikedNews(List<String> likedNews) { this.likedNews = likedNews; }
 
 
     public GuestProfile(String name, String email, String phone, List<String> preferences) {
