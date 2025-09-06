@@ -25,6 +25,96 @@
         </com.google.android.material.appbar.AppBarLayout>
 
         <RelativeLayout
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <!-- Header Section -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/header_section"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="8dp">
+
+            <View
+                android:id="@+id/main_section"
+                android:layout_width="0dp"
+                android:layout_height="60dp"
+                android:background="@drawable/purple_gradient_background"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <ImageView
+                android:id="@+id/menu_icon"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:padding="12dp"
+                app:navigationIcon="@drawable/ic_arrow_back"
+                android:src="@drawable/icon_main_menu"
+                app:layout_constraintBottom_toBottomOf="@id/main_section"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@id/main_section" />
+
+            <ImageView
+                android:id="@+id/notification_icon"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:padding="6dp"
+                android:src="@drawable/icon_main_notification"
+                app:layout_constraintBottom_toBottomOf="@id/main_section"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@id/main_section" />
+
+            <LinearLayout
+                android:id="@+id/search_container"
+                android:layout_width="0dp"
+                android:layout_height="45dp"
+                android:background="@drawable/icon_main_searchbar"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="15dp"
+                android:paddingEnd="13dp"
+                app:layout_constraintBottom_toBottomOf="@id/main_section"
+                app:layout_constraintEnd_toStartOf="@id/notification_icon"
+                app:layout_constraintStart_toEndOf="@id/menu_icon"
+                app:layout_constraintTop_toTopOf="@id/main_section">
+
+                <ImageView
+                    android:id="@+id/searchIcon"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:src="@android:drawable/ic_search_category_default" />
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="25dp"
+                    android:src="@drawable/icon_main_line" />
+
+                <EditText
+                    android:id="@+id/search_input"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@android:color/transparent"
+                    android:hint="Search..."
+                    android:imeOptions="actionSearch"
+                    android:inputType="text"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:textSize="16sp" />
+
+                <ImageView
+                    android:id="@+id/filter_button"
+                    android:layout_width="80dp"
+                    android:layout_height="40dp"
+                    android:src="@drawable/icon_main_filter" />
+            </LinearLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/myEventsRecyclerView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             app:layout_behavior="@string/appbar_scrolling_view_behavior">
