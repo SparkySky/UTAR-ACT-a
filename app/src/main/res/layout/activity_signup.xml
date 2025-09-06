@@ -8,15 +8,13 @@
 
     <ImageView
         android:id="@+id/imageView2"
-        android:layout_width="244dp"
-        android:layout_height="95dp"
-        android:layout_marginTop="35dp"
-        android:layout_marginBottom="20dp"
+        android:layout_width="200dp"
+        android:layout_height="80dp"
+        android:layout_marginTop="24dp"
         android:contentDescription="@string/logo_utar_act"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.497"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:srcCompat="@drawable/icon_utaract_tranparent_crop" />
 
     <ProgressBar
@@ -31,180 +29,153 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:elevation="10dp"/>
 
-    <!-- Signup Form Group -->
-
-    <!-- Verification Status Group -->
-    <ScrollView
-        android:id="@+id/signupScrollView"
+    <!-- Form -->
+    <LinearLayout
+        android:id="@+id/signupFormLayout"
         android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:fillViewport="true"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp"
         app:layout_constraintTop_toBottomOf="@id/imageView2"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <LinearLayout
-            android:id="@+id/signupFormLayout"
-            android:layout_width="359dp"
-            android:layout_height="495dp"
-            android:orientation="vertical"
-            android:padding="24dp"
-            android:visibility="visible"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/imageView2"
-            app:layout_constraintVertical_bias="0.363">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="16dp"
+            android:text="Create Account"
+            android:textSize="24sp"
+            android:textStyle="bold" />
 
-            <TextView
+        <TextView
+            android:id="@+id/emailInputSignupPrompt"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Email Address"
+            android:textSize="16sp" />
+
+        <EditText
+            android:id="@+id/emailInputSignup"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:layout_marginBottom="8dp"
+            android:background="@drawable/circle_border"
+            android:hint="Your email"
+            android:inputType="textEmailAddress"
+            android:padding="8dp" />
+
+        <TextView
+            android:id="@+id/passwordInputSignupPrompt"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Password"
+            android:textSize="16sp" />
+
+        <EditText
+            android:id="@+id/passwordInputSignup"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:layout_marginBottom="8dp"
+            android:background="@drawable/circle_border"
+            android:hint="Your password"
+            android:inputType="textPassword"
+            android:padding="8dp" />
+
+        <TextView
+            android:id="@+id/confirmPasswordInputSignupPrompt"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Confirm Password"
+            android:textSize="16sp" />
+
+        <EditText
+            android:id="@+id/confirmPasswordInputSignup"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:layout_marginBottom="12dp"
+            android:background="@drawable/circle_border"
+            android:hint="Re-enter your password"
+            android:inputType="textPassword"
+            android:padding="8dp" />
+
+        <TextView
+            android:id="@+id/rolePrompt"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Select Role"
+            android:textSize="16sp" />
+
+        <RadioGroup
+            android:id="@+id/roleRadioGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+
+            <RadioButton
+                android:id="@+id/radioGuest"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginBottom="24dp"
-                android:text="Create Account"
-                android:textSize="32sp"
-                android:textStyle="bold" />
+                android:text="Guest"
+                android:checked="true" />
 
-            <TextView
-                android:id="@+id/emailInputSignupPrompt"
-                android:layout_width="match_parent"
-                android:layout_height="32dp"
-                android:layout_marginTop="5dp"
-                android:layout_marginBottom="5dp"
-                android:text="Email Address"
-                android:textSize="20sp" />
-
-            <EditText
-                android:id="@+id/emailInputSignup"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginBottom="10dp"
-                android:background="@drawable/circle_border"
-                android:drawablePadding="8dp"
-                android:hint="Your email"
-                android:inputType="textEmailAddress"
-                android:padding="8dp" />
-
-            <TextView
-                android:id="@+id/passwordInputSignupPrompt"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="5dp"
-                android:text="Password"
-                android:textSize="20sp" />
-
-            <EditText
-                android:id="@+id/passwordInputSignup"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginBottom="10dp"
-                android:background="@drawable/circle_border"
-                android:drawablePadding="8dp"
-                android:hint="Your password"
-                android:inputType="textPassword"
-                android:padding="8dp" />
-
-            <TextView
-                android:id="@+id/confirmPasswordInputSignupPrompt"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="5dp"
-                android:text="Confirm Password"
-                android:textSize="20sp" />
-
-            <EditText
-                android:id="@+id/confirmPasswordInputSignup"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginBottom="24dp"
-                android:background="@drawable/circle_border"
-                android:drawablePadding="8dp"
-                android:hint="Re-enter your password "
-                android:inputType="textPassword"
-                android:padding="8dp" />
-
-            <TextView
-                android:id="@+id/rolePrompt"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="5dp"
-                android:text="Select Role"
-                android:textSize="20sp" />
-
-            <RadioGroup
-                android:id="@+id/roleRadioGroup"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="24dp">
-
-                <RadioButton
-                    android:id="@+id/radioGuest"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Guest"
-                    android:checked="true" />
-
-                <RadioButton
-                    android:id="@+id/radioOrganiser"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Organiser" />
-            </RadioGroup>
-
-            <Button
-                android:id="@+id/signupButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="5dp"
-                android:text="Sign Up"
-                android:textSize="18sp"
-                app:cornerRadius="10dp" />
-
-            <TextView
-                android:id="@+id/loginLinkFromSignup"
+            <RadioButton
+                android:id="@+id/radioOrganiser"
                 android:layout_width="wrap_content"
-                android:layout_height="33dp"
-                android:layout_gravity="center_horizontal"
-                android:text="Already have an account? Login"
-                android:textColor="?attr/colorPrimary"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+                android:layout_height="wrap_content"
+                android:text="Organiser" />
+        </RadioGroup>
 
-        </LinearLayout>
-    </ScrollView>
+        <Button
+            android:id="@+id/signupButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Sign Up"
+            android:textSize="16sp" />
 
+        <TextView
+            android:id="@+id/loginLinkFromSignup"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_gravity="center_horizontal"
+            android:text="Already have an account? Login"
+            android:textColor="?attr/colorPrimary"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+    <!-- Verification Status -->
     <LinearLayout
         android:id="@+id/verificationStatusLayout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="24dp"
+        android:padding="16dp"
+        android:gravity="center"
+        android:visibility="gone"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:gravity="center"
-        android:visibility="gone">
+        app:layout_constraintEnd_toEndOf="parent">
 
         <TextView
             android:id="@+id/verificationMessageText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Verification email sent. Please check your inbox."
-            android:textSize="16sp"
+            android:textSize="14sp"
             android:gravity="center"
-            android:layout_marginBottom="24dp"/>
+            android:layout_marginBottom="16dp"/>
 
         <Button
             android:id="@+id/proceedToLoginButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="I've Verified, Continue to Login"/>
-
-        <!-- Optional: Add a Resend Verification Email Button here -->
-
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

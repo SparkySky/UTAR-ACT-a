@@ -40,11 +40,27 @@
                     android:layout_height="1dp"
                     android:layout_weight="1" />
                 <ImageView
+                    android:id="@+id/menu_icon_guest"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:padding="6dp"
+                    android:src="@drawable/ic_more_vert"
+                    android:visibility="visible" />
+
+                <ImageView
                     android:id="@+id/user_avatar"
                     android:layout_width="40dp"
                     android:layout_height="40dp"
                     android:scaleType="centerCrop"
-                    android:src="@drawable/icon_bar_avatar" />
+                    android:src="@drawable/icon_bar_avatar"
+                    android:visibility="gone" />
+
+                <de.hdodenhof.circleimageview.CircleImageView
+                    android:id="@+id/organizer_avatar"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:src="@drawable/ic_person"
+                    android:visibility="gone" />
             </LinearLayout>
 
             <View
@@ -115,7 +131,8 @@
             android:id="@+id/swipeRefreshLayout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_below="@id/motion_layout_header">
+            android:layout_below="@id/motion_layout_header"
+            android:layout_marginTop="0dp">
 
             <androidx.core.widget.NestedScrollView
                 android:id="@+id/nestedScrollView"
@@ -132,8 +149,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center"
-                        android:orientation="horizontal">
-                    </LinearLayout>
+                        android:orientation="horizontal"></LinearLayout>
 
                     <LinearLayout
                         android:id="@+id/upcoming_events_title_section"
@@ -143,8 +159,7 @@
                         android:orientation="horizontal"
                         android:paddingHorizontal="16dp"
                         android:paddingTop="16dp"
-                        android:paddingBottom="8dp">
-                    </LinearLayout>
+                        android:paddingBottom="8dp"></LinearLayout>
 
                     <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/recyclerViewEvents"
