@@ -130,19 +130,23 @@ public class GuestFormActivity extends AppCompatActivity {
         }
         String userId = currentUser.getUid();
 
-        // Load the other guest profile to get their name
+        // Load the user profile to get their name, email, and phone
         GuestProfile userProfile = storage.loadProfile();
         if (userProfile == null) {
             Toast.makeText(this, "Error: Could not find user profile.", Toast.LENGTH_SHORT).show();
             return;
         }
         String userName = userProfile.getName();
+        String userEmail = userProfile.getEmail(); // Get email
+        String userPhone = userProfile.getPhone(); // Get phone
 
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
         Map<String, Object> registrationData = new HashMap<>();
         registrationData.put("userId", userId);
-        registrationData.put("userName", userName); // Add the user's name
+        registrationData.put("userName", userName);
+        registrationData.put("email", userEmail); //  <- ADD THIS LINE
+        registrationData.put("phone", userPhone); //  <- ADD THIS LINE
         registrationData.put("timestamp", System.currentTimeMillis());
         registrationData.put("status", "pending");
 

@@ -132,25 +132,39 @@ public class ApplicantListActivity extends AppCompatActivity {
     }
 
     private void fetchAndShowApplicantDetails(Applicant applicant) {
-        FirebaseFirestore.getInstance().collection("guest_profiles").document(applicant.getUserId())
-                .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        String json = documentSnapshot.getString("profile_json");
-                        GuestProfile profile = new Gson().fromJson(json, GuestProfile.class);
-                        if (profile != null) {
-                            String details = "Name: " + profile.getName() + "\n" +
-                                    "Email: " + profile.getEmail() + "\n" +
-                                    "Phone: " + profile.getPhone();
-                            new AlertDialog.Builder(this)
-                                    .setTitle("Applicant Details")
-                                    .setMessage(details)
-                                    .setPositiveButton("Close", null)
-                                    .show();
+        // Check if the static data exists in the applicant object
+        if (applicant.getEmail() != null && !applicant.getEmail().isEmpty()) {
+            // If yes, display it directly
+            String details = "Name: " + applicant.getUserName() + "\n" +
+                    "Email: " + applicant.getEmail() + "\n" +
+                    "Phone: " + applicant.getPhone();
+            new AlertDialog.Builder(this)
+                    .setTitle("Applicant Details")
+                    .setMessage(details)
+                    .setPositiveButton("Close", null)
+                    .show();
+        } else {
+            // Fallback for older records or organizers if needed
+            FirebaseFirestore.getInstance().collection("guest_profiles").document(applicant.getUserId())
+                    .get()
+                    .addOnSuccessListener(documentSnapshot -> {
+                        if (documentSnapshot.exists()) {
+                            String json = documentSnapshot.getString("profile_json");
+                            GuestProfile profile = new Gson().fromJson(json, GuestProfile.class);
+                            if (profile != null) {
+                                String details = "Name: " + profile.getName() + "\n" +
+                                        "Email: " + profile.getEmail() + "\n" +
+                                        "Phone: " + profile.getPhone();
+                                new AlertDialog.Builder(this)
+                                        .setTitle("Applicant Details")
+                                        .setMessage(details)
+                                        .setPositiveButton("Close", null)
+                                        .show();
+                            }
+                        } else {
+                            Toast.makeText(this, "Could not find profile for this applicant.", Toast.LENGTH_SHORT).show();
                         }
-                    } else {
-                        Toast.makeText(this, "Could not find profile for this applicant.", Toast.LENGTH_SHORT).show();
-                    }
-                });
+                    });
+        }
     }
 }
