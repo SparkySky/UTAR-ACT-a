@@ -221,6 +221,7 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
     private void setupUIListeners() {
         binding.swipeRefreshLayout.setOnRefreshListener(() -> homeViewModel.fetchEvents());
 
+        binding.menuIconGuest.setOnClickListener(this::showPopupMenu);
         binding.menuIcon.setOnClickListener(v -> {
             if (getActivity() instanceof MainActivity) {
                 DrawerLayout drawerLayout = ((MainActivity) getActivity()).getDrawerLayout();
@@ -229,6 +230,7 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
                 }
             }
         });
+
 
         binding.searchContainer.setOnClickListener(v -> showScanOptionsDialog());
 
@@ -322,20 +324,26 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
         View userAvatar = binding.userAvatar;
         View organizerAvatar = binding.organizerAvatar;
 
-        if (profile == null) {
+        if (profile == null || profile.isGuest()) {
             guestMenu.setVisibility(View.VISIBLE);
             userAvatar.setVisibility(View.GONE);
             organizerAvatar.setVisibility(View.GONE);
-        } else {
-            if (profile.isOrganiser()) {
-                guestMenu.setVisibility(View.GONE);
+
+        } else if (profile.isOrganiser()) {
+            guestMenu.setVisibility(View.GONE);
+            organizerAvatar.setVisibility(View.VISIBLE);
+
+            if (profile.getProfileImageUrl() != null && !profile.getProfileImageUrl().isEmpty()) {
                 userAvatar.setVisibility(View.GONE);
-                organizerAvatar.setVisibility(View.VISIBLE);
             } else {
-                guestMenu.setVisibility(View.GONE);
-                userAvatar.setVisibility(View.VISIBLE);
                 organizerAvatar.setVisibility(View.GONE);
+                userAvatar.setVisibility(View.VISIBLE);
             }
+
+        } else {
+            guestMenu.setVisibility(View.GONE);
+            userAvatar.setVisibility(View.VISIBLE);
+            organizerAvatar.setVisibility(View.GONE);
         }
     }
     private void showPopupMenu(View view) {

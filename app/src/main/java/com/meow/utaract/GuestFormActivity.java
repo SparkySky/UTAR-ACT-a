@@ -223,6 +223,9 @@ public class GuestFormActivity extends AppCompatActivity {
         }
 
         GuestProfile profile = new GuestProfile(name, email, phone, selectedPreferences, isOrganiser);
+        if (!isOrganiser) {
+            profile.setGuest(true);
+        }
         if (downloadedImageUrl != null && !downloadedImageUrl.isEmpty()) {
             profile.setProfileImageUrl(downloadedImageUrl);
         }
