@@ -61,6 +61,7 @@ public class EventDetailActivity extends AppCompatActivity {
     private String eventId;
     private Bitmap qrCodeToSave;
     private LinearLayout catalogueImagesLayout;
+    private LinearLayout catalogueSection;
 
     // Permission Launcher: Request storage permission
     private final ActivityResultLauncher<String> requestPermissionLauncher =
@@ -76,8 +77,6 @@ public class EventDetailActivity extends AppCompatActivity {
                     Toast.makeText(this, "Permission denied. Cannot save QR Code.", Toast.LENGTH_SHORT).show();
                 }
             });
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -109,6 +108,7 @@ public class EventDetailActivity extends AppCompatActivity {
         contentScrollView = findViewById(R.id.contentScrollView);
         registrationLayout = findViewById(R.id.registration_layout);
         catalogueImagesLayout = findViewById(R.id.catalogueImagesLayout);
+        catalogueSection = findViewById(R.id.catalogueSection);
     }
 
     private void fetchEventDetails() {
@@ -239,7 +239,9 @@ public class EventDetailActivity extends AppCompatActivity {
 
     private void populateCatalogueImages() {
         catalogueImagesLayout.removeAllViews();
-        if (event.getAdditionalImageUrls() != null) {
+        if (event.getAdditionalImageUrls() != null && !event.getAdditionalImageUrls().isEmpty()) {
+            catalogueSection.setVisibility(View.VISIBLE);
+
             for (String imageUrl : event.getAdditionalImageUrls()) {
                 ImageView imageView = new ImageView(this);
                 LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(250, 250);
@@ -255,6 +257,9 @@ public class EventDetailActivity extends AppCompatActivity {
                 });
                 catalogueImagesLayout.addView(imageView);
             }
+        }
+        else {
+            catalogueSection.setVisibility(View.GONE);
         }
     }
 
