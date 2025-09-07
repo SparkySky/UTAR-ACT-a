@@ -48,7 +48,7 @@ public class MyEventsAdapter extends RecyclerView.Adapter<MyEventsAdapter.MyEven
     @NonNull
     @Override
     public MyEventViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_item_my_event, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_item_manage_event, parent, false);
         return new MyEventViewHolder(view);
     }
 

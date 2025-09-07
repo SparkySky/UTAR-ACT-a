@@ -50,7 +50,6 @@
         app:layout_constraintTop_toBottomOf="@+id/titleLogin" />
 
     <EditText
-        android:text="alvinjiahao2003@gmail.com"
         android:id="@+id/emailInputLogin"
         android:layout_width="0dp"
         android:layout_height="48dp"
@@ -73,7 +72,6 @@
         app:layout_constraintTop_toBottomOf="@+id/emailInputLogin" />
 
     <EditText
-        android:text="123Qwert"
         android:id="@+id/passwordInputLogin"
         android:layout_width="0dp"
         android:layout_height="48dp"

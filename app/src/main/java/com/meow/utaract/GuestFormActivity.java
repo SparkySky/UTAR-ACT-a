@@ -145,8 +145,8 @@ public class GuestFormActivity extends AppCompatActivity {
         Map<String, Object> registrationData = new HashMap<>();
         registrationData.put("userId", userId);
         registrationData.put("userName", userName);
-        registrationData.put("email", userEmail); //  <- ADD THIS LINE
-        registrationData.put("phone", userPhone); //  <- ADD THIS LINE
+        registrationData.put("email", userEmail);
+        registrationData.put("phone", userPhone);
         registrationData.put("timestamp", System.currentTimeMillis());
         registrationData.put("status", "pending");
 

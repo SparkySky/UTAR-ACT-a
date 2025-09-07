@@ -74,6 +74,10 @@ public class ManageEventsActivity extends AppCompatActivity implements FilterBot
                 intent.putExtra("IS_ORGANISER", isOrganiser);
                 startActivity(intent);
                 finish();
+            } else if (id == R.id.nav_joined_events) {
+                Intent intent = new Intent(this, JoinedEventsActivity.class);
+                intent.putExtra("IS_ORGANISER", isOrganiser);
+                startActivity(intent);
             }
             // Close drawer after selection
             drawerLayout.closeDrawer(GravityCompat.START);

@@ -59,6 +59,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-auth'
     implementation 'com.google.firebase:firebase-firestore'
     implementation 'com.google.firebase:firebase-storage'
+    implementation 'com.google.firebase:firebase-messaging'
 
     implementation 'com.google.firebase:firebase-appcheck-playintegrity'
     // For debugging and testing on emulators/test devices
@@ -90,4 +91,5 @@ dependencies {
 
     // Zxing for QR code scanning
     implementation 'com.journeyapps:zxing-android-embedded:4.3.0'
+
 }

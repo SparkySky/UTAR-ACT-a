@@ -12,6 +12,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
+import androidx.core.view.MenuCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -53,8 +54,11 @@ public class NewsActivity extends AppCompatActivity implements NewsAdapter.NewsI
         menuIcon = findViewById(R.id.menu_icon);
         NavigationView navView = findViewById(R.id.nav_view);
 
+        MenuCompat.setGroupDividerEnabled(navView.getMenu(), true);
+
         menuIcon.setOnClickListener(v -> {
             // Open the drawer when icon is clicked
+
             drawerLayout.openDrawer(GravityCompat.START);
         });
 
@@ -81,21 +85,24 @@ public class NewsActivity extends AppCompatActivity implements NewsAdapter.NewsI
             int id = item.getItemId();
 
             if (id == R.id.nav_home) {
-                Intent intent = new Intent(NewsActivity.this, MainActivity.class);
+                Intent intent = new Intent(this, MainActivity.class);
                 intent.putExtra("IS_ORGANISER", isOrganiser);
                 startActivity(intent);
                 finish();
             } else if (id == R.id.nav_manage_events) {
-                Intent intent = new Intent(NewsActivity.this, ManageEventsActivity.class);
+                Intent intent = new Intent(this, ManageEventsActivity.class);
                 intent.putExtra("IS_ORGANISER", isOrganiser);
                 startActivity(intent);
                 finish();
+            } else if (id == R.id.nav_joined_events) {
+                Intent intent = new Intent(this, JoinedEventsActivity.class);
+                intent.putExtra("IS_ORGANISER", isOrganiser);
+                startActivity(intent);
             }
             // Close drawer after selection
             drawerLayout.closeDrawer(GravityCompat.START);
             return true;
         });
-
 
         if (isOrganiser) {
             setupOrganiserView();

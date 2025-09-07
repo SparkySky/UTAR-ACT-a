@@ -1,18 +1,28 @@
 package com.meow.utaract;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.os.Build;
+import android.os.Bundle;
+import android.widget.Toast;
+
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.Bundle;
 import android.view.Menu;
 import android.view.View;
 import android.widget.ToggleButton;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
+import androidx.core.content.ContextCompat;
+import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
+import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 import com.google.android.material.navigation.NavigationView;
 import com.meow.utaract.databinding.ActivityMainBinding;
@@ -24,10 +34,20 @@ public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
     private MainViewModel mainViewModel;
     private boolean isOrganiser;
+    public boolean isOrganiser() { return isOrganiser; }
 
-    public boolean isOrganiser() {
-        return isOrganiser;
-    }
+    // Declare the ActivityResultLauncher
+    private final ActivityResultLauncher<String> requestPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
+                if (isGranted) {
+                    // Permission is granted. You can show a message or do nothing.
+                    Toast.makeText(this, "Notifications permission granted", Toast.LENGTH_SHORT).show();
+                } else {
+                    // Explain to the user that the feature is unavailable because the
+                    // feature requires a permission that the user has denied.
+                    Toast.makeText(this, "Notifications permission denied. You may miss important updates.", Toast.LENGTH_LONG).show();
+                }
+            });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,6 +61,9 @@ public class MainActivity extends AppCompatActivity {
 
         setupNavigation(isOrganiser);
         loadUserProfile(isOrganiser);
+
+        // Ask for notification permission when the main activity is created.
+        askNotificationPermission();
 
         //// Below are for the light and dark mode toggle
         NavigationView navigationView = binding.navView;
@@ -72,6 +95,19 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private void askNotificationPermission() {
+        // This is only necessary for API level 33 and above (Android 13)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) ==
+                    PackageManager.PERMISSION_GRANTED) {
+                // Permission is already granted
+            } else {
+                // Directly ask for the permission
+                requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
+            }
+        }
+    }
+
     private void setupNavigation(boolean isOrganiser) {
         NavigationView navigationView = binding.navView;
 
@@ -85,6 +121,7 @@ public class MainActivity extends AppCompatActivity {
         // Set custom navigation item selected listener
         navigationView.setNavigationItemSelectedListener(item -> {
             int id = item.getItemId();
+            DrawerLayout drawer = findViewById(R.id.drawer_layout);
 
             if (id == R.id.nav_manage_events) {
                 // Launch ManageEventsActivity instead of using navigation component
@@ -94,25 +131,19 @@ public class MainActivity extends AppCompatActivity {
 
                 // Close the drawer
                 binding.drawerLayout.closeDrawer(binding.navView);
-                return true;
             } else if (id == R.id.nav_news) {
                 // Launch NewsActivity
                 Intent intent = new Intent(MainActivity.this, NewsActivity.class);
                 intent.putExtra("IS_ORGANISER", isOrganiser);
                 startActivity(intent);
                 binding.drawerLayout.closeDrawer(binding.navView);
-                return true;
-            } else {
-                // For all other items, use the default navigation
-                try {
-                    NavigationUI.onNavDestinationSelected(item, navController);
-                    binding.drawerLayout.closeDrawer(binding.navView);
-                    return true;
-                } catch (IllegalArgumentException e) {
-                    // Handle case where the destination doesn't exist in the navigation graph
-                    return false;
-                }
+            } else if (id == R.id.nav_joined_events) {
+                Intent intent = new Intent(MainActivity.this, JoinedEventsActivity.class);
+                intent.putExtra("IS_ORGANISER", isOrganiser);
+                startActivity(intent);
             }
+            drawer.closeDrawer(GravityCompat.START);
+            return true;
         });
 
         Menu navMenu = navigationView.getMenu();

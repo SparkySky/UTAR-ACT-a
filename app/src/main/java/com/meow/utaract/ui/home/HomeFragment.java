@@ -51,6 +51,7 @@ import com.meow.utaract.GuestFormActivity;
 import com.meow.utaract.LoginActivity;
 import com.meow.utaract.MainActivity;
 import com.meow.utaract.MainViewModel;
+import com.meow.utaract.NotificationActivity;
 import com.meow.utaract.PortraitCaptureActivity;
 import com.meow.utaract.R;
 import com.meow.utaract.databinding.FragmentHomeBinding;
@@ -305,6 +306,14 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
 
         // The swipe refresh listener  calls the fetchEvents()
         binding.swipeRefreshLayout.setOnRefreshListener(() -> homeViewModel.fetchEvents());
+
+        // Listener for notification listing button
+        binding.notificationIcon.setOnClickListener(v -> {
+            Intent intent = new Intent(getActivity(), NotificationActivity.class);
+            // Pass the flag here
+            intent.putExtra("IS_ORGANISER", isOrganiser);
+            startActivity(intent);
+        });
     }
 
     private void updateHeaderOnScroll() {

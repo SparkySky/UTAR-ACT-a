@@ -108,7 +108,7 @@
                 android:layout_below="@id/header_section"
                 android:padding="8dp"
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                tools:listitem="@layout/list_item_my_event" />
+                tools:listitem="@layout/list_item_manage_event" />
 
             <TextView
                 android:id="@+id/emptyView"

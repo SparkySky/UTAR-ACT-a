@@ -12,7 +12,7 @@
         android:layout_height="match_parent"
         android:padding="8dp"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        tools:listitem="@layout/list_item_my_event" />
+        tools:listitem="@layout/list_item_manage_event" />
 
     <TextView
         android:id="@+id/emptyView"

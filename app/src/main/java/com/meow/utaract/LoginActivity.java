@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.text.TextUtils;
+import android.util.Log;
 import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
@@ -22,9 +23,14 @@ import androidx.appcompat.app.AppCompatDelegate;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.meow.utaract.firebase.AuthService;
 
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -142,6 +148,7 @@ public class LoginActivity extends AppCompatActivity {
                     setButtonsEnabled(true);
                     if (task.isSuccessful()) {
                         FirebaseUser user = new AuthService().getAuth().getCurrentUser();
+                        getAndStoreFcmToken(user.getUid());
                         if (user != null && user.isEmailVerified()) {
                             // Start MainActivity immediately after successful login
                             Intent intent = new Intent(LoginActivity.this, MainActivity.class);
@@ -365,5 +372,28 @@ public class LoginActivity extends AppCompatActivity {
         loginButton.setClickable(enabled);
         guestButton.setEnabled(enabled);
         guestButton.setClickable(enabled);
+    }
+
+    // For configuring the notification
+    private void getAndStoreFcmToken(String userId) {
+        FirebaseMessaging.getInstance().getToken().addOnCompleteListener(task -> {
+            if (!task.isSuccessful()) {
+                Log.w("FCM", "Fetching FCM registration token failed", task.getException());
+                return;
+            }
+            // Get new FCM registration token
+            String token = task.getResult();
+
+            // Create a Map to store the token
+            Map<String, Object> tokenData = new HashMap<>();
+            tokenData.put("fcmToken", token);
+
+            // Use .set() with SetOptions.merge() for a safe update/create
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+            db.collection("users").document(userId)
+                    .set(tokenData, SetOptions.merge()) // This is the corrected line
+                    .addOnSuccessListener(aVoid -> Log.d("FCM", "FCM token saved successfully."))
+                    .addOnFailureListener(e -> Log.w("FCM", "Error saving FCM token", e));
+        });
     }
 }
