@@ -42,8 +42,6 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.meow.utaract.utils.Event;
 import com.meow.utaract.utils.EventCreationStorage;
-//import com.tom_roush.pdfbox.pdmodel.PDDocument;
-//import com.tom_roush.pdfbox.text.PDFTextStripper;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -52,12 +50,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.UUID;
-import android.widget.ProgressBar;
-import android.content.SharedPreferences;
-
-//// PDFBox imports for PDF text extraction
-//import org.apache.pdfbox.pdmodel.PDDocument;
-//import org.apache.pdfbox.text.PDFTextStripper;
 
 public class EventCreationActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     private TextInputEditText etEventName, etDescription, etDate, etTime, etLocation, etMaxGuests, etFee, etPublishDate, etPublishTime;
@@ -102,17 +94,13 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         initializeImageLaunchers();
         etSocialMediaLink = findViewById(R.id.etSocialMediaLink);
         eventStorage = new EventCreationStorage();
-        
-        // Document data is now stored in Firebase, no local storage needed
-        
-        // Initialize document display
+
         updateUploadedDocumentsDisplay();
 
-        // Check for an eventId to determine if we are in edit mode
         if (getIntent().hasExtra("eventId")) {
             isEditMode = true;
             String eventId = getIntent().getStringExtra("eventId");
-            loadEventDetails(eventId); // This method fetches the fresh data from Firestore
+            loadEventDetails(eventId);
         }
     }
 
@@ -143,7 +131,6 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         uploadedDocumentsLayout = findViewById(R.id.uploadedDocumentsLayout);
     }
 
-
     private void setupNavigationDrawer() {
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
@@ -173,7 +160,6 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
             }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), true).show();
         });
 
-        // Pickers for the scheduling feature
         etPublishDate.setOnClickListener(v -> {
             new DatePickerDialog(this, (view, year, month, day) -> {
                 publishCalendar.set(Calendar.YEAR, year);
@@ -204,81 +190,9 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         btnCreate.setOnClickListener(v -> saveEvent());
         removePosterButton.setOnClickListener(v -> {
             newPosterUri = null;
-            posterImageUrl = ""; // Clear the URL
+            posterImageUrl = "";
             updatePosterPreview();
         });
-    }
-
-    private void setupEditMode() {
-        ((TextView) findViewById(R.id.event_creation_title)).setText("Update Event");
-        btnCreate.setText("Update Event");
-
-        // Populate all fields from the event object passed to the activity
-        etEventName.setText(eventToEdit.getEventName());
-        etDescription.setText(eventToEdit.getDescription());
-        etDate.setText(eventToEdit.getDate());
-        etTime.setText(eventToEdit.getTime());
-        etLocation.setText(eventToEdit.getLocation());
-        etMaxGuests.setText(String.valueOf(eventToEdit.getMaxGuests()));
-        etFee.setText(String.valueOf(eventToEdit.getFee()));
-
-        // Set spinner selection
-        ArrayAdapter<String> adapter = (ArrayAdapter<String>) spinnerCategory.getAdapter();
-        for (int i = 0; i < adapter.getCount(); i++) {
-            if (adapter.getItem(i).equals(eventToEdit.getCategory())) {
-                spinnerCategory.setSelection(i);
-                break;
-            }
-        }
-
-        // Set image previews
-        posterImageUrl = eventToEdit.getCoverImageUrl();
-
-        // Load and display existing catalogue images using their URLs
-        catalogImageUrls = new ArrayList<>(eventToEdit.getAdditionalImageUrls());
-        updatePosterPreview();
-        updateCatalogPreview();
-        
-        // Load uploaded document text and name from Firebase
-        String savedDocText = eventToEdit.getUploadedDocumentText();
-        String savedDocName = eventToEdit.getUploadedDocumentName();
-        
-        if (savedDocText != null && !savedDocText.trim().isEmpty()) {
-            uploadedDocText = savedDocText;
-            uploadedDocName = (savedDocName != null && !savedDocName.trim().isEmpty()) ? savedDocName : "Uploaded Document";
-            Log.d("EventCreation", "Loaded document: " + uploadedDocName + " with " + uploadedDocText.length() + " characters");
-        } else {
-            Log.d("EventCreation", "No document data found in eventToEdit - text: " + savedDocText + ", name: " + savedDocName);
-            // Ensure variables are cleared if no document data
-            uploadedDocText = "";
-            uploadedDocName = "";
-        }
-        
-        // Load social media link
-        if (eventToEdit.getSocialMediaLink() != null && !eventToEdit.getSocialMediaLink().isEmpty()) {
-            etSocialMediaLink.setText(eventToEdit.getSocialMediaLink());
-        }
-        
-        // Update document display (if any document was previously uploaded)
-        updateUploadedDocumentsDisplay();
-        
-        // Debug: Log the final state of document variables
-        Log.d("EventCreation", "Final document state - Name: '" + uploadedDocName + "', Text length: " + (uploadedDocText != null ? uploadedDocText.length() : "null"));
-
-        // Handle visibility and scheduling UI
-        if (eventToEdit.getPublishAt() > System.currentTimeMillis()) {
-            scheduleSwitch.setChecked(true);
-            scheduleLayout.setVisibility(View.VISIBLE);
-            publishCalendar.setTimeInMillis(eventToEdit.getPublishAt());
-            SimpleDateFormat sdfDate = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-            etPublishDate.setText(sdfDate.format(publishCalendar.getTime()));
-            SimpleDateFormat sdfTime = new SimpleDateFormat("hh:mm a", Locale.getDefault());
-            etPublishTime.setText(sdfTime.format(publishCalendar.getTime()));
-        } else {
-            // Otherwise, it's published immediately.
-            scheduleSwitch.setChecked(false);
-            scheduleLayout.setVisibility(View.GONE);
-        }
     }
 
     private void saveEvent() {
@@ -288,71 +202,172 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         btnCreate.setEnabled(false);
 
         uploadAllImagesAndSaveEvent();
-        boolean isVisible;
-        long publishAt;
+    }
 
-        if (scheduleSwitch.isChecked()) {
-            publishAt = publishCalendar.getTimeInMillis();
-            if (publishAt <= System.currentTimeMillis()) {
-                Toast.makeText(this, "Scheduled time must be in the future.", Toast.LENGTH_SHORT).show();
-                return;
-            }
-        } else {
-            // If not scheduled, publish immediately
-            publishAt = System.currentTimeMillis();
+    private void uploadAllImagesAndSaveEvent() {
+        final StorageReference storageRef = FirebaseStorage.getInstance().getReference();
+        final List<Task<Uri>> uploadTasks = new ArrayList<>();
+        final List<String> finalCatalogUrls = new ArrayList<>(catalogImageUrls);
+
+        if (newPosterUri != null) {
+            final StorageReference posterRef = storageRef.child("event_images/" + UUID.randomUUID().toString());
+            UploadTask posterUploadTask = posterRef.putFile(newPosterUri);
+            Task<Uri> posterUrlTask = posterUploadTask.continueWithTask(task -> {
+                if (!task.isSuccessful()) {
+                    throw Objects.requireNonNull(task.getException());
+                }
+                return posterRef.getDownloadUrl();
+            });
+            uploadTasks.add(posterUrlTask);
         }
 
-        String organizerId = isEditMode ? eventToEdit.getOrganizerId() : FirebaseAuth.getInstance().getUid();
+        for (Uri uri : newCatalogUris) {
+            final StorageReference catalogRef = storageRef.child("event_images/" + UUID.randomUUID().toString());
+            UploadTask catalogUploadTask = catalogRef.putFile(uri);
+            Task<Uri> catalogUrlTask = catalogUploadTask.continueWithTask(task -> {
+                if (!task.isSuccessful()) {
+                    throw Objects.requireNonNull(task.getException());
+                }
+                return catalogRef.getDownloadUrl();
+            });
+            uploadTasks.add(catalogUrlTask);
+        }
 
+        Tasks.whenAllSuccess(uploadTasks).addOnSuccessListener(results -> {
+            int urlIndex = 0;
+            if (newPosterUri != null) {
+                posterImageUrl = results.get(urlIndex++).toString();
+            }
+
+            for (; urlIndex < results.size(); urlIndex++) {
+                finalCatalogUrls.add(results.get(urlIndex).toString());
+            }
+
+            saveEventToFirestore(posterImageUrl, finalCatalogUrls);
+
+        }).addOnFailureListener(e -> {
+            progressBar.setVisibility(View.GONE);
+            btnCreate.setEnabled(true);
+            Toast.makeText(EventCreationActivity.this, "Image upload failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        });
+
+        if (uploadTasks.isEmpty()) {
+            saveEventToFirestore(posterImageUrl, finalCatalogUrls);
+        }
+    }
+
+    private void saveEventToFirestore(String finalPosterUrl, List<String> finalCatalogUrls) {
         String eventName = Objects.requireNonNull(etEventName.getText()).toString().trim();
-        String description = Objects.requireNonNull(etDescription.getText()).toString().trim();
-        String category = spinnerCategory.getSelectedItem().toString();
-        String date = Objects.requireNonNull(etDate.getText()).toString().trim();
-        String time = Objects.requireNonNull(etTime.getText()).toString().trim();
-        String location = Objects.requireNonNull(etLocation.getText()).toString().trim();
-        int maxGuests = Integer.parseInt(Objects.requireNonNull(etMaxGuests.getText()).toString().trim());
-        double fee = Double.parseDouble(Objects.requireNonNull(etFee.getText()).toString().trim());
-        
-        Event event = new Event(eventName, description, category, date, time, location, organizerId, maxGuests, fee, publishAt);
-        event.setCoverImageUrl(posterImageUrl);
-        event.setAdditionalImageUrls(catalogImageUrls);
-        
-        // Store uploaded document text and name in Firebase
-        if (uploadedDocText != null && !uploadedDocText.trim().isEmpty() && 
-            !uploadedDocText.contains("Error extracting") && !uploadedDocText.contains("Could not extract") && 
-            !uploadedDocText.contains("not supported") && !uploadedDocText.contains("requires additional library setup")) {
+        long publishAt = scheduleSwitch.isChecked() ? publishCalendar.getTimeInMillis() : System.currentTimeMillis();
+        String organizerId = isEditMode ? eventToEdit.getOrganizerId() : Objects.requireNonNull(FirebaseAuth.getInstance().getUid());
+
+        Event event = new Event(eventName, etDescription.getText().toString(), spinnerCategory.getSelectedItem().toString(),
+                etDate.getText().toString(), etTime.getText().toString(), etLocation.getText().toString(),
+                organizerId, Integer.parseInt(etMaxGuests.getText().toString()), Double.parseDouble(etFee.getText().toString()),
+                publishAt);
+
+        event.setCoverImageUrl(finalPosterUrl);
+        event.setAdditionalImageUrls(finalCatalogUrls);
+
+        String socialMedia = Objects.requireNonNull(etSocialMediaLink.getText()).toString().trim();
+        event.setSocialMediaLink(socialMedia);
+
+        if (uploadedDocText != null && !uploadedDocText.trim().isEmpty() &&
+                !uploadedDocText.contains("Error extracting") && !uploadedDocText.contains("Could not extract") &&
+                !uploadedDocText.contains("not supported") && !uploadedDocText.contains("requires additional library setup")) {
             event.setUploadedDocumentText(uploadedDocText);
             event.setUploadedDocumentName(uploadedDocName != null ? uploadedDocName : "Uploaded Document");
-            Log.d("EventCreation", "Main saveEvent - saving document: " + uploadedDocName + " with " + uploadedDocText.length() + " characters");
-            
-            // Generate AI summary from the uploaded document
-            String apiKey = getString(R.string.gemini_api_key);
-            new com.meow.utaract.AiService(apiKey).summarizeText(uploadedDocText, new com.meow.utaract.AiService.AiCallback() {
-                @Override
-                public void onSuccess(String text) {
-                    runOnUiThread(() -> {
-                        event.setSummary(text);
-                        persistEvent(event);
-                    });
-                }
-                @Override
-                public void onError(Exception e) {
-                    runOnUiThread(() -> persistEvent(event));
-                }
-            });
-        } else {
-            // If no new document was uploaded but we're in edit mode, preserve existing summary
-            if (isEditMode && eventToEdit.getSummary() != null && !eventToEdit.getSummary().isEmpty()) {
-                event.setSummary(eventToEdit.getSummary());
+        }
+
+        if (isEditMode && eventToEdit.getSummary() != null && !eventToEdit.getSummary().isEmpty()) {
+            event.setSummary(eventToEdit.getSummary());
+        }
+
+        EventCreationStorage.EventCreationCallback callback = new EventCreationStorage.EventCreationCallback() {
+            @Override
+            public void onSuccess(String eventId) {
+                progressBar.setVisibility(View.GONE);
+                Toast.makeText(EventCreationActivity.this, isEditMode ? "Event updated!" : "Event created!", Toast.LENGTH_SHORT).show();
+                finish();
             }
-            persistEvent(event);
+
+            @Override
+            public void onFailure(Exception e) {
+                progressBar.setVisibility(View.GONE);
+                btnCreate.setEnabled(true);
+                Toast.makeText(EventCreationActivity.this, "Failed to save event: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        };
+
+        if (isEditMode) {
+            event.setEventId(eventToEdit.getEventId());
+            event.setCreatedAt(eventToEdit.getCreatedAt());
+            eventStorage.updateEvent(event.getEventId(), event, callback);
+        } else {
+            eventStorage.createEvent(event, callback);
+        }
+    }
+    private void setupEditMode() {
+        ((TextView) findViewById(R.id.event_creation_title)).setText("Update Event");
+        btnCreate.setText("Update Event");
+
+        etEventName.setText(eventToEdit.getEventName());
+        etDescription.setText(eventToEdit.getDescription());
+        etDate.setText(eventToEdit.getDate());
+        etTime.setText(eventToEdit.getTime());
+        etLocation.setText(eventToEdit.getLocation());
+        etMaxGuests.setText(String.valueOf(eventToEdit.getMaxGuests()));
+        etFee.setText(String.valueOf(eventToEdit.getFee()));
+
+        ArrayAdapter<String> adapter = (ArrayAdapter<String>) spinnerCategory.getAdapter();
+        for (int i = 0; i < adapter.getCount(); i++) {
+            if (adapter.getItem(i).equals(eventToEdit.getCategory())) {
+                spinnerCategory.setSelection(i);
+                break;
+            }
+        }
+
+        posterImageUrl = eventToEdit.getCoverImageUrl();
+
+        catalogImageUrls = new ArrayList<>(eventToEdit.getAdditionalImageUrls());
+        updatePosterPreview();
+        updateCatalogPreview();
+
+        String savedDocText = eventToEdit.getUploadedDocumentText();
+        String savedDocName = eventToEdit.getUploadedDocumentName();
+
+        if (savedDocText != null && !savedDocText.trim().isEmpty()) {
+            uploadedDocText = savedDocText;
+            uploadedDocName = (savedDocName != null && !savedDocName.trim().isEmpty()) ? savedDocName : "Uploaded Document";
+        } else {
+            uploadedDocText = "";
+            uploadedDocName = "";
+        }
+
+        if (eventToEdit.getSocialMediaLink() != null && !eventToEdit.getSocialMediaLink().isEmpty()) {
+            etSocialMediaLink.setText(eventToEdit.getSocialMediaLink());
+        }
+
+        updateUploadedDocumentsDisplay();
+
+        if (eventToEdit.getPublishAt() > System.currentTimeMillis()) {
+            scheduleSwitch.setChecked(true);
+            scheduleLayout.setVisibility(View.VISIBLE);
+            publishCalendar.setTimeInMillis(eventToEdit.getPublishAt());
+            SimpleDateFormat sdfDate = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+            etPublishDate.setText(sdfDate.format(publishCalendar.getTime()));
+            SimpleDateFormat sdfTime = new SimpleDateFormat("hh:mm a", Locale.getDefault());
+            etPublishTime.setText(sdfTime.format(publishCalendar.getTime()));
+        } else {
+            scheduleSwitch.setChecked(false);
+            scheduleLayout.setVisibility(View.GONE);
         }
     }
 
     private void persistEvent(Event event) {
         if (isEditMode) {
             event.setEventId(eventToEdit.getEventId());
-            event.setCreatedAt(eventToEdit.getCreatedAt()); // Preserve original creation date
+            event.setCreatedAt(eventToEdit.getCreatedAt());
             eventStorage.updateEvent(event.getEventId(), event, getEventCreationCallback());
         } else {
             eventStorage.createEvent(event, getEventCreationCallback());
@@ -385,7 +400,7 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         posterImageLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
             if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                 newPosterUri = result.getData().getData();
-                posterImageUrl = ""; // A new image overrides any existing URL
+                posterImageUrl = "";
                 updatePosterPreview();
             }
         });
@@ -429,7 +444,7 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("*/*");
         intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{
-            "text/plain",
+                "text/plain",
         });
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         docPickerLauncher.launch(intent);
@@ -439,7 +454,6 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         try {
             String mimeType = getContentResolver().getType(uri);
             if (mimeType == null) {
-                // Try to determine from file extension
                 String fileName = getFileName(uri);
                 if (fileName != null) {
                     if (fileName.toLowerCase().endsWith(".pdf")) {
@@ -451,9 +465,8 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
                     }
                 }
             }
-            
+
             if (mimeType != null && mimeType.startsWith("text/")) {
-                // Handle text files
                 StringBuilder sb = new StringBuilder();
                 try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(getContentResolver().openInputStream(uri)))) {
                     String line;
@@ -463,7 +476,6 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
                 }
                 return sb.toString();
             } else {
-                // For other file types, try to read as text anyway
                 StringBuilder sb = new StringBuilder();
                 try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(getContentResolver().openInputStream(uri)))) {
                     String line;
@@ -478,7 +490,7 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
             return null;
         }
     }
-    
+
     private String getFileName(Uri uri) {
         String result = null;
         if (uri.getScheme().equals("content")) {
@@ -509,138 +521,20 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         launcher.launch(intent);
     }
 
-    private void uploadAllImagesAndSaveEvent() {
-        final StorageReference storageRef = FirebaseStorage.getInstance().getReference();
-        final List<Task<Uri>> uploadTasks = new ArrayList<>();
-        final List<String> finalCatalogUrls = new ArrayList<>(catalogImageUrls); // Start with existing URLs
-
-        // Task for the poster image if a new one was selected
-        if (newPosterUri != null) {
-            final StorageReference posterRef = storageRef.child("event_images/" + UUID.randomUUID().toString());
-            UploadTask posterUploadTask = posterRef.putFile(newPosterUri);
-            Task<Uri> posterUrlTask = posterUploadTask.continueWithTask(task -> {
-                if (!task.isSuccessful()) {
-                    throw Objects.requireNonNull(task.getException());
-                }
-                return posterRef.getDownloadUrl();
-            });
-            uploadTasks.add(posterUrlTask);
-        }
-
-        // Tasks for new catalogue images
-        for (Uri uri : newCatalogUris) {
-            final StorageReference catalogRef = storageRef.child("event_images/" + UUID.randomUUID().toString());
-            UploadTask catalogUploadTask = catalogRef.putFile(uri);
-            Task<Uri> catalogUrlTask = catalogUploadTask.continueWithTask(task -> {
-                if (!task.isSuccessful()) {
-                    throw Objects.requireNonNull(task.getException());
-                }
-                return catalogRef.getDownloadUrl();
-            });
-            uploadTasks.add(catalogUrlTask);
-        }
-
-        // Wait for all tasks to complete
-        Tasks.whenAllSuccess(uploadTasks).addOnSuccessListener(results -> {
-            int urlIndex = 0;
-            if (newPosterUri != null) {
-                posterImageUrl = results.get(urlIndex++).toString();
-            }
-
-            for (; urlIndex < results.size(); urlIndex++) {
-                finalCatalogUrls.add(results.get(urlIndex).toString());
-            }
-
-            saveEventToFirestore(posterImageUrl, finalCatalogUrls);
-
-        }).addOnFailureListener(e -> {
-            progressBar.setVisibility(View.GONE);
-            btnCreate.setEnabled(true);
-            Toast.makeText(EventCreationActivity.this, "Image upload failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
-        });
-
-        // If no new images to upload, just save the event
-        if (uploadTasks.isEmpty()) {
-            saveEventToFirestore(posterImageUrl, finalCatalogUrls);
-        }
-    }
-
-    private void saveEventToFirestore(String finalPosterUrl, List<String> finalCatalogUrls) {
-        String eventName = Objects.requireNonNull(etEventName.getText()).toString().trim();
-        // ... (get all other event details from the input fields)
-        long publishAt = scheduleSwitch.isChecked() ? publishCalendar.getTimeInMillis() : System.currentTimeMillis();
-        String organizerId = isEditMode ? eventToEdit.getOrganizerId() : Objects.requireNonNull(FirebaseAuth.getInstance().getUid());
-
-        Event event = new Event(eventName, etDescription.getText().toString(), spinnerCategory.getSelectedItem().toString(),
-                etDate.getText().toString(), etTime.getText().toString(), etLocation.getText().toString(),
-                organizerId, Integer.parseInt(etMaxGuests.getText().toString()), Double.parseDouble(etFee.getText().toString()),
-                publishAt);
-
-        event.setCoverImageUrl(finalPosterUrl);
-        event.setAdditionalImageUrls(finalCatalogUrls);
-
-        String socialMedia = Objects.requireNonNull(etSocialMediaLink.getText()).toString().trim();
-        event.setSocialMediaLink(socialMedia);
-        
-        // Preserve uploaded document data if it exists
-        if (uploadedDocText != null && !uploadedDocText.trim().isEmpty() && 
-            !uploadedDocText.contains("Error extracting") && !uploadedDocText.contains("Could not extract") && 
-            !uploadedDocText.contains("not supported") && !uploadedDocText.contains("requires additional library setup")) {
-            event.setUploadedDocumentText(uploadedDocText);
-            event.setUploadedDocumentName(uploadedDocName != null ? uploadedDocName : "Uploaded Document");
-            Log.d("EventCreation", "Saving document to Firebase: " + uploadedDocName + " with " + uploadedDocText.length() + " characters");
-        } else {
-            Log.d("EventCreation", "Not saving document - text: " + uploadedDocText + ", name: " + uploadedDocName);
-        }
-        
-        // Preserve existing summary if no new document was uploaded
-        if (isEditMode && eventToEdit.getSummary() != null && !eventToEdit.getSummary().isEmpty()) {
-            event.setSummary(eventToEdit.getSummary());
-        }
-
-        EventCreationStorage.EventCreationCallback callback = new EventCreationStorage.EventCreationCallback() {
-            @Override
-            public void onSuccess(String eventId) {
-                progressBar.setVisibility(View.GONE);
-                Toast.makeText(EventCreationActivity.this, isEditMode ? "Event updated!" : "Event created!", Toast.LENGTH_SHORT).show();
-                finish();
-            }
-
-            @Override
-            public void onFailure(Exception e) {
-                progressBar.setVisibility(View.GONE);
-                btnCreate.setEnabled(true);
-                Toast.makeText(EventCreationActivity.this, "Failed to save event: " + e.getMessage(), Toast.LENGTH_LONG).show();
-            }
-        };
-
-        if (isEditMode) {
-            event.setEventId(eventToEdit.getEventId());
-            event.setCreatedAt(eventToEdit.getCreatedAt());
-            eventStorage.updateEvent(event.getEventId(), event, callback);
-        } else {
-            eventStorage.createEvent(event, callback);
-        }
-    }
-
     private void updateCatalogPreview() {
-        layoutCatalogPreview.removeAllViews(); // Clear all existing previews
+        layoutCatalogPreview.removeAllViews();
 
-        // Add previews for existing images (from URLs)
         for (String url : catalogImageUrls) {
             addSingleCatalogItem(url);
         }
 
-        // Add previews for newly selected images (from URIs)
         for (Uri uri : newCatalogUris) {
             addSingleCatalogItem(uri);
         }
 
-        // Show/Hide the entire scroll view
         catalogScrollView.setVisibility(catalogImageUrls.isEmpty() && newCatalogUris.isEmpty() ? View.GONE : View.VISIBLE);
     }
 
-    // This is the single method to add one catalogue item to the preview
     private void addSingleCatalogItem(Object imageSource) {
         FrameLayout itemFrame = new FrameLayout(this);
         LinearLayout.LayoutParams frameParams = new LinearLayout.LayoutParams(250, 250);
@@ -664,7 +558,7 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
             } else if (imageSource instanceof String) {
                 catalogImageUrls.remove(imageSource);
             }
-            updateCatalogPreview(); // Refresh the entire preview
+            updateCatalogPreview();
         });
 
         itemFrame.addView(imageView);
@@ -684,87 +578,78 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         }
     }
 
-    // Document data is now stored in Firebase, no local storage methods needed
-
     private void updateUploadedDocumentsDisplay() {
         uploadedDocumentsLayout.removeAllViews();
-        
-        Log.d("EventCreation", "updateUploadedDocumentsDisplay called - uploadedDocName: " + uploadedDocName + ", uploadedDocText length: " + (uploadedDocText != null ? uploadedDocText.length() : "null"));
-        
-        if (uploadedDocName != null && !uploadedDocName.trim().isEmpty() && 
-            uploadedDocText != null && !uploadedDocText.trim().isEmpty()) {
-            
-            // Create a card-like layout for the uploaded document
+
+        if (uploadedDocName != null && !uploadedDocName.trim().isEmpty() &&
+                uploadedDocText != null && !uploadedDocText.trim().isEmpty()) {
+
             LinearLayout documentCard = new LinearLayout(this);
             documentCard.setOrientation(LinearLayout.HORIZONTAL);
             documentCard.setPadding(16, 12, 16, 12);
             documentCard.setBackgroundResource(R.drawable.rounded_card_background);
-            
-            // Set layout parameters
+
             LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, 
-                LinearLayout.LayoutParams.WRAP_CONTENT
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
             );
             cardParams.setMargins(0, 0, 0, 8);
             documentCard.setLayoutParams(cardParams);
-            
-            // Document icon
+
             ImageView docIcon = new ImageView(this);
             docIcon.setImageResource(android.R.drawable.ic_menu_upload);
             docIcon.setPadding(0, 0, 12, 0);
             LinearLayout.LayoutParams iconParams = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT, 
-                LinearLayout.LayoutParams.WRAP_CONTENT
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
             );
             iconParams.gravity = Gravity.CENTER_VERTICAL;
             docIcon.setLayoutParams(iconParams);
-            
-            // Document name and info
+
             LinearLayout docInfoLayout = new LinearLayout(this);
             docInfoLayout.setOrientation(LinearLayout.VERTICAL);
             docInfoLayout.setLayoutParams(new LinearLayout.LayoutParams(
-                0, 
-                LinearLayout.LayoutParams.WRAP_CONTENT, 
-                1.0f
+                    0,
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    1.0f
             ));
-            
+
             TextView docNameText = new TextView(this);
             docNameText.setText(uploadedDocName);
             docNameText.setTextAppearance(this, com.google.android.material.R.style.TextAppearance_Material3_BodyLarge);
             docNameText.setMaxLines(1);
             docNameText.setEllipsize(android.text.TextUtils.TruncateAt.END);
-            
+
             TextView docSizeText = new TextView(this);
             docSizeText.setText(uploadedDocText.length() + " characters");
             docSizeText.setTextAppearance(this, com.google.android.material.R.style.TextAppearance_Material3_BodySmall);
             docSizeText.setTextColor(getResources().getColor(android.R.color.darker_gray, null));
-            
+
             docInfoLayout.addView(docNameText);
             docInfoLayout.addView(docSizeText);
-            
-            // Delete button
+
             ImageView deleteButton = new ImageView(this);
             deleteButton.setImageResource(android.R.drawable.ic_menu_close_clear_cancel);
             deleteButton.setBackgroundResource(R.drawable.round_red_background);
             deleteButton.setPadding(8, 8, 8, 8);
             LinearLayout.LayoutParams deleteParams = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT, 
-                LinearLayout.LayoutParams.WRAP_CONTENT
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
             );
             deleteParams.gravity = Gravity.CENTER_VERTICAL;
             deleteButton.setLayoutParams(deleteParams);
-            
+
             deleteButton.setOnClickListener(v -> {
                 uploadedDocName = "";
                 uploadedDocText = "";
                 updateUploadedDocumentsDisplay();
                 Toast.makeText(this, "Document removed", Toast.LENGTH_SHORT).show();
             });
-            
+
             documentCard.addView(docIcon);
             documentCard.addView(docInfoLayout);
             documentCard.addView(deleteButton);
-            
+
             uploadedDocumentsLayout.addView(documentCard);
             uploadedDocumentsLayout.setVisibility(View.VISIBLE);
         } else {
@@ -772,61 +657,35 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         }
     }
 
-    // In EventCreationActivity.java
-
     private void loadEventDetails(String eventId) {
-        // 1. Log the eventId to make sure we received it correctly
-        Log.d("EventCreation", "Attempting to load event with ID: " + eventId);
-
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         db.collection("events").document(eventId).get()
                 .addOnSuccessListener(documentSnapshot -> {
-                    // 2. Log that the database call was successful
-                    Log.d("EventCreation", "Firestore call successful.");
-
                     if (documentSnapshot.exists()) {
-                        // 3. Log that the document was found
-                        Log.d("EventCreation", "Document snapshot exists.");
-
-                        // THIS IS THE MOST LIKELY POINT OF FAILURE
                         Event event = documentSnapshot.toObject(Event.class);
 
                         if (event != null) {
-                            // 4. Log that the conversion to an Event object was successful
-                            Log.d("EventCreation", "Event object created successfully. Event name: " + event.getEventName());
                             populateEventForm(event);
                         } else {
-                            // 5. Log a critical error if the object is null after conversion
-                            Log.e("EventCreation", "ERROR: Event object is null. Check your Event.java class and Firestore fields.");
                             Toast.makeText(this, "Error: Could not parse event data.", Toast.LENGTH_SHORT).show();
                         }
 
                     } else {
-                        // 6. Log that the document was not found in the database
-                        Log.e("EventCreation", "ERROR: No document found with ID: " + eventId);
                         Toast.makeText(this, "Event not found", Toast.LENGTH_SHORT).show();
                         finish();
                     }
                 })
                 .addOnFailureListener(e -> {
-                    // 7. Log any failure in the database call itself
-                    Log.e("EventCreation", "Firestore call failed!", e);
                     Toast.makeText(this, "Failed to load event details", Toast.LENGTH_SHORT).show();
                     finish();
                 });
     }
 
-// In EventCreationActivity.java
-
     private void populateEventForm(Event event) {
-        // Store the fresh event data so it can be used when saving
         eventToEdit = event;
-
-        // Set the title and button text for edit mode
         ((TextView) findViewById(R.id.event_creation_title)).setText("Update Event");
         btnCreate.setText("Update Event");
 
-        // Populate all the form fields using your existing view variables
         etEventName.setText(event.getEventName());
         etDescription.setText(event.getDescription());
         etDate.setText(event.getDate());
@@ -838,7 +697,6 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
             etSocialMediaLink.setText(event.getSocialMediaLink());
         }
 
-        // Set spinner selection
         ArrayAdapter<String> adapter = (ArrayAdapter<String>) spinnerCategory.getAdapter();
         for (int i = 0; i < adapter.getCount(); i++) {
             if (adapter.getItem(i).equals(event.getCategory())) {
@@ -847,18 +705,15 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
             }
         }
 
-        // Set image previews from URLs
         posterImageUrl = event.getCoverImageUrl();
         catalogImageUrls = new ArrayList<>(event.getAdditionalImageUrls());
         updatePosterPreview();
         updateCatalogPreview();
 
-        // Load uploaded document text and name
         uploadedDocText = event.getUploadedDocumentText();
         uploadedDocName = event.getUploadedDocumentName();
         updateUploadedDocumentsDisplay();
 
-        // Handle the scheduling UI
         if (event.getPublishAt() > System.currentTimeMillis()) {
             scheduleSwitch.setChecked(true);
             scheduleLayout.setVisibility(View.VISIBLE);
@@ -945,8 +800,6 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         return true;
     }
 
-
-
     private void resetForm() {
         etEventName.setText("");
         etDescription.setText("");
@@ -956,20 +809,18 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         etMaxGuests.setText("");
         etFee.setText("");
         spinnerCategory.setSelection(0);
-        
-        // Clear uploaded document
+
         uploadedDocName = "";
         uploadedDocText = "";
         updateUploadedDocumentsDisplay();
-        
-        // Clear images
+
         newPosterUri = null;
         posterImageUrl = "";
         newCatalogUris.clear();
         catalogImageUrls.clear();
         updatePosterPreview();
         updateCatalogPreview();
-        
+
         Toast.makeText(this, "Form has been reset", Toast.LENGTH_SHORT).show();
     }
 
