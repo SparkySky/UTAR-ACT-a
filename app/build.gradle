@@ -15,6 +15,17 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        def props = new Properties()
+        def localPropsFile = rootProject.file('local.properties')
+        if (localPropsFile.exists()) {
+            props.load(new FileInputStream(localPropsFile))
+        }
+        def geminiKey = props.getProperty('GEMINI_API_KEY', '')
+        if (!geminiKey?.trim()) {
+            logger.lifecycle('Warning: GEMINI_API_KEY not set in local.properties; R.string.gemini_api_key will be empty.')
+        }
+        resValue 'string', 'gemini_api_key', geminiKey
     }
 
     buildTypes {
