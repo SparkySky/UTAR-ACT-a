@@ -4,6 +4,11 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.text.Spannable;
+import android.text.SpannableStringBuilder;
+import android.text.style.RelativeSizeSpan;
+import android.text.style.StyleSpan;
+import android.graphics.Typeface;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -20,6 +25,8 @@ import com.meow.utaract.utils.Event;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ChatActivity extends AppCompatActivity {
 
@@ -159,7 +166,7 @@ public class ChatActivity extends AppCompatActivity {
                         }
                     }
                 }
-                appendBubble(text, false);
+                appendBubble(formatAiText(text), false);
             });
         }
         @Override
@@ -181,6 +188,10 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private void appendBubble(String text, boolean isUser) {
+        appendBubble((CharSequence) text, isUser);
+    }
+
+    private void appendBubble(CharSequence text, boolean isUser) {
         TextView tv = new TextView(this);
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT,
@@ -215,6 +226,105 @@ public class ChatActivity extends AppCompatActivity {
                 lastChild.requestFocus();
             }
         });
+    }
+
+    // Apply simple regex-based formatting to AI text
+    private CharSequence formatAiText(String raw) {
+        if (raw == null || raw.isEmpty()) return "";
+
+        Pattern bullet = Pattern.compile("^[ \\\t]*([*-])\\s+(.*)$");
+        Pattern h1Wrap = Pattern.compile("^\\s*\\*\\*(.+?)\\*\\*\\s*$");
+        Pattern h2Wrap = Pattern.compile("^\\s*\\*(.+?)\\*\\s*$");
+        Pattern h1Lead = Pattern.compile("^\\s*\\*\\*\\s+(.+)$");
+        Pattern h2Lead = Pattern.compile("^\\s*\\*\\s+(.+)$");
+
+        SpannableStringBuilder out = new SpannableStringBuilder();
+        String[] lines = raw.split("\\r?\\n");
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i];
+
+            Matcher mH1 = h1Wrap.matcher(line);
+            Matcher mH2 = h2Wrap.matcher(line);
+            Matcher mH1Lead = h1Lead.matcher(line);
+            Matcher mH2Lead = h2Lead.matcher(line);
+            Matcher mBullet = bullet.matcher(line);
+
+            int start = out.length();
+
+            if (mH1.matches() || mH1Lead.matches()) {
+                String text = mH1.matches() ? mH1.group(1).trim() : mH1Lead.group(1).trim();
+                out.append(text);
+                int end = out.length();
+                out.setSpan(new StyleSpan(Typeface.BOLD), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                out.setSpan(new RelativeSizeSpan(1.4f), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            } else if (mH2.matches() || mH2Lead.matches()) {
+                String text = mH2.matches() ? mH2.group(1).trim() : mH2Lead.group(1).trim();
+                appendWithInlineMarkdown(out, text);
+                int end = out.length();
+                out.setSpan(new StyleSpan(Typeface.BOLD), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                out.setSpan(new RelativeSizeSpan(1.2f), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            } else if (mBullet.matches()) {
+                String text = mBullet.group(2).trim();
+                out.append("\u2022 ");
+                appendWithInlineMarkdown(out, text);
+            } else {
+                appendWithInlineMarkdown(out, line);
+            }
+
+            if (i < lines.length - 1) out.append('\n');
+        }
+
+        return out;
+    }
+
+    private void appendWithInlineMarkdown(SpannableStringBuilder out, String text) {
+        // First handle bold **...**
+        int idx = 0;
+        while (true) {
+            int open = text.indexOf("**", idx);
+            if (open < 0) break;
+            int close = text.indexOf("**", open + 2);
+            if (close < 0) break;
+            // append before
+            if (open > idx) out.append(text, idx, open);
+            String inner = text.substring(open + 2, close);
+            int spanStart = out.length();
+            out.append(inner);
+            int spanEnd = out.length();
+            out.setSpan(new StyleSpan(Typeface.BOLD), spanStart, spanEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            idx = close + 2;
+        }
+        if (idx < text.length()) out.append(text.substring(idx));
+
+        // Now handle single-* emphasis for H2-like emphasis in remaining text (avoid bullets)
+        String current = out.toString();
+        int searchFrom = Math.max(0, out.length() - text.length());
+        int pos = searchFrom;
+        while (pos < out.length()) {
+            int open = current.indexOf('*', pos);
+            if (open < 0 || open + 1 >= out.length()) break;
+            // skip if it's part of ** (already handled)
+            if (open + 1 < current.length() && current.charAt(open + 1) == '*') { pos = open + 2; continue; }
+            int close = current.indexOf('*', open + 1);
+            if (close < 0) break;
+            // ensure not **
+            if (close + 1 < current.length() && current.charAt(close + 1) == '*') { pos = close + 2; continue; }
+            // Apply span and remove markers by replacing them with nothing
+            int spanStart = open;
+            int spanEnd = close - 1; // after removal offset adjusts; we'll compute carefully using builder ops
+
+            // Recompute against builder live: remove closing then opening, then apply span
+            // Remove closing '*'
+            out.delete(close, close + 1);
+            // Remove opening '*'
+            out.delete(open, open + 1);
+            // Apply bold over the inner text
+            out.setSpan(new StyleSpan(Typeface.BOLD), open, close - 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+            // Update current string and continue after the span
+            current = out.toString();
+            pos = open + 1;
+        }
     }
 
     @Override
