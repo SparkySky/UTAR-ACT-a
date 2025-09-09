@@ -32,7 +32,7 @@
     <string name="hint_phone">Phone Number</string>
     <string name="label_preferences">Select Event Preferences (Min.3)</string>
     <string name="btn_save">Save</string>
-    <string name="gemini_api_key">AIzaSyDQSMQS2qUTZqEZ1yemd2roSDUH6IcFS-E</string>
+
     <string name="registered_events">Registered Events</string>
     <string name="news">News</string>
     <string name="store">Store</string>
@@ -40,4 +40,6 @@
 
     <!--For notification (FCM)-->
     <string name="default_notification_channel_id" translatable="false">fcm_default_channel</string>
+
+    <string name="gemini_api_key"></string>
 </resources>
