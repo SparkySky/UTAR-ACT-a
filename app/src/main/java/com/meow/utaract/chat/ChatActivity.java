@@ -217,11 +217,6 @@ public class ChatActivity extends AppCompatActivity {
         });
     }
 
-    @Override
-    public void onBackPressed() {
-        showExitDialog();
-    }
-
     private void showExitDialog() {
         new AlertDialog.Builder(this)
                 .setTitle("Exit Chat")
