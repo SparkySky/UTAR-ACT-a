@@ -27,7 +27,7 @@ public class JoinedEventsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_joined_events);
+        setContentView(R.layout.activity_registered_events_list);
 
         // Initialize Views
         toolbar = findViewById(R.id.toolbar);
