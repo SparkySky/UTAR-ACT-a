@@ -9,6 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.target.Target;
 
 public class FullScreenImageDialogFragment extends DialogFragment {
 
@@ -39,6 +40,7 @@ public class FullScreenImageDialogFragment extends DialogFragment {
             String imageUrl = getArguments().getString(ARG_IMAGE_URL);
             Glide.with(this)
                     .load(imageUrl)
+                    .override(Target.SIZE_ORIGINAL)
                     .into(fullScreenImageView);
         }
 

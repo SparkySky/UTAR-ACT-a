@@ -1,7 +1,10 @@
 package com.meow.utaract;
 
+import androidx.annotation.Keep;
+
 import com.meow.utaract.utils.Event;
 
+@Keep
 public class JoinedEvent {
     private Event event;
     private String registrationStatus;

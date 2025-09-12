@@ -156,6 +156,7 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.NewsViewHolder
 
                     Glide.with(itemView.getContext())
                             .load(imageUrl)
+                            .override(Target.SIZE_ORIGINAL)
                             .into(imageView);
 
                     imageContainer.addView(imageView);

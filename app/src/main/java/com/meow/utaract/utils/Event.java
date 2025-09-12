@@ -1,9 +1,12 @@
 package com.meow.utaract.utils;
 
+import androidx.annotation.Keep;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+@Keep
 public class Event implements Serializable {
     private String eventId;
     private String eventName;

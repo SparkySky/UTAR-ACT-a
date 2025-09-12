@@ -544,7 +544,10 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         ImageView imageView = new ImageView(this);
         imageView.setLayoutParams(new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
         imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        Glide.with(this).load(imageSource).into(imageView);
+        Glide.with(this)
+                .load(imageSource)
+                .override(Target.SIZE_ORIGINAL)
+                .into(imageView);
 
         ImageView removeBtn = new ImageView(this);
         FrameLayout.LayoutParams btnParams = new FrameLayout.LayoutParams(48, 48, Gravity.TOP | Gravity.END);
@@ -569,10 +572,16 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
     private void updatePosterPreview() {
         if (newPosterUri != null) {
             posterFrame.setVisibility(View.VISIBLE);
-            Glide.with(this).load(newPosterUri).into(ivPosterPreview);
+            Glide.with(this)
+                    .load(newPosterUri)
+                    .override(Target.SIZE_ORIGINAL)
+                    .into(ivPosterPreview);
         } else if (posterImageUrl != null && !posterImageUrl.isEmpty()) {
             posterFrame.setVisibility(View.VISIBLE);
-            Glide.with(this).load(posterImageUrl).into(ivPosterPreview);
+            Glide.with(this)
+                    .load(posterImageUrl)
+                    .override(Target.SIZE_ORIGINAL)
+                    .into(ivPosterPreview);
         } else {
             posterFrame.setVisibility(View.GONE);
         }

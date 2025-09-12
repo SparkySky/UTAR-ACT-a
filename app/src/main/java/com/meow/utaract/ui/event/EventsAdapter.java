@@ -10,11 +10,14 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.target.Target;
 import com.google.firebase.auth.FirebaseAuth;
 import com.meow.utaract.EventCreationActivity;
 import com.meow.utaract.EventDetailActivity;
@@ -29,6 +32,7 @@ import java.util.Random;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
+@Keep
 public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.EventViewHolder> {
     private boolean isOrganiser = false; // Add this variable
     private List<HomeViewModel.EventItem> eventItemList;
@@ -147,6 +151,7 @@ public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.EventViewH
                 if (organizer.getProfileImageUrl() != null && !organizer.getProfileImageUrl().isEmpty()) {
                     Glide.with(itemView.getContext())
                             .load(organizer.getProfileImageUrl())
+                            .override(Target.SIZE_ORIGINAL)
                             .placeholder(R.drawable.ic_person)
                             .into(organizerAvatar);
                 } else {
@@ -162,6 +167,7 @@ public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.EventViewH
                 eventBanner.setVisibility(View.VISIBLE);
                 Glide.with(itemView.getContext())
                         .load(event.getCoverImageUrl())
+                        .override(Target.SIZE_ORIGINAL)
                         .into(eventBanner);
                 bannerContainer.setBackgroundColor(Color.TRANSPARENT); // Remove any placeholder color
                 eventBanner.setOnClickListener(v -> {

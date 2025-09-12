@@ -376,24 +376,29 @@ public class LoginActivity extends AppCompatActivity {
 
     // For configuring the notification
     private void getAndStoreFcmToken(String userId) {
-        FirebaseMessaging.getInstance().getToken().addOnCompleteListener(task -> {
-            if (!task.isSuccessful()) {
-                Log.w("FCM", "Fetching FCM registration token failed", task.getException());
-                return;
-            }
-            // Get new FCM registration token
-            String token = task.getResult();
+        if (GmsStatus.isGmsAvailable) {
+            FirebaseMessaging.getInstance().getToken().addOnCompleteListener(task -> {
+                if (!task.isSuccessful()) {
+                    Log.w("FCM", "Fetching FCM registration token failed", task.getException());
+                    return;
+                }
+                // Get new FCM registration token
+                String token = task.getResult();
 
-            // Create a Map to store the token
-            Map<String, Object> tokenData = new HashMap<>();
-            tokenData.put("fcmToken", token);
+                // Create a Map to store the token
+                Map<String, Object> tokenData = new HashMap<>();
+                tokenData.put("fcmToken", token);
 
-            // Use .set() with SetOptions.merge() for a safe update/create
-            FirebaseFirestore db = FirebaseFirestore.getInstance();
-            db.collection("users").document(userId)
-                    .set(tokenData, SetOptions.merge()) // This is the corrected line
-                    .addOnSuccessListener(aVoid -> Log.d("FCM", "FCM token saved successfully."))
-                    .addOnFailureListener(e -> Log.w("FCM", "Error saving FCM token", e));
-        });
+                // Use .set() with SetOptions.merge() for a safe update/create
+                FirebaseFirestore db = FirebaseFirestore.getInstance();
+                db.collection("users").document(userId)
+                        .set(tokenData, SetOptions.merge())
+                        .addOnSuccessListener(aVoid -> Log.d("FCM", "FCM token saved successfully."))
+                        .addOnFailureListener(e -> Log.w("FCM", "Error saving FCM token", e));
+            });
+        } else {
+            // This log is helpful for debugging on non-GMS devices
+            Log.w("FCM", "GMS not available, skipping FCM token retrieval and storage.");
+        }
     }
 }

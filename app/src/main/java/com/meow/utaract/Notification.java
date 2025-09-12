@@ -1,7 +1,10 @@
 package com.meow.utaract;
 
+import androidx.annotation.Keep;
+
 import java.util.Date; // Import Date
 
+@Keep
 public class Notification {
     private String message;
     private String eventId;

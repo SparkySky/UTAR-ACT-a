@@ -1,5 +1,8 @@
 package com.meow.utaract;
 
+import androidx.annotation.Keep;
+
+@Keep
 public class Applicant {
     private String userId;
     private String userName;

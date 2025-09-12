@@ -17,7 +17,8 @@ import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
+import android.content.Context;
+import android.view.inputmethod.InputMethodManager;
 
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.meow.utaract.AiService;
@@ -73,7 +74,14 @@ public class ChatActivity extends AppCompatActivity {
         if (TextUtils.isEmpty(userMessage)) return;
         appendBubble(userMessage, true);
         chatInput.setText("");
-        
+
+        // 1. Disable the send button immediately
+        sendButton.setEnabled(false);
+        sendButton.setText("..."); // Optional: change text to indicate loading
+
+        // 2. Close the keyboard
+        closeKeyboard();
+
         // Show loading indicator
         appendBubble("Thinking...", false);
 
@@ -167,6 +175,9 @@ public class ChatActivity extends AppCompatActivity {
                         }
                     }
                 }
+                // 3. Re-enable the send button after getting a response
+                sendButton.setEnabled(true);
+                sendButton.setText("Send"); // Restore original text
                 appendBubble(formatAiText(text), false);
             });
         }
@@ -183,6 +194,8 @@ public class ChatActivity extends AppCompatActivity {
                         }
                     }
                 }
+                sendButton.setEnabled(true);
+                sendButton.setText("Send");
                 appendBubble("Sorry, I encountered an error. Please try again.", false);
             });
         }
@@ -237,53 +250,77 @@ public class ChatActivity extends AppCompatActivity {
         });
     }
 
-    // Apply simple regex-based formatting to AI text
+    /**
+     * Formats a raw string with simple markdown into a styled CharSequence.
+     * This version uses a more efficient regex approach to handle inline styles.
+     *
+     * @param raw The raw string from the AI, which may contain markdown.
+     * @return A CharSequence with bold and list styles applied.
+     */
     private CharSequence formatAiText(String raw) {
-        if (raw == null || raw.isEmpty()) return "";
-
-        Pattern bullet = Pattern.compile("^[ \\\t]*([*-])\\s+(.*)$");
-        Pattern h1Wrap = Pattern.compile("^\\s*\\*\\*(.+?)\\*\\*\\s*$");
-        Pattern h2Wrap = Pattern.compile("^\\s*\\*(.+?)\\*\\s*$");
-        Pattern h1Lead = Pattern.compile("^\\s*\\*\\*\\s+(.+)$");
-        Pattern h2Lead = Pattern.compile("^\\s*\\*\\s+(.+)$");
-
-        SpannableStringBuilder out = new SpannableStringBuilder();
-        String[] lines = raw.split("\\r?\\n");
-        for (int i = 0; i < lines.length; i++) {
-            String line = lines[i];
-
-            Matcher mH1 = h1Wrap.matcher(line);
-            Matcher mH2 = h2Wrap.matcher(line);
-            Matcher mH1Lead = h1Lead.matcher(line);
-            Matcher mH2Lead = h2Lead.matcher(line);
-            Matcher mBullet = bullet.matcher(line);
-
-            int start = out.length();
-
-            if (mH1.matches() || mH1Lead.matches()) {
-                String text = mH1.matches() ? mH1.group(1).trim() : mH1Lead.group(1).trim();
-                out.append(text);
-                int end = out.length();
-                out.setSpan(new StyleSpan(Typeface.BOLD), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                out.setSpan(new RelativeSizeSpan(1.4f), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-            } else if (mH2.matches() || mH2Lead.matches()) {
-                String text = mH2.matches() ? mH2.group(1).trim() : mH2Lead.group(1).trim();
-                appendWithInlineMarkdown(out, text);
-                int end = out.length();
-                out.setSpan(new StyleSpan(Typeface.BOLD), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                out.setSpan(new RelativeSizeSpan(1.2f), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-            } else if (mBullet.matches()) {
-                String text = mBullet.group(2).trim();
-                out.append("\u2022 ");
-                appendWithInlineMarkdown(out, text);
-            } else {
-                appendWithInlineMarkdown(out, line);
-            }
-
-            if (i < lines.length - 1) out.append('\n');
+        if (raw == null || raw.isEmpty()) {
+            return "";
         }
 
-        return out;
+        SpannableStringBuilder builder = new SpannableStringBuilder();
+        String[] lines = raw.split("\\r?\\n"); // Split the text into lines
+
+        // Regex to find **bold** and *italic* text.
+        // It captures the markers (like **) and the content separately.
+        Pattern inlinePattern = Pattern.compile("(\\*\\*|\\*)(.+?)\\1");
+
+        for (String line : lines) {
+            // Handle bullet points first
+            if (line.trim().startsWith("* ")) {
+                builder.append("\u2022 "); // Append a bullet character
+                String content = line.substring(line.indexOf("*") + 1).trim();
+                applyInlineStyles(builder, content, inlinePattern);
+            } else {
+                applyInlineStyles(builder, line, inlinePattern);
+            }
+            builder.append("\n"); // Add a newline character after each line
+        }
+
+        return builder;
+    }
+
+    /**
+     * A helper method to apply inline markdown styles (like bold) to a line of text.
+     *
+     * @param builder The SpannableStringBuilder to append to.
+     * @param line The line of text to process.
+     * @param pattern The regex pattern for finding inline styles.
+     */
+    private void applyInlineStyles(SpannableStringBuilder builder, String line, Pattern pattern) {
+        Matcher matcher = pattern.matcher(line);
+        int lastEnd = 0;
+
+        while (matcher.find()) {
+            // Append the text before the current match
+            builder.append(line.substring(lastEnd, matcher.start()));
+
+            String marker = matcher.group(1); // The markdown characters (* or **)
+            String content = matcher.group(2); // The text inside the markers
+
+            int start = builder.length();
+            builder.append(content);
+            int end = builder.length();
+
+            // Apply a bold style for both * and **
+            builder.setSpan(new StyleSpan(Typeface.BOLD), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+            // Apply a larger text size for ** (acting as a heading)
+            if ("**".equals(marker)) {
+                builder.setSpan(new RelativeSizeSpan(1.2f), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
+
+            lastEnd = matcher.end();
+        }
+
+        // Append any remaining text after the last match
+        if (lastEnd < line.length()) {
+            builder.append(line.substring(lastEnd));
+        }
     }
 
     private void appendWithInlineMarkdown(SpannableStringBuilder out, String text) {
@@ -354,6 +391,14 @@ public class ChatActivity extends AppCompatActivity {
                 })
                 .setCancelable(true)
                 .show();
+    }
+
+    private void closeKeyboard() {
+        View view = this.getCurrentFocus();
+        if (view != null) {
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        }
     }
 }
 

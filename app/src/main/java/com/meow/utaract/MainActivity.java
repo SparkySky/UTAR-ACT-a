@@ -22,7 +22,6 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
-import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 import com.google.android.material.navigation.NavigationView;
 import com.meow.utaract.databinding.ActivityMainBinding;
@@ -148,12 +147,6 @@ public class MainActivity extends AppCompatActivity {
 
         Menu navMenu = navigationView.getMenu();
         navMenu.findItem(R.id.nav_manage_events).setVisible(isOrganiser);
-    }
-
-    private void openNewsActivity() {
-        Intent intent = new Intent(this, NewsActivity.class);
-        intent.putExtra("IS_ORGANISER", isOrganiser); // PASS THE FLAG
-        startActivity(intent);
     }
 
     private void loadUserProfile(boolean isOrganiser) {

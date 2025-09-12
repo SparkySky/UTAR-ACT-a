@@ -4,6 +4,10 @@ import android.util.Log;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.meow.utaract.utils.Event;
 import com.meow.utaract.utils.EventCreationStorage;
 import com.meow.utaract.utils.GuestProfile;
@@ -17,6 +21,7 @@ import java.util.stream.Collectors;
 public class HomeViewModel extends ViewModel {
 
     private static final String TAG = "HomeViewModel";
+    private final MutableLiveData<List<Event>> events;
     private final MutableLiveData<List<EventItem>> displayedEventItems = new MutableLiveData<>();
     private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>();
     private final MutableLiveData<List<String>> activeFilters = new MutableLiveData<>(new ArrayList<>());
@@ -28,7 +33,14 @@ public class HomeViewModel extends ViewModel {
     private final EventCreationStorage eventStorage;
     private final GuestProfileStorage profileStorage;
 
+    private final MutableLiveData<GuestProfile> userProfile = new MutableLiveData<>();
+
+    public LiveData<GuestProfile> getUserProfile() {
+        return userProfile;
+    }
+
     public HomeViewModel() {
+        events = new MutableLiveData<>();
         eventStorage = new EventCreationStorage();
         profileStorage = new GuestProfileStorage(null);
     }
@@ -81,6 +93,20 @@ public class HomeViewModel extends ViewModel {
                 displayedEventItems.setValue(new ArrayList<>());
             }
         });
+    }
+
+    public void fetchUserProfile() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null && !currentUser.isAnonymous()) {
+            FirebaseFirestore.getInstance().collection("guest_profiles").document(currentUser.getUid())
+                    .get()
+                    .addOnSuccessListener(documentSnapshot -> {
+                        if (documentSnapshot.exists()) {
+                            GuestProfile profile = documentSnapshot.toObject(GuestProfile.class);
+                            userProfile.setValue(profile);
+                        }
+                    });
+        }
     }
 
     public void setSearchQuery(String query) {

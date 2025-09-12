@@ -33,6 +33,7 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.bumptech.glide.request.target.Target;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.ChecksumException;
@@ -104,6 +105,7 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        homeViewModel = new ViewModelProvider(this).get(HomeViewModel.class);
         binding = FragmentHomeBinding.inflate(inflater, container, false);
 
         userAvatar = binding.userAvatar;
@@ -176,6 +178,11 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        userAvatar = view.findViewById(R.id.user_avatar);
+        userAvatar.setOnClickListener(this::showPopupMenu);
+        moreOptionsButton.setOnClickListener(this::showPopupMenu);
+        updateHeaderOnScroll();
+
         // GET FLAG FROM MAIN ACTIVITY
         if (getActivity() instanceof MainActivity) {
             MainActivity activity = (MainActivity) getActivity();
@@ -191,10 +198,37 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
             moreOptionsButton.setVisibility(View.VISIBLE);
         }
 
-        userAvatar.setOnClickListener(this::showPopupMenu);
-        moreOptionsButton.setOnClickListener(this::showPopupMenu);
+        // 1. Trigger the profile fetch from the ViewModel
+        homeViewModel.fetchUserProfile();
 
-        updateHeaderOnScroll();
+        // 2. Observe the LiveData for changes
+        homeViewModel.getUserProfile().observe(getViewLifecycleOwner(), profile -> {
+            if (profile != null) {
+                // This code runs when the profile data is ready
+                if (isAdded() && getActivity() != null) {
+                    // Update the avatar image
+                    if (profile.getProfileImageUrl() != null && !profile.getProfileImageUrl().isEmpty()) {
+                        Glide.with(requireActivity())
+                                .load(profile.getProfileImageUrl())
+                                .placeholder(R.drawable.ic_person)
+                                .into(userAvatar);
+                    }
+
+                    // Set the click listener to open the edit profile screen
+                    userAvatar.setOnClickListener(v -> {
+                        Intent intent = new Intent(getActivity(), GuestFormActivity.class);
+                        // Pass the isOrganiser flag and the loaded profile object
+                        // We get isOrganiser from the MainActivity to ensure consistency
+                        if (getActivity() instanceof MainActivity) {
+                            boolean isOrganiser = ((MainActivity) getActivity()).isOrganiser();
+                            intent.putExtra("IS_ORGANISER", isOrganiser);
+                        }
+                        intent.putExtra("EXISTING_PROFILE", profile);
+                        startActivity(intent);
+                    });
+                }
+            }
+        });
     }
 
     private void loadOrganiserProfilePicture() {
@@ -203,6 +237,7 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
         if (profile != null && profile.getProfileImageUrl() != null && !profile.getProfileImageUrl().isEmpty()) {
             Glide.with(this)
                     .load(profile.getProfileImageUrl())
+                    .override(Target.SIZE_ORIGINAL)
                     .placeholder(R.drawable.icon_bar_avatar) // A default placeholder
                     .into(userAvatar);
         }

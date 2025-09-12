@@ -26,6 +26,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.target.Target;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -199,7 +200,11 @@ public class EventDetailActivity extends AppCompatActivity {
         TextView eventLocationText = findViewById(R.id.event_location_text);
         TextView eventDescriptionText = findViewById(R.id.event_description_text);
 
-        Glide.with(this).load(event.getCoverImageUrl()).placeholder(R.drawable.event_banner_placeholder).into(eventPosterImage);
+        Glide.with(this)
+                .load(event.getCoverImageUrl())
+                .override(Target.SIZE_ORIGINAL)
+                .placeholder(R.drawable.event_banner_placeholder)
+                .into(eventPosterImage);
         eventTitleText.setText(event.getEventName());
         eventDateTimeText.setText(String.format("%s\n%s", event.getDate(), event.getTime()));
         eventLocationText.setText(event.getLocation());
@@ -216,6 +221,7 @@ public class EventDetailActivity extends AppCompatActivity {
 
             Glide.with(this)
                     .load(organizerProfile.getProfileImageUrl())
+                    .override(Target.SIZE_ORIGINAL)
                     .placeholder(R.drawable.ic_person)
                     .into(organizerAvatarImage);
         } else {
@@ -254,7 +260,10 @@ public class EventDetailActivity extends AppCompatActivity {
                 imageView.setLayoutParams(params);
                 imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
 
-                Glide.with(this).load(imageUrl).into(imageView);
+                Glide.with(this)
+                        .load(imageUrl)
+                        .override(Target.SIZE_ORIGINAL)
+                        .into(imageView);
 
                 imageView.setOnClickListener(v -> {
                     FullScreenImageDialogFragment dialog = FullScreenImageDialogFragment.newInstance(imageUrl);

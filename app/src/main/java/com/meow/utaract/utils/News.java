@@ -1,8 +1,6 @@
 package com.meow.utaract.utils;
 
-import android.content.Context;
-
-import com.google.firebase.auth.FirebaseAuth;
+import androidx.annotation.Keep;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -10,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Keep
 public class News implements Serializable {
     private String newsId;
     private String organizerId;

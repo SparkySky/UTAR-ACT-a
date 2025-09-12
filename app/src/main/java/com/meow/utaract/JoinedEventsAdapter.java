@@ -78,6 +78,7 @@ public class JoinedEventsAdapter extends RecyclerView.Adapter<JoinedEventsAdapte
 
             Glide.with(context)
                     .load(joinedEvent.getEvent().getCoverImageUrl())
+                    .override(Target.SIZE_ORIGINAL)
                     .placeholder(R.drawable.event_banner_placeholder)
                     .into(eventImageView);
 

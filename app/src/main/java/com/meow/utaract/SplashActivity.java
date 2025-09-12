@@ -1,13 +1,17 @@
 package com.meow.utaract;
 
-import android.animation.ArgbEvaluator; // Import for color interpolation
-import android.animation.ValueAnimator; // Import for value animation
+import android.animation.ArgbEvaluator;
+import android.animation.ValueAnimator;
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Color; // Import for Color class
-import android.graphics.PorterDuff; // Import for PorterDuff
+import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -15,8 +19,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat; // For getting colors reliably
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.firebase.auth.FirebaseUser;
 import com.meow.utaract.firebase.AuthService;
 
@@ -24,6 +29,7 @@ public class SplashActivity extends AppCompatActivity {
 
     private static final int SPLASH_DELAY = 3400;
     private static final int TYPEWRITER_DELAY = 30;
+    private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
 
     private ImageView ivLogo;
     private TextView tvSlogan;
@@ -31,7 +37,7 @@ public class SplashActivity extends AppCompatActivity {
     private CharSequence sloganText;
     private int sloganIndex;
     private final Handler typewriterHandler = new Handler(Looper.getMainLooper());
-    private ValueAnimator glowAnimator; // Declare the ValueAnimator
+    private ValueAnimator glowAnimator;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,26 +47,22 @@ public class SplashActivity extends AppCompatActivity {
         ivLogo = findViewById(R.id.iv_logo);
         tvSlogan = findViewById(R.id.tv_slogan);
         rippleView = findViewById(R.id.ripple_view);
-
         ivLogo.setVisibility(View.INVISIBLE);
         rippleView.setVisibility(View.INVISIBLE);
-
         sloganText = "Activity . Community . Togetherness";
         tvSlogan.setText("");
 
-        setupGlowAnimator(); // Initialize the glow animator
+        setupGlowAnimator();
         startAnimations();
     }
 
     private void setupGlowAnimator() {
-        // Animate from a bright white overlay to fully transparent (normal)
-        int startColor = Color.parseColor("#A0FFFFFF"); // A semi-transparent white for the "bright" effect
-        int endColor = Color.TRANSPARENT; // Fades to no overlay
+        int startColor = Color.parseColor("#A0FFFFFF");
+        int endColor = Color.TRANSPARENT;
 
         glowAnimator = ValueAnimator.ofObject(new ArgbEvaluator(), startColor, endColor);
-        glowAnimator.setDuration(1100); // Duration of the fade
+        glowAnimator.setDuration(1100);
 
-        // This animation will only run once, not repeat.
         glowAnimator.addUpdateListener(animation -> {
             int animatedValue = (int) animation.getAnimatedValue();
             ivLogo.setColorFilter(animatedValue, PorterDuff.Mode.SRC_ATOP);
@@ -91,9 +93,8 @@ public class SplashActivity extends AppCompatActivity {
             }
             @Override
             public void onAnimationEnd(Animation animation) {
-                // Start continuous zoom and the new brightening effect
                 ivLogo.startAnimation(zoomInOut);
-                glowAnimator.start(); // Start the glow animator
+                glowAnimator.start();
                 typewriterHandler.postDelayed(characterAdder, TYPEWRITER_DELAY);
             }
             @Override
@@ -139,7 +140,7 @@ public class SplashActivity extends AppCompatActivity {
         ivLogo.clearAnimation();
         rippleView.clearAnimation();
         if (glowAnimator != null && glowAnimator.isRunning()) {
-            glowAnimator.cancel(); // Cancel the glow animator
+            glowAnimator.cancel();
         }
     }
 }

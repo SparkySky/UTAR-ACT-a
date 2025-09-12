@@ -20,10 +20,7 @@ import java.util.UUID;
 public class ApplicantListViewModel extends ViewModel {
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final MutableLiveData<List<Applicant>> applicants = new MutableLiveData<>();
-    // This list is no longer needed for notification logic but can be kept for other purposes if necessary.
-    // private List<String> existingApplicantIds = new ArrayList<>();
     private final List<Applicant> applicantListCache = new ArrayList<>();
-
 
     public LiveData<List<Applicant>> getApplicants() {
         return applicants;
@@ -81,7 +78,6 @@ public class ApplicantListViewModel extends ViewModel {
         }
         return -1;
     }
-
 
     public void updateApplicantStatus(String eventId, String userId, String newStatus, String organizerId) {
         db.collection("events").document(eventId).get().addOnSuccessListener(eventDocument -> {

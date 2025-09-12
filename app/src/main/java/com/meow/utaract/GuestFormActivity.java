@@ -13,6 +13,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.target.Target;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.firebase.auth.FirebaseAuth;
@@ -185,7 +186,10 @@ public class GuestFormActivity extends AppCompatActivity {
 
             downloadedImageUrl = existingProfile.getProfileImageUrl();
             if (downloadedImageUrl != null && !downloadedImageUrl.isEmpty()) {
-                Glide.with(this).load(downloadedImageUrl).into(profileImageView);
+                Glide.with(this)
+                        .load(downloadedImageUrl)
+                        .override(Target.SIZE_ORIGINAL)
+                        .into(profileImageView);
             }
 
             List<String> savedPrefs = existingProfile.getPreferences();
@@ -288,7 +292,10 @@ public class GuestFormActivity extends AppCompatActivity {
                 .addOnSuccessListener(taskSnapshot -> storageRef.getDownloadUrl()
                         .addOnSuccessListener(uri -> {
                             downloadedImageUrl = uri.toString();
-                            Glide.with(this).load(downloadedImageUrl).into(profileImageView);
+                            Glide.with(this)
+                                    .load(downloadedImageUrl)
+                                    .override(Target.SIZE_ORIGINAL)
+                                    .into(profileImageView);
                             Toast.makeText(this, "Image uploaded successfully", Toast.LENGTH_SHORT).show();
                         }))
                 .addOnFailureListener(e -> Toast.makeText(this, "Upload failed: " + e.getMessage(), Toast.LENGTH_LONG).show());
