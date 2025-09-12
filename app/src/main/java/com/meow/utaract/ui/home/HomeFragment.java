@@ -1,3 +1,4 @@
+// sparkysky/utar-act-a/UTAR-ACT-a-CP10/app/src/main/java/com/meow/utaract/ui/home/HomeFragment.java
 package com.meow.utaract.ui.home;
 
 import android.annotation.SuppressLint;
@@ -33,7 +34,6 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
-import com.bumptech.glide.request.target.Target;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.ChecksumException;
@@ -76,7 +76,7 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
     private CircleImageView userAvatar;
     private ImageButton moreOptionsButton;
     private boolean isOrganiser;
-
+    private GuestProfileStorage guestProfileStorage; // You need to initialize this
 
     // QR Scanner Launcher
     private final ActivityResultLauncher<ScanOptions> qrScannerLauncher =
@@ -105,8 +105,11 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        homeViewModel = new ViewModelProvider(this).get(HomeViewModel.class);
         binding = FragmentHomeBinding.inflate(inflater, container, false);
+        View root = binding.getRoot();
+
+        // Initialize GuestProfileStorage
+        guestProfileStorage = new GuestProfileStorage(requireContext());
 
         userAvatar = binding.userAvatar;
         moreOptionsButton = binding.moreOptionsButton;
@@ -123,9 +126,8 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
         setupUIListeners();
         observeViewModels();
         loadDataWithPreferences();
-        loadOrganiserProfilePicture();
 
-        return binding.getRoot();
+        return root;
     }
 
     private void showScanOptionsDialog() {
@@ -180,25 +182,7 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        CircleImageView userAvatar = view.findViewById(R.id.user_avatar);
-
         userAvatar.setOnClickListener(this::showPopupMenu);
-
-        // Trigger the profile fetch from the ViewModel
-        homeViewModel.fetchUserProfile();
-
-        // Observe the LiveData for profile changes
-        homeViewModel.getUserProfile().observe(getViewLifecycleOwner(), profile -> {
-            if (profile != null && profile.getProfileImageUrl() != null && !profile.getProfileImageUrl().isEmpty()) {
-                if (isAdded() && getActivity() != null) {
-                    Glide.with(requireActivity())
-                            .load(profile.getProfileImageUrl())
-                            .placeholder(R.drawable.ic_person)
-                            .into(userAvatar);
-                }
-            }
-        });
-
         moreOptionsButton.setOnClickListener(this::showPopupMenu);
         updateHeaderOnScroll();
 
@@ -208,65 +192,32 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
             isOrganiser = activity.isOrganiser();
         }
 
+        // Let the ViewModel handle fetching and providing the profile
+        homeViewModel.fetchUserProfile();
+        homeViewModel.getUserProfile().observe(getViewLifecycleOwner(), profile -> {
+            if (profile != null && profile.getProfileImageUrl() != null && !profile.getProfileImageUrl().isEmpty()) {
+                Glide.with(requireContext())
+                        .load(profile.getProfileImageUrl())
+                        .placeholder(R.drawable.ic_person)
+                        .into(userAvatar);
+            }
+        });
+
         if (isOrganiser) {
-            loadOrganiserProfilePicture();
             userAvatar.setVisibility(View.VISIBLE);
             moreOptionsButton.setVisibility(View.GONE);
-
         } else {
             userAvatar.setVisibility(View.GONE);
             moreOptionsButton.setVisibility(View.VISIBLE);
         }
-
-        // 1. Trigger the profile fetch from the ViewModel
-        homeViewModel.fetchUserProfile();
-
-        // 2. Observe the LiveData for changes
-        homeViewModel.getUserProfile().observe(getViewLifecycleOwner(), profile -> {
-            // This code will run whenever the profile data is ready
-            if (profile != null && profile.getProfileImageUrl() != null && !profile.getProfileImageUrl().isEmpty()) {
-                if (isAdded() && getActivity() != null) { // Ensure the fragment is still attached
-                    Glide.with(requireActivity())
-                            .load(profile.getProfileImageUrl())
-                            .placeholder(R.drawable.ic_person) // A default placeholder image
-                            .into(userAvatar);
-                }
-            }
-        });
-    }
-
-    private void loadOrganiserProfilePicture() {
-        // Trigger the profile fetch from the ViewModel
-        homeViewModel.fetchUserProfile();
-
-        // Observe the LiveData for profile changes
-        homeViewModel.getUserProfile().observe(getViewLifecycleOwner(), profile -> {
-            if (profile != null && profile.getProfileImageUrl() != null && !profile.getProfileImageUrl().isEmpty()) {
-                if (isAdded() && getActivity() != null) {
-                    Glide.with(requireActivity())
-                            .load(profile.getProfileImageUrl())
-                            .placeholder(R.drawable.ic_person)
-                            .override(Target.SIZE_ORIGINAL)
-                            .into(userAvatar);
-                }
-            }
-        });
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
     }
 
     private void loadDataWithPreferences() {
-        if (getContext() == null) return;
-
-        GuestProfile profile = new GuestProfileStorage(getContext()).loadProfile();
+        GuestProfile profile = guestProfileStorage.loadProfile();
         List<String> preferences = (profile != null && profile.getPreferences() != null)
                 ? profile.getPreferences()
                 : new ArrayList<>();
 
-        // First, set the filters. Then, fetch the events.
         homeViewModel.setCategoryFilters(preferences);
         homeViewModel.fetchEvents();
     }
@@ -278,11 +229,9 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
         }
 
         Uri uri = Uri.parse(url);
-        // Check if the URL matches the expected format
         if ("https".equals(uri.getScheme()) && "utaract.page.link".equals(uri.getHost()) && "/event".equals(uri.getPath())) {
             String eventId = uri.getQueryParameter("id");
             if (eventId != null && !eventId.isEmpty()) {
-                // If a valid event ID is found, open the event detail page
                 Intent intent = new Intent(getActivity(), EventDetailActivity.class);
                 intent.putExtra("EVENT_ID", eventId);
                 startActivity(intent);
@@ -295,7 +244,6 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
     }
 
     private void setupRecyclerView() {
-        // THE FIX: Pass the fragment's root view (binding.getRoot()) to the adapter's constructor.
         eventsAdapter = new EventsAdapter(new ArrayList<>(), binding.getRoot());
         binding.recyclerViewEvents.setLayoutManager(new LinearLayoutManager(getContext()));
         binding.recyclerViewEvents.setAdapter(eventsAdapter);
@@ -315,10 +263,7 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
         });
 
         binding.searchContainer.setOnClickListener(v -> showScanOptionsDialog());
-
-        binding.userAvatar.setOnClickListener(this::showPopupMenu);
         binding.filterButton.setOnClickListener(v -> showFilterDialog());
-
 
         binding.nestedScrollView.setOnScrollChangeListener((NestedScrollView.OnScrollChangeListener) (v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
             updateHeaderOnScroll();
@@ -349,13 +294,8 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
             return false;
         });
 
-        // The swipe refresh listener  calls the fetchEvents()
-        binding.swipeRefreshLayout.setOnRefreshListener(() -> homeViewModel.fetchEvents());
-
-        // Listener for notification listing button
         binding.notificationIcon.setOnClickListener(v -> {
             Intent intent = new Intent(getActivity(), NotificationActivity.class);
-            // Pass the flag here
             intent.putExtra("IS_ORGANISER", isOrganiser);
             startActivity(intent);
         });
@@ -398,28 +338,21 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
 
         mainViewModel.isOrganiser().observe(getViewLifecycleOwner(), isOrganiser -> {
             if (isOrganiser != null && isOrganiser) {
-                // Show both buttons for organizers - create event button on top, ask bot button below
                 binding.addEventFab.setVisibility(View.VISIBLE);
                 binding.addEventFab.setOnClickListener(v ->
                         startActivity(new Intent(getActivity(), EventCreationActivity.class)));
-                // Show Ask Bot button for organizers too
                 binding.askBotGeneral.setVisibility(View.VISIBLE);
                 binding.askBotGeneral.setOnClickListener(v -> {
                     startActivity(new Intent(getActivity(), com.meow.utaract.chat.ChatActivity.class)
                             .putExtra("MODE", "GENERAL"));
                 });
-                // Debug log
-                android.util.Log.d("HomeFragment", "Organizer mode: Both buttons should be visible");
             } else {
                 binding.addEventFab.setVisibility(View.GONE);
-                // Show Ask Bot button for guests
                 binding.askBotGeneral.setVisibility(View.VISIBLE);
                 binding.askBotGeneral.setOnClickListener(v -> {
                     startActivity(new Intent(getActivity(), com.meow.utaract.chat.ChatActivity.class)
                             .putExtra("MODE", "GENERAL"));
                 });
-                // Debug log
-                android.util.Log.d("HomeFragment", "Guest mode: Only ask bot button should be visible");
             }
         });
     }
@@ -432,16 +365,17 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
             if (id == R.id.action_profile_setting) {
                 Intent intent = new Intent(getActivity(), GuestFormActivity.class);
                 intent.putExtra("IS_EDIT", true);
-                if (mainViewModel.isOrganiser().getValue() != null) {
-                    intent.putExtra("IS_ORGANISER", mainViewModel.isOrganiser().getValue());
-                }
+
+
+                // Use the fragment's local 'isOrganiser' field instead of the LiveData value
+                intent.putExtra("IS_ORGANISER", isOrganiser);
+
+
                 startActivity(intent);
                 return true;
             }
             if (id == R.id.action_logout) {
-                if (getContext() != null) {
-                    new GuestProfileStorage(getContext()).clearProfile();
-                }
+                guestProfileStorage.clearProfile();
                 FirebaseAuth.getInstance().signOut();
                 Intent intent = new Intent(getActivity(), LoginActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);

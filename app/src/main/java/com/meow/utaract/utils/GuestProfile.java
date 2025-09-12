@@ -2,25 +2,17 @@ package com.meow.utaract.utils;
 
 import androidx.annotation.Keep;
 
-import com.google.gson.annotations.SerializedName;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 @Keep
 public class GuestProfile implements Serializable {
-    @SerializedName("name")
     private String name;
-    @SerializedName("email")
     private String email;
-    @SerializedName("phone")
     private String phone;
-    @SerializedName("profileImageUrl")
     private String profileImageUrl;
-    @SerializedName("preferences")
     private List<String> preferences;
-    @SerializedName("following")
     private List<String> following;
     public List<String> getFollowing() { return following; }
 
@@ -28,15 +20,6 @@ public class GuestProfile implements Serializable {
         // You can initialize lists here to prevent them from being null.
         this.following = new ArrayList<>();
         this.preferences = new ArrayList<>();
-    }
-
-    public GuestProfile(String name, String email, String phone, List<String> preferences) {
-        this.name = name;
-        this.email = email;
-        this.phone = phone;
-        this.preferences = preferences;
-        this.profileImageUrl = "";
-        this.following = new ArrayList<>();
     }
 
 /*    public boolean isFollowing(String organizerId) {
@@ -58,6 +41,16 @@ public class GuestProfile implements Serializable {
         if (following != null) {
             following.remove(organizerId);
         }
+    }
+
+
+    public GuestProfile(String name, String email, String phone, List<String> preferences) {
+        this.name = name;
+        this.email = email;
+        this.phone = phone;
+        this.preferences = preferences;
+        this.profileImageUrl = "";
+        this.following = new ArrayList<>();
     }
 
     public String getName() { return name; }

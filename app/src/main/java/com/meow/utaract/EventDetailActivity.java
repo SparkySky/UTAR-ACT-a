@@ -52,7 +52,7 @@ public class EventDetailActivity extends AppCompatActivity {
     private Event event;
     private GuestProfile organizerProfile;
     private GuestProfile userProfile;
-    private GuestProfileStorage profileStorage;
+    //private GuestProfileStorage profileStorage;
     private Button followButton, registerButton;
     private FloatingActionButton qrCodeButton, askButton;
     private ProgressBar buttonProgressBar, pageProgressBar;
@@ -63,6 +63,9 @@ public class EventDetailActivity extends AppCompatActivity {
     private Bitmap qrCodeToSave;
     private LinearLayout catalogueImagesLayout;
     private LinearLayout catalogueSection;
+    private TextView tvOrganiser;
+    private FirebaseFirestore db;
+    private GuestProfileStorage guestProfileStorage;
 
     // Permission Launcher: Request storage permission
     private final ActivityResultLauncher<String> requestPermissionLauncher =

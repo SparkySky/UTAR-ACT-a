@@ -71,14 +71,18 @@ public class GuestProfileStorage {
         String userId = currentUser.getUid();
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-        // --- THIS IS THE FIX ---
-        // Save the GuestProfile object directly to the document.
-        // Firestore will handle the field mapping correctly.
+        // Convert the profile to a JSON string
+        String profileJson = gson.toJson(profile);
+
+        // Create a map to hold the JSON string
+        Map<String, Object> data = new HashMap<>();
+        data.put("profile_json", profileJson);
+
+        // Save the map to Firestore
         db.collection("guest_profiles").document(userId)
-                .set(profile, SetOptions.merge()) // Pass the object directly
+                .set(data, SetOptions.merge()) // Use the map with the JSON string
                 .addOnSuccessListener(aVoid -> Log.d("Firestore", "Profile successfully written!"))
                 .addOnFailureListener(e -> Log.e("Firestore", "Error writing profile", e));
-        // ----------------------
     }
 
     // Download profile from Firestore
@@ -98,6 +102,14 @@ public class GuestProfileStorage {
                     if (document.exists()) {
                         String json = document.getString("profile_json");
                         GuestProfile profile = gson.fromJson(json, GuestProfile.class);
+
+                        // --- THIS IS THE FIX ---
+                        // Save the freshly downloaded profile to the local file
+                        if (profile != null) {
+                            saveProfile(profile);
+                        }
+                        // ----------------------
+
                         callback.onSuccess(profile);
                     } else {
                         callback.onFailure(new Exception("Profile not found"));

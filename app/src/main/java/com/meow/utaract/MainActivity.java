@@ -59,7 +59,6 @@ public class MainActivity extends AppCompatActivity {
         mainViewModel.setOrganiser(isOrganiser);
 
         setupNavigation(isOrganiser);
-        loadUserProfile(isOrganiser);
 
         // Ask for notification permission when the main activity is created.
         askNotificationPermission();
@@ -127,7 +126,6 @@ public class MainActivity extends AppCompatActivity {
                 Intent intent = new Intent(MainActivity.this, ManageEventsActivity.class);
                 intent.putExtra("IS_ORGANISER", isOrganiser);
                 startActivity(intent);
-
                 // Close the drawer
                 binding.drawerLayout.closeDrawer(binding.navView);
             } else if (id == R.id.nav_news) {

@@ -62,7 +62,7 @@ public class GuestFormActivity extends AppCompatActivity {
         preferenceList.addAll(Arrays.asList(getResources().getStringArray(R.array.event_categories)));
 
         populatePreferences();
-        loadExistingProfile();
+        loadProfile();
 
         if (isRegistrationMode) {
             setupRegistrationMode();
@@ -177,7 +177,52 @@ public class GuestFormActivity extends AppCompatActivity {
         }
     }
 
-    private void loadExistingProfile() {
+    private void loadProfile() {
+        // First, try to download the latest profile from Firestore.
+        storage.downloadProfileFromFirestore(new GuestProfileStorage.FirestoreCallback() {
+            @Override
+            public void onSuccess(GuestProfile profile) {
+                // If successful, save the updated profile locally and then populate the UI.
+                storage.saveProfile(profile);
+                populateForm(profile);
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                // If it fails (e.g., offline), load the profile from the local file.
+                GuestProfile existingProfile = storage.loadProfile();
+                if (existingProfile != null) {
+                    populateForm(existingProfile);
+                }
+            }
+        });
+    }
+
+    private void populateForm(GuestProfile profile) {
+        nameInput.setText(profile.getName());
+        emailInput.setText(profile.getEmail());
+        phoneInput.setText(profile.getPhone());
+
+        downloadedImageUrl = profile.getProfileImageUrl();
+        if (downloadedImageUrl != null && !downloadedImageUrl.isEmpty()) {
+            Glide.with(this)
+                    .load(downloadedImageUrl)
+                    .override(Target.SIZE_ORIGINAL)
+                    .into(profileImageView);
+        }
+
+        List<String> savedPrefs = profile.getPreferences();
+        if (savedPrefs != null) {
+            for (int i = 0; i < preferencesChipGroup.getChildCount(); i++) {
+                Chip chip = (Chip) preferencesChipGroup.getChildAt(i);
+                if (savedPrefs.contains(chip.getText().toString())) {
+                    chip.setChecked(true);
+                }
+            }
+        }
+    }
+
+/*    private void loadExistingProfile() {
         GuestProfile existingProfile = storage.loadProfile();
         if (existingProfile != null) {
             nameInput.setText(existingProfile.getName());
@@ -202,7 +247,7 @@ public class GuestFormActivity extends AppCompatActivity {
                 }
             }
         }
-    }
+    }*/
 
     private void saveProfile() {
         String name = nameInput.getText().toString().trim();

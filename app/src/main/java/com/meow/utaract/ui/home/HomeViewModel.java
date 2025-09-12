@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.gson.Gson;
 import com.meow.utaract.utils.Event;
 import com.meow.utaract.utils.EventCreationStorage;
 import com.meow.utaract.utils.GuestProfile;
@@ -26,6 +27,10 @@ public class HomeViewModel extends ViewModel {
     private final MutableLiveData<List<EventItem>> displayedEventItems = new MutableLiveData<>();
     private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>();
     private final MutableLiveData<List<String>> activeFilters = new MutableLiveData<>(new ArrayList<>());
+
+    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private final FirebaseAuth mAuth = FirebaseAuth.getInstance();
+    private final Gson gson = new Gson(); // Add Gson instance
 
     private List<Event> allEvents = new ArrayList<>();
     private Map<String, GuestProfile> organizerProfiles = new HashMap<>();
@@ -73,14 +78,22 @@ public class HomeViewModel extends ViewModel {
     }
 
     public void fetchUserProfile() {
-        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (currentUser != null && !currentUser.isAnonymous()) {
-            FirebaseFirestore.getInstance().collection("guest_profiles").document(currentUser.getUid())
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser != null) {
+            String userId = currentUser.getUid();
+            db.collection("guest_profiles").document(userId)
                     .get()
                     .addOnSuccessListener(documentSnapshot -> {
                         if (documentSnapshot.exists()) {
-                            GuestProfile profile = documentSnapshot.toObject(GuestProfile.class);
-                            userProfile.setValue(profile);
+                            // --- THIS IS THE FIX ---
+                            // Get the JSON string from the "profile_json" field
+                            String json = documentSnapshot.getString("profile_json");
+                            if (json != null) {
+                                // Deserialize the JSON string into a GuestProfile object
+                                GuestProfile profile = gson.fromJson(json, GuestProfile.class);
+                                userProfile.postValue(profile);
+                            }
+                            // ----------------------
                         }
                     });
         }
