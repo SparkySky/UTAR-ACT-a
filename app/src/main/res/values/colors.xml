@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Light Theme Colors -->
     <color name="md_theme_light_primary">#6750A4</color>
     <color name="md_theme_light_onPrimary">#FFFFFF</color>
@@ -31,9 +31,9 @@
     <color name="md_theme_light_outlineVariant">#CAC4D0</color>
 
     <!-- Dark Theme Colors -->
-    <color name="md_theme_dark_primary">#D0BCFF</color>
+    <color name="md_theme_dark_primary">#8C6CC5</color>
     <color name="md_theme_dark_onPrimary">#381E72</color>
-    <color name="md_theme_dark_primaryContainer">#4F378B</color>
+    <color name="md_theme_dark_primaryContainer">#7A5ABF</color>
     <color name="md_theme_dark_onPrimaryContainer">#EADDFF</color>
     <color name="md_theme_dark_secondary">#CCC2DC</color>
     <color name="md_theme_dark_onSecondary">#332D41</color>
@@ -52,7 +52,7 @@
     <color name="md_theme_dark_onBackground">#E6E1E5</color>
     <color name="md_theme_dark_surface">#1C1B1F</color>
     <color name="md_theme_dark_onSurface">#E6E1E5</color>
-    <color name="md_theme_dark_surfaceVariant">#49454F</color>
+    <color name="md_theme_dark_surfaceVariant">#8E8899</color>
     <color name="md_theme_dark_onSurfaceVariant">#CAC4D0</color>
     <color name="md_theme_dark_inverseSurface">#E6E1E5</color>
     <color name="md_theme_dark_inverseOnSurface">#313033</color>

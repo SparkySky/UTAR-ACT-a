@@ -17,6 +17,7 @@ import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.meow.utaract.AiService;
@@ -214,7 +215,15 @@ public class ChatActivity extends AppCompatActivity {
             tv.setTextColor(getResources().getColor(android.R.color.white));
         } else {
             tv.setBackgroundResource(R.drawable.chat_bubble_bot);
-            tv.setTextColor(getResources().getColor(android.R.color.black));
+            // Use theme-aware text color for bot messages: white in dark mode, black in light mode
+            int nightModeFlags = getResources().getConfiguration().uiMode & android.content.res.Configuration.UI_MODE_NIGHT_MASK;
+            if (nightModeFlags == android.content.res.Configuration.UI_MODE_NIGHT_YES) {
+                // Dark mode - use white text
+                tv.setTextColor(getResources().getColor(android.R.color.white));
+            } else {
+                // Light mode - use black text
+                tv.setTextColor(getResources().getColor(android.R.color.black));
+            }
         }
         
         chatContainer.addView(tv);
