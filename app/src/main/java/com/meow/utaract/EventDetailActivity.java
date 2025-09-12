@@ -138,23 +138,21 @@ public class EventDetailActivity extends AppCompatActivity {
     }
 
     private void fetchOrganizerProfile() {
-        if (event.getOrganizerId() == null || event.getOrganizerId().isEmpty()) {
-            displayOrganizerInfo(); // Show "Unknown" but continue
-            return;
-        }
-
+        // ...
         FirebaseFirestore.getInstance().collection("guest_profiles").document(event.getOrganizerId())
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
-                        String json = documentSnapshot.getString("profile_json");
-                        organizerProfile = new Gson().fromJson(json, GuestProfile.class);
+                        // --- THIS IS THE FIX ---
+                        // Use the standard toObject() method to deserialize the profile
+                        organizerProfile = documentSnapshot.toObject(GuestProfile.class);
                     }
-                    displayOrganizerInfo(); // Display whatever we have
+                    displayOrganizerInfo();
                 })
                 .addOnFailureListener(e -> {
-                    displayOrganizerInfo(); // Show "Unknown" on failure
+                    displayOrganizerInfo();
                 });
+        // ----------------------
     }
 
     private void toggleFollowStatus() {

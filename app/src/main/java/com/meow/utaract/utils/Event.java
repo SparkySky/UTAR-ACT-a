@@ -45,6 +45,7 @@ public class Event implements Serializable {
     public void setUploadedDocumentName(String uploadedDocumentName) {
         this.uploadedDocumentName = uploadedDocumentName;
     }
+
     public Event() {
         this.additionalImageUrls = new ArrayList<>();
     }

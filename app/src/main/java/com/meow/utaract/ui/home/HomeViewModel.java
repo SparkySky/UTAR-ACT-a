@@ -22,6 +22,7 @@ public class HomeViewModel extends ViewModel {
 
     private static final String TAG = "HomeViewModel";
     private final MutableLiveData<List<Event>> events;
+    private final MutableLiveData<GuestProfile> userProfile = new MutableLiveData<>();
     private final MutableLiveData<List<EventItem>> displayedEventItems = new MutableLiveData<>();
     private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>();
     private final MutableLiveData<List<String>> activeFilters = new MutableLiveData<>(new ArrayList<>());
@@ -32,30 +33,6 @@ public class HomeViewModel extends ViewModel {
 
     private final EventCreationStorage eventStorage;
     private final GuestProfileStorage profileStorage;
-
-    private final MutableLiveData<GuestProfile> userProfile = new MutableLiveData<>();
-
-    public LiveData<GuestProfile> getUserProfile() {
-        return userProfile;
-    }
-
-    public HomeViewModel() {
-        events = new MutableLiveData<>();
-        eventStorage = new EventCreationStorage();
-        profileStorage = new GuestProfileStorage(null);
-    }
-
-    public LiveData<List<EventItem>> getEventItems() {
-        return displayedEventItems;
-    }
-
-    public LiveData<Boolean> getIsLoading() {
-        return isLoading;
-    }
-
-    public LiveData<List<String>> getActiveFilters() {
-        return activeFilters;
-    }
 
     public void fetchEvents() {
         isLoading.setValue(true);
@@ -107,6 +84,28 @@ public class HomeViewModel extends ViewModel {
                         }
                     });
         }
+    }
+/*    public void fetchUserProfile() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        // Only fetch for logged-in, non-anonymous users
+        if (currentUser != null && !currentUser.isAnonymous()) {
+            FirebaseFirestore.getInstance().collection("guest_profiles").document(currentUser.getUid())
+                    .get()
+                    .addOnSuccessListener(documentSnapshot -> {
+                        if (documentSnapshot.exists()) {
+                            GuestProfile profile = documentSnapshot.toObject(GuestProfile.class);
+                            userProfile.setValue(profile);
+                        }
+                    });
+        }
+    }*/
+
+
+
+    public HomeViewModel() {
+        events = new MutableLiveData<>();
+        eventStorage = new EventCreationStorage();
+        profileStorage = new GuestProfileStorage(null);
     }
 
     public void setSearchQuery(String query) {
@@ -164,4 +163,21 @@ public class HomeViewModel extends ViewModel {
             this.organizer = organizer;
         }
     }
+
+
+    public void setEvents(List<Event> eventList) {
+        events.setValue(eventList);
+    }
+
+    public LiveData<List<EventItem>> getEventItems() {
+        return displayedEventItems;
+    }
+    public LiveData<GuestProfile> getUserProfile() { return userProfile; }
+    public LiveData<Boolean> getIsLoading() {
+        return isLoading;
+    }
+    public LiveData<List<String>> getActiveFilters() {
+        return activeFilters;
+    }
+    public LiveData<List<Event>> getEvents() { return events; }
 }

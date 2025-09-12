@@ -123,6 +123,7 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
         setupUIListeners();
         observeViewModels();
         loadDataWithPreferences();
+        loadOrganiserProfilePicture();
 
         return binding.getRoot();
     }
@@ -178,8 +179,26 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        userAvatar = view.findViewById(R.id.user_avatar);
+
+        CircleImageView userAvatar = view.findViewById(R.id.user_avatar);
+
         userAvatar.setOnClickListener(this::showPopupMenu);
+
+        // Trigger the profile fetch from the ViewModel
+        homeViewModel.fetchUserProfile();
+
+        // Observe the LiveData for profile changes
+        homeViewModel.getUserProfile().observe(getViewLifecycleOwner(), profile -> {
+            if (profile != null && profile.getProfileImageUrl() != null && !profile.getProfileImageUrl().isEmpty()) {
+                if (isAdded() && getActivity() != null) {
+                    Glide.with(requireActivity())
+                            .load(profile.getProfileImageUrl())
+                            .placeholder(R.drawable.ic_person)
+                            .into(userAvatar);
+                }
+            }
+        });
+
         moreOptionsButton.setOnClickListener(this::showPopupMenu);
         updateHeaderOnScroll();
 
@@ -190,9 +209,10 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
         }
 
         if (isOrganiser) {
+            loadOrganiserProfilePicture();
             userAvatar.setVisibility(View.VISIBLE);
             moreOptionsButton.setVisibility(View.GONE);
-            loadOrganiserProfilePicture();
+
         } else {
             userAvatar.setVisibility(View.GONE);
             moreOptionsButton.setVisibility(View.VISIBLE);
@@ -203,44 +223,34 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
 
         // 2. Observe the LiveData for changes
         homeViewModel.getUserProfile().observe(getViewLifecycleOwner(), profile -> {
-            if (profile != null) {
-                // This code runs when the profile data is ready
-                if (isAdded() && getActivity() != null) {
-                    // Update the avatar image
-                    if (profile.getProfileImageUrl() != null && !profile.getProfileImageUrl().isEmpty()) {
-                        Glide.with(requireActivity())
-                                .load(profile.getProfileImageUrl())
-                                .placeholder(R.drawable.ic_person)
-                                .into(userAvatar);
-                    }
-
-                    // Set the click listener to open the edit profile screen
-                    userAvatar.setOnClickListener(v -> {
-                        Intent intent = new Intent(getActivity(), GuestFormActivity.class);
-                        // Pass the isOrganiser flag and the loaded profile object
-                        // We get isOrganiser from the MainActivity to ensure consistency
-                        if (getActivity() instanceof MainActivity) {
-                            boolean isOrganiser = ((MainActivity) getActivity()).isOrganiser();
-                            intent.putExtra("IS_ORGANISER", isOrganiser);
-                        }
-                        intent.putExtra("EXISTING_PROFILE", profile);
-                        startActivity(intent);
-                    });
+            // This code will run whenever the profile data is ready
+            if (profile != null && profile.getProfileImageUrl() != null && !profile.getProfileImageUrl().isEmpty()) {
+                if (isAdded() && getActivity() != null) { // Ensure the fragment is still attached
+                    Glide.with(requireActivity())
+                            .load(profile.getProfileImageUrl())
+                            .placeholder(R.drawable.ic_person) // A default placeholder image
+                            .into(userAvatar);
                 }
             }
         });
     }
 
     private void loadOrganiserProfilePicture() {
-        GuestProfileStorage storage = new GuestProfileStorage(requireContext());
-        GuestProfile profile = storage.loadProfile();
-        if (profile != null && profile.getProfileImageUrl() != null && !profile.getProfileImageUrl().isEmpty()) {
-            Glide.with(this)
-                    .load(profile.getProfileImageUrl())
-                    .override(Target.SIZE_ORIGINAL)
-                    .placeholder(R.drawable.icon_bar_avatar) // A default placeholder
-                    .into(userAvatar);
-        }
+        // Trigger the profile fetch from the ViewModel
+        homeViewModel.fetchUserProfile();
+
+        // Observe the LiveData for profile changes
+        homeViewModel.getUserProfile().observe(getViewLifecycleOwner(), profile -> {
+            if (profile != null && profile.getProfileImageUrl() != null && !profile.getProfileImageUrl().isEmpty()) {
+                if (isAdded() && getActivity() != null) {
+                    Glide.with(requireActivity())
+                            .load(profile.getProfileImageUrl())
+                            .placeholder(R.drawable.ic_person)
+                            .override(Target.SIZE_ORIGINAL)
+                            .into(userAvatar);
+                }
+            }
+        });
     }
 
     @Override

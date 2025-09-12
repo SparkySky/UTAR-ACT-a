@@ -2,8 +2,10 @@
 -keepattributes Signature, *Annotation*, EnclosingMethod
 
 # --- Firebase/Firestore Data Model Keep Rules ---
-# This is the most critical section. It prevents ProGuard from renaming (obfuscating)
+# This is the most critical section. It prevents ProGuard from removing or renaming
 # classes, their empty constructors, and their public members. This is essential
+# for Firestore's .toObject() calls to work correctly in release builds.
+
 -keep public class com.meow.utaract.utils.Event { public <init>(); public *; }
 -keep public class com.meow.utaract.utils.GuestProfile { public <init>(); public *; }
 -keep public class com.meow.utaract.Applicant { public <init>(); public *; }
@@ -11,6 +13,7 @@
 -keep public class com.meow.utaract.Notification { public <init>(); public *; }
 -keep public class com.meow.utaract.utils.News { public <init>(); public *; }
 -keep public class com.meow.utaract.ManagedEventItem { public <init>(); public *; }
+-keep public class com.meow.utaract.GuestFormActivity { public <init>(); public *; }
 
 # --- General Firebase & Google Play Services Rules ---
 -keep public class com.google.firebase.** { public *; }
@@ -18,7 +21,7 @@
 -dontwarn com.google.android.gms.**
 -dontwarn com.google.firebase.**
 
-# --- Library Rules (Glide, ZXing, etc.) ---
+# --- Library Rules (Glide, ZXing, Gson, OkHttp) ---
 -keep public class * implements com.bumptech.glide.module.GlideModule
 -keep public class com.meow.utaract.MyAppGlideModule
 -keep public enum com.bumptech.glide.load.ImageHeaderParser$ImageType { *; }
