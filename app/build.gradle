@@ -28,10 +28,24 @@ android {
         resValue 'string', 'gemini_api_key', geminiKey
     }
 
+    signingConfigs {
+        release {
+            storeFile file(MYAPP_RELEASE_STORE_FILE)
+            storePassword MYAPP_RELEASE_STORE_PASSWORD
+            keyAlias MYAPP_RELEASE_KEY_ALIAS
+            keyPassword MYAPP_RELEASE_KEY_PASSWORD
+        }
+    }
+
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true // Obfuscates and shrinks your code
+            shrinkResources true // Removes unused resources
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release // Tells this build to use your new key
+        }
+        debug {
+            // Your debug settings remain here
         }
     }
     compileOptions {
@@ -40,6 +54,7 @@ android {
     }
     buildFeatures {
         viewBinding true
+        resValues true
     }
 }
 
@@ -61,10 +76,13 @@ dependencies {
 
     implementation 'com.google.code.gson:gson:2.10.1'
 
+    implementation 'com.github.bumptech.glide:glide:4.16.0'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.16.0'
+
+    implementation 'com.google.android.gms:play-services-base:18.4.0'
+
     // Import the Firebase BoM
     implementation platform('com.google.firebase:firebase-bom:34.0.0')
-
-    // TODO: Add the dependencies for Firebase products you want to use
     // When using the BoM, don't specify versions in Firebase dependencies
     implementation 'com.google.firebase:firebase-analytics'
     implementation 'com.google.firebase:firebase-auth'
