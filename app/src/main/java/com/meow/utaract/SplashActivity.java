@@ -24,6 +24,7 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.firebase.auth.FirebaseUser;
 import com.meow.utaract.firebase.AuthService;
+import com.meow.utaract.utils.GuestProfileStorage;
 
 public class SplashActivity extends AppCompatActivity {
 
@@ -119,15 +120,25 @@ public class SplashActivity extends AppCompatActivity {
 
     private void nextActivity() {
         FirebaseUser currentUser = new AuthService().getAuth().getCurrentUser();
+        GuestProfileStorage profileStorage = new GuestProfileStorage(this);
+
         if (currentUser != null && !currentUser.isAnonymous() && currentUser.isEmailVerified()) {
+            // Case 1: A signed-in, email-verified user (an organiser)
             Intent intent = new Intent(this, MainActivity.class);
             intent.putExtra("IS_ORGANISER", true);
             startActivity(intent);
         } else if (currentUser != null && currentUser.isAnonymous()) {
+            // Case 2: A signed-in anonymous user (a guest)
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.putExtra("IS_ORGANISER", false);
+            startActivity(intent);
+        } else if (profileStorage.profileExists()) {
+            // Case 3: No active Firebase user, but a local guest profile exists (a returning guest)
             Intent intent = new Intent(this, MainActivity.class);
             intent.putExtra("IS_ORGANISER", false);
             startActivity(intent);
         } else {
+            // Case 4: No active user and no local profile, redirect to login
             startActivity(new Intent(this, LoginActivity.class));
         }
         finish();

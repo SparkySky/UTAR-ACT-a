@@ -52,7 +52,7 @@ public class EventDetailActivity extends AppCompatActivity {
     private Event event;
     private GuestProfile organizerProfile;
     private GuestProfile userProfile;
-    //private GuestProfileStorage profileStorage;
+    private GuestProfileStorage profileStorage;
     private Button followButton, registerButton;
     private FloatingActionButton qrCodeButton, askButton;
     private ProgressBar buttonProgressBar, pageProgressBar;
@@ -63,9 +63,6 @@ public class EventDetailActivity extends AppCompatActivity {
     private Bitmap qrCodeToSave;
     private LinearLayout catalogueImagesLayout;
     private LinearLayout catalogueSection;
-    private TextView tvOrganiser;
-    private FirebaseFirestore db;
-    private GuestProfileStorage guestProfileStorage;
 
     // Permission Launcher: Request storage permission
     private final ActivityResultLauncher<String> requestPermissionLauncher =
@@ -146,16 +143,17 @@ public class EventDetailActivity extends AppCompatActivity {
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
-                        // --- THIS IS THE FIX ---
-                        // Use the standard toObject() method to deserialize the profile
-                        organizerProfile = documentSnapshot.toObject(GuestProfile.class);
+                        // --- THE FIX ---
+                        String json = documentSnapshot.getString("profile_json");
+                        if (json != null) {
+                            organizerProfile = new Gson().fromJson(json, GuestProfile.class);
+                        }
                     }
                     displayOrganizerInfo();
                 })
                 .addOnFailureListener(e -> {
                     displayOrganizerInfo();
                 });
-        // ----------------------
     }
 
     private void toggleFollowStatus() {

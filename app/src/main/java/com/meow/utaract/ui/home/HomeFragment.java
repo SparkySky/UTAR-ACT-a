@@ -206,6 +206,7 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
         if (isOrganiser) {
             userAvatar.setVisibility(View.VISIBLE);
             moreOptionsButton.setVisibility(View.GONE);
+
         } else {
             userAvatar.setVisibility(View.GONE);
             moreOptionsButton.setVisibility(View.VISIBLE);
@@ -262,7 +263,7 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
             }
         });
 
-        binding.searchContainer.setOnClickListener(v -> showScanOptionsDialog());
+        binding.qrScannerIcon.setOnClickListener(v -> showScanOptionsDialog());
         binding.filterButton.setOnClickListener(v -> showFilterDialog());
 
         binding.nestedScrollView.setOnScrollChangeListener((NestedScrollView.OnScrollChangeListener) (v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
@@ -323,7 +324,7 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
         homeViewModel.setCategoryFilters(selectedCategories);
     }
 
-    private void observeViewModels() {
+    public void observeViewModels() {
         homeViewModel.getEventItems().observe(getViewLifecycleOwner(), eventItems -> {
             if (eventItems != null) {
                 eventsAdapter.updateEvents(eventItems);
@@ -336,23 +337,27 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
             }
         });
 
-        mainViewModel.isOrganiser().observe(getViewLifecycleOwner(), isOrganiser -> {
-            if (isOrganiser != null && isOrganiser) {
-                binding.addEventFab.setVisibility(View.VISIBLE);
-                binding.addEventFab.setOnClickListener(v ->
-                        startActivity(new Intent(getActivity(), EventCreationActivity.class)));
-                binding.askBotGeneral.setVisibility(View.VISIBLE);
-                binding.askBotGeneral.setOnClickListener(v -> {
-                    startActivity(new Intent(getActivity(), com.meow.utaract.chat.ChatActivity.class)
-                            .putExtra("MODE", "GENERAL"));
-                });
-            } else {
-                binding.addEventFab.setVisibility(View.GONE);
-                binding.askBotGeneral.setVisibility(View.VISIBLE);
-                binding.askBotGeneral.setOnClickListener(v -> {
-                    startActivity(new Intent(getActivity(), com.meow.utaract.chat.ChatActivity.class)
-                            .putExtra("MODE", "GENERAL"));
-                });
+        // THE FIX: Move the FAB visibility logic to the observer for the loading state,
+        // and check both the loading state and the organiser status.
+        homeViewModel.getIsLoading().observe(getViewLifecycleOwner(), isLoading -> {
+            if (isLoading != null && !isLoading) { // Only set visibility when loading is complete
+                if (isOrganiser) {
+                    binding.addEventFab.setVisibility(View.VISIBLE);
+                    binding.addEventFab.setOnClickListener(v ->
+                            startActivity(new Intent(getActivity(), EventCreationActivity.class)));
+                    binding.askBotGeneral.setVisibility(View.VISIBLE);
+                    binding.askBotGeneral.setOnClickListener(v -> {
+                        startActivity(new Intent(getActivity(), com.meow.utaract.chat.ChatActivity.class)
+                                .putExtra("MODE", "GENERAL"));
+                    });
+                } else {
+                    binding.addEventFab.setVisibility(View.GONE);
+                    binding.askBotGeneral.setVisibility(View.VISIBLE);
+                    binding.askBotGeneral.setOnClickListener(v -> {
+                        startActivity(new Intent(getActivity(), com.meow.utaract.chat.ChatActivity.class)
+                                .putExtra("MODE", "GENERAL"));
+                    });
+                }
             }
         });
     }
@@ -388,6 +393,13 @@ public class HomeFragment extends Fragment implements FilterBottomSheetDialogFra
             return false;
         });
         popup.show();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Explicitly set the organiser status on resume to ensure the fragment's observer gets the value.
+        mainViewModel.setOrganiser(isOrganiser);
     }
 
     @Override

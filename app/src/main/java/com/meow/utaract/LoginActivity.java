@@ -27,6 +27,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.meow.utaract.firebase.AuthService;
+import com.meow.utaract.utils.GuestProfileStorage;
 
 import java.util.HashMap;
 import java.util.Locale;
@@ -173,16 +174,26 @@ public class LoginActivity extends AppCompatActivity {
         return email.endsWith("@utar.my") || email.endsWith("@1utar.my");
     }
     private void continueAsGuest() {
-        verificationStatusText.setVisibility(View.GONE);
-        setButtonsEnabled(false);
         new AuthService().getAuth().signInAnonymously()
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
-                        Toast.makeText(LoginActivity.this, "Continuing as Guest.", Toast.LENGTH_SHORT).show();
-                        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                        intent.putExtra("IS_ORGANISER", false);
-                        startActivity(intent);
-                        finish();
+                        // Check if a local profile already exists
+                        GuestProfileStorage profileStorage = new GuestProfileStorage(LoginActivity.this);
+                        if (profileStorage.profileExists()) {
+                            // Profile exists, go to main activity
+                            Toast.makeText(LoginActivity.this, "Continuing as Guest.", Toast.LENGTH_SHORT).show();
+                            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                            intent.putExtra("IS_ORGANISER", false);
+                            startActivity(intent);
+                            finish();
+                        } else {
+                            // No profile exists, go to guest form to create one
+                            Toast.makeText(LoginActivity.this, "Please set up your guest profile.", Toast.LENGTH_SHORT).show();
+                            Intent intent = new Intent(LoginActivity.this, GuestFormActivity.class);
+                            intent.putExtra("IS_ORGANISER", false);
+                            startActivity(intent);
+                            finish();
+                        }
                     } else {
                         setButtonsEnabled(true);
                         Toast.makeText(LoginActivity.this, "Guest login failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();

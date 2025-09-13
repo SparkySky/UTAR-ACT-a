@@ -72,5 +72,4 @@ public class MainViewModel extends AndroidViewModel {
     public void setOrganiser(boolean isOrganiser) {
         this.isOrganiser.setValue(isOrganiser);
     }
-
 }
