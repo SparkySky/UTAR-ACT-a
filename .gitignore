@@ -1,8 +1,12 @@
 # === Android Studio & IntelliJ ===
+captures/
+.externalNativeBuild/
+.cxx/
 .idea/
 *.iml
 .DS_Store
 local.properties
+*.log
 
 # === Gradle & Build Artifacts ===
 .gradle/
@@ -35,14 +39,16 @@ ehthumbs.db
 *.key
 *.crt
 
+# Google Services (e.g. APIs or Firebase)
+google-services.json
+
 # === Deployment & Cache Files ===
-.idea/deploymentTargetSelector.xml
-.idea/caches/
-.idea/libraries/
-.idea/modules.xml
-.idea/workspace.xml
-.idea/navEditor.xml
-.idea/assetWizardSettings.xml
-.idea/misc.xml
+.idea/
+*.apk
+*.aab
+*.apks
 pepk.jar
 sign.zip
+
+# Android Profiling
+*.hprof
