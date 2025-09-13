@@ -1,15 +1,46 @@
+# === Android Studio & IntelliJ ===
+.idea/
 *.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
 .DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
 local.properties
+
+# === Gradle & Build Artifacts ===
+.gradle/
+build/
+captures/
+.externalNativeBuild/
+.cxx/
+app/release/
+
+# === Firebase Functions (Node.js) ===
+functions/node_modules/
+functions/lib/
+functions/.firebase/
+functions/.env*
+
+# === Web Assets (if using Firebase Hosting) ===
+public/
+package-lock.json
+
+# === OS & Editor Junk ===
+Thumbs.db
+ehthumbs.db
+*.swp
+*.swo
+*.tmp
+
+# === Keystore & Secrets ===
+*.jks
+*.pem
+*.key
+*.crt
+
+# === Deployment & Cache Files ===
+.idea/deploymentTargetSelector.xml
+.idea/caches/
+.idea/libraries/
+.idea/modules.xml
+.idea/workspace.xml
+.idea/navEditor.xml
+.idea/assetWizardSettings.xml
+.idea/misc.xml
