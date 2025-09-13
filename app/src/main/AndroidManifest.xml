@@ -22,7 +22,7 @@
 
         <!--Notification service-->
         <service
-            android:name=".firebase.MyFirebaseMessagingService"
+            android:name=".MyFirebaseMessagingService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
@@ -30,7 +30,7 @@
         </service>
 
         <activity
-            android:name=".activities.LoginActivity"
+            android:name=".LoginActivity"
             android:exported="true">
 
             <intent-filter android:autoVerify="true">
@@ -53,7 +53,7 @@
         </activity>
 
         <activity
-            android:name=".activities.SplashActivity"
+            android:name=".SplashActivity"
             android:exported="true"
             android:theme="@style/Theme.UTARACT.NoActionBar">
             <intent-filter>
@@ -63,37 +63,36 @@
         </activity>
 
         <activity
-            android:name=".activities.MainActivity">
+            android:name=".MainActivity">
         </activity>
 
         <!-- Set exported based on whether other apps can launch it -->
         <activity
-            android:name=".activities.SignupActivity"/>
+            android:name=".SignupActivity"/>
         <activity
-            android:name=".activities.GuestFormActivity"/>
+            android:name=".GuestFormActivity"/>
         <activity
-            android:name=".activities.EventCreationActivity"/>
+            android:name=".EventCreationActivity"/>
         <activity
-            android:name=".activities.ManageEventsActivity"/>
+            android:name=".ManageEventsActivity"/>
         <activity
-            android:name=".activities.EventDetailActivity"/>
+            android:name=".EventDetailActivity"/>
         <activity
-            android:name=".activities.ApplicantListActivity"/>
+            android:name=".ApplicantListActivity"/>
         <activity
-            android:name=".activities.NewsActivity"
+            android:name=".NewsActivity"
             android:exported="false"/>
         <activity
-            android:name=".activities.ChatActivity"
-            android:exported="false"
-            android:windowSoftInputMode="adjustPan" />
+            android:name=".chat.ChatActivity"
+            android:exported="false"/>
         <activity
-            android:name=".activities.NewsCreationActivity"/>
+            android:name=".NewsCreationActivity"/>
         <activity
-            android:name=".activities.PortraitCaptureActivity"
+            android:name=".PortraitCaptureActivity"
             android:screenOrientation="portrait"/>
-        <activity android:name=".activities.NotificationActivity" />
-        <activity android:name=".activities.TicketActivity" />
-        <activity android:name=".activities.JoinedEventsActivity" />
+        <activity android:name=".NotificationActivity" />
+        <activity android:name=".TicketActivity" />
+        <activity android:name=".JoinedEventsActivity" />
     </application>
 
 </manifest>

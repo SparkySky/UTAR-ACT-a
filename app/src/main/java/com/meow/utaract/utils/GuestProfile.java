@@ -1,12 +1,9 @@
 package com.meow.utaract.utils;
 
-import androidx.annotation.Keep;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-@Keep
 public class GuestProfile implements Serializable {
     private String name;
     private String email;
@@ -16,17 +13,11 @@ public class GuestProfile implements Serializable {
     private List<String> following;
     public List<String> getFollowing() { return following; }
 
-    public GuestProfile() {
-        // You can initialize lists here to prevent them from being null.
-        this.following = new ArrayList<>();
-        this.preferences = new ArrayList<>();
-    }
-
-/*    public boolean isFollowing(String organizerId) {
+    public boolean isFollowing(String organizerId) {
         return following != null && following.contains(organizerId);
     }
 
-    public void setFollowing(List<String> following) { this.following = following; }*/
+    public void setFollowing(List<String> following) { this.following = following; }
 
     public void addFollowing(String organizerId) {
         if (following == null) {

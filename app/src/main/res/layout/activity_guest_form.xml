@@ -7,7 +7,7 @@
     android:fitsSystemWindows="true"
     android:focusable="true"
     android:focusableInTouchMode="true"
-    tools:context=".activities.GuestFormActivity">
+    tools:context=".GuestFormActivity">
 
     <LinearLayout
         android:id="@+id/button_container"

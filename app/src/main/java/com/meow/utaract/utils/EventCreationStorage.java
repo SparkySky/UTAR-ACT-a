@@ -5,8 +5,6 @@ import static android.content.ContentValues.TAG;
 import android.content.Context;
 import android.util.Log;
 
-import androidx.annotation.Keep;
-
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.Query;
@@ -23,7 +21,6 @@ import com.meow.utaract.utils.Event;
 
 import java.util.List;
 
-@Keep
 public class EventCreationStorage {
     private static final String EVENTS_COLLECTION = "events";
     private final FirebaseFirestore firestore;
