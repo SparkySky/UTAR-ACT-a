@@ -1,9 +1,14 @@
 package com.meow.utaract.utils;
 
 import android.content.Context;
+import android.util.Log;
 
+import androidx.annotation.Keep;
+
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
 import com.google.gson.Gson;
 import com.meow.utaract.firebase.AuthService;
 
@@ -12,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Keep
 public class GuestProfileStorage {
     private static final String FILE_NAME = "profile.json";
     private final Context context;
@@ -56,28 +62,27 @@ public class GuestProfileStorage {
         }
     }
 
-
     // Upload profile to Firestore - For organiser only
     public void uploadProfileToFirestore(GuestProfile profile) {
-        FirebaseUser user = new AuthService().getAuth().getCurrentUser();
-        if (user == null) return;
-
-        String uid = user.getUid();
-        String json = gson.toJson(profile);
-
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser == null || currentUser.isAnonymous()) {
+            return;
+        }
+        String userId = currentUser.getUid();
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        db.collection("guest_profiles").document(uid)
-                .set(new HashMap<String, Object>() {{
-                    put("profile_json", json);
-                    put("is_organiser", true); // Mark as organizer
-                    put("following", profile.getFollowing()); // Store following list
-                }})
-                .addOnSuccessListener(aVoid -> {
-                    // Optional: show success message
-                })
-                .addOnFailureListener(e -> {
-                    e.printStackTrace();
-                });
+
+        // Convert the profile to a JSON string
+        String profileJson = gson.toJson(profile);
+
+        // Create a map to hold the JSON string
+        Map<String, Object> data = new HashMap<>();
+        data.put("profile_json", profileJson);
+
+        // Save the map to Firestore
+        db.collection("guest_profiles").document(userId)
+                .set(data, SetOptions.merge()) // Use the map with the JSON string
+                .addOnSuccessListener(aVoid -> Log.d("Firestore", "Profile successfully written!"))
+                .addOnFailureListener(e -> Log.e("Firestore", "Error writing profile", e));
     }
 
     // Download profile from Firestore
@@ -97,6 +102,14 @@ public class GuestProfileStorage {
                     if (document.exists()) {
                         String json = document.getString("profile_json");
                         GuestProfile profile = gson.fromJson(json, GuestProfile.class);
+
+                        // --- THIS IS THE FIX ---
+                        // Save the freshly downloaded profile to the local file
+                        if (profile != null) {
+                            saveProfile(profile);
+                        }
+                        // ----------------------
+
                         callback.onSuccess(profile);
                     } else {
                         callback.onFailure(new Exception("Profile not found"));

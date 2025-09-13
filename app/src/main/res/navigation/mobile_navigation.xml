@@ -7,13 +7,13 @@
 
     <fragment
         android:id="@+id/nav_home"
-        android:name="com.meow.utaract.ui.home.HomeFragment"
+        android:name="com.meow.utaract.activities.fragments.HomeFragment"
         android:label="@string/menu_home"
         tools:layout="@layout/fragment_home" />
 
 <!--    <fragment-->
 <!--        android:id="@+id/nav_manage_events"-->
-<!--        android:name="com.meow.utaract.ui.manage.ManageEventsFragment"-->
+<!--        android:name="com.meow.utaract.activities.fragments.ManageEventsFragment"-->
 <!--        android:label="Manage Events"-->
 <!--        tools:layout="@layout/fragment_manage_events" />-->
 

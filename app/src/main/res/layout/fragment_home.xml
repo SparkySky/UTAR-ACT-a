@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:focusable="true"
     android:focusableInTouchMode="true"
-    tools:context=".ui.home.HomeFragment">
+    tools:context=".activities.fragments.HomeFragment">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -179,7 +179,7 @@
         android:layout_gravity="bottom|end"
         android:layout_margin="8dp"
         android:orientation="vertical"
-        app:layout_behavior="com.meow.utaract.utils.ScrollAwareFABBehavior">
+        app:layout_behavior="com.meow.utaract.activities.services.ScrollAwareFABBehavior">
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/addEventFab"
