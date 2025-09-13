@@ -11,8 +11,6 @@ import android.util.Log;
 
 import androidx.appcompat.app.AppCompatDelegate;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.appcheck.FirebaseAppCheck;
 import com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory;
@@ -37,7 +35,6 @@ public class MyApplication extends Application {
         } else {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
         }
-
 
         FirebaseApp.initializeApp(this);
         // Initialize Firebase App Check

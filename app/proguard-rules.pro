@@ -8,12 +8,12 @@
 
 -keep public class com.meow.utaract.utils.Event { public <init>(); public *; }
 -keep public class com.meow.utaract.utils.GuestProfile { public <init>(); public *; }
--keep public class com.meow.utaract.Applicant { public <init>(); public *; }
--keep public class com.meow.utaract.JoinedEvent { public <init>(); public *; }
--keep public class com.meow.utaract.Notification { public <init>(); public *; }
+-keep public class com.meow.utaract.utils.Applicant { public <init>(); public *; }
+-keep public class com.meow.utaract.utils.JoinedEvent { public <init>(); public *; }
+-keep public class com.meow.utaract.utils.Notification { public <init>(); public *; }
 -keep public class com.meow.utaract.utils.News { public <init>(); public *; }
--keep public class com.meow.utaract.ManagedEventItem { public <init>(); public *; }
--keep public class com.meow.utaract.GuestFormActivity { public <init>(); public *; }
+-keep public class com.meow.utaract.utils.ManagedEventItem { public <init>(); public *; }
+-keep public class com.meow.utaract.activities.GuestFormActivity { public <init>(); public *; }
 
 # --- General Firebase & Google Play Services Rules ---
 -keep public class com.google.firebase.** { public *; }
@@ -23,7 +23,7 @@
 
 # --- Library Rules (Glide, ZXing, Gson, OkHttp) ---
 -keep public class * implements com.bumptech.glide.module.GlideModule
--keep public class com.meow.utaract.MyAppGlideModule
+-keep public class com.meow.utaract.activities.services.MyAppGlideModule
 -keep public enum com.bumptech.glide.load.ImageHeaderParser$ImageType { *; }
 -keep class com.google.zxing.** { *; }
 -keep class com.journeyapps.zxing.android.embedded.** { *; }
