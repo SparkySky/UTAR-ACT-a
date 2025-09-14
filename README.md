@@ -1,5 +1,5 @@
 
-<img width="449" height="134" alt="icon_utaract_tranparent_crop" src="https://github.com/user-attachments/assets/a075a738-e0ee-4ca4-872c-54d260e8735b" />
+<center><img width="449" height="134" alt="icon_utaract_tranparent_crop" src="https://github.com/user-attachments/assets/a075a738-e0ee-4ca4-872c-54d260e8735b" /></center>center>
 
 # UTAR ACT - University Event Listing and Management App
 
