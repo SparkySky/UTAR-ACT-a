@@ -31,7 +31,18 @@ UTAR ACT is a comprehensive Android application designed for managing university
       <img src="https://github.com/user-attachments/assets/fed72944-fc2b-4a8d-8f76-f9edc6729ecb" width="240" height="520"/><br>Ticket System (For Verification)
     </td>
     <td align="center">
-      <img src="https://github.com/user-attachments/assets/a5a30f1e-7d7a-47e2-840c-b207e81556af" width="240" height="520"/><br>News Feed
+      <img src="https://github.com/user-attachments/assets/54cc4b03-0b45-48d3-a16d-3a164e5e8db9" width="240" height="520"/><br>Event Management
+    </td>
+  </tr>
+    <tr>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/a5a30f1e-7d7a-47e2-840c-b207e81556af" width="240" height="520"/><br>Event Applicant Management
+    </td>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/8b458095-5232-41df-ba96-1b4de04f7a1e" width="240" height="520"/><br>News Feed
+    </td>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/23e1b915-8c57-4526-8c46-a2b232822e1e" width="240" height="520"/><br>Chatbot
     </td>
   </tr>
 </table>
