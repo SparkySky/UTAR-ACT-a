@@ -53,6 +53,11 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.UUID;
 
+/**
+ * Main Activity for creating and editing events.
+ * Handles UI setup, input validation, media/document upload,
+ * and Firestore integration for event storage.
+ */
 public class EventCreationActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     private TextInputEditText etEventName, etDescription, etDate, etTime, etLocation, etMaxGuests, etFee, etPublishDate, etPublishTime;
     private Spinner spinnerCategory;
@@ -88,6 +93,7 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_event_creation);
 
+        // Initialize UI components and setup logic
         initializeViews();
         setupNavigationDrawer();
         setupCategorySpinner();
@@ -99,6 +105,7 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
 
         updateUploadedDocumentsDisplay();
 
+        // If editing an existing event, load event details
         if (getIntent().hasExtra("eventId")) {
             isEditMode = true;
             String eventId = getIntent().getStringExtra("eventId");
@@ -106,6 +113,7 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         }
     }
 
+    /** Initialize all UI components by binding them to layout IDs. */
     private void initializeViews() {
         etEventName = findViewById(R.id.etEventName);
         etDescription = findViewById(R.id.etDescription);
@@ -133,6 +141,7 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         uploadedDocumentsLayout = findViewById(R.id.uploadedDocumentsLayout);
     }
 
+    /** Setup navigation drawer with listener and toggle button. */
     private void setupNavigationDrawer() {
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
@@ -140,6 +149,7 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         drawerButton.setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
     }
 
+    /** Populate spinner with event categories from resources. */
     private void setupCategorySpinner() {
         String[] categories = getResources().getStringArray(R.array.event_categories);
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, categories);
@@ -147,6 +157,7 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         spinnerCategory.setAdapter(adapter);
     }
 
+    /** Configure date and time pickers for event date/time and publish scheduling. */
     private void setupDateTimePickers() {
         final Calendar calendar = Calendar.getInstance();
         etDate.setOnClickListener(v -> {
@@ -181,6 +192,7 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         });
     }
 
+    /** Attach listeners to buttons (reset, upload poster, catalog, doc, etc.). */
     private void setupButtonListeners() {
         findViewById(R.id.btnReset).setOnClickListener(v -> resetForm());
         btnUploadPoster.setOnClickListener(v -> openImagePicker(posterImageLauncher, false));
@@ -197,6 +209,7 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         });
     }
 
+    /** Validate form and trigger save operation for new or edited event. */
     private void saveEvent() {
         if (!isFormValid()) return;
 
@@ -206,6 +219,10 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         uploadAllImagesAndSaveEvent();
     }
 
+    /**
+     * Upload all new images (poster + catalog) to Firebase Storage.
+     * Once uploaded, save the event record to Firestore with image URLs.
+     */
     private void uploadAllImagesAndSaveEvent() {
         final StorageReference storageRef = FirebaseStorage.getInstance().getReference();
         final List<Task<Uri>> uploadTasks = new ArrayList<>();
@@ -258,6 +275,11 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         }
     }
 
+    /**
+     * Save or update event object into Firestore.
+     * @param finalPosterUrl Poster image URL
+     * @param finalCatalogUrls List of catalog image URLs
+     */
     private void saveEventToFirestore(String finalPosterUrl, List<String> finalCatalogUrls) {
         String eventName = Objects.requireNonNull(etEventName.getText()).toString().trim();
         long publishAt = scheduleSwitch.isChecked() ? publishCalendar.getTimeInMillis() : System.currentTimeMillis();
@@ -309,6 +331,8 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
             eventStorage.createEvent(event, callback);
         }
     }
+
+    /** Setup edit mode by pre-populating UI with existing event data. */
     private void setupEditMode() {
         ((TextView) findViewById(R.id.event_creation_title)).setText("Update Event");
         btnCreate.setText("Update Event");
@@ -366,6 +390,7 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         }
     }
 
+    /** Persist an event (create or update) using EventCreationStorage. */
     private void persistEvent(Event event) {
         if (isEditMode) {
             event.setEventId(eventToEdit.getEventId());
@@ -376,6 +401,7 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         }
     }
 
+    /** Get callback for Firestore create/update with success/failure handling. */
     private EventCreationStorage.EventCreationCallback getEventCreationCallback() {
         return new EventCreationStorage.EventCreationCallback() {
             @Override
@@ -398,6 +424,7 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         };
     }
 
+    /** Initialize activity result launchers for poster, catalog, and document selection. */
     private void initializeImageLaunchers() {
         posterImageLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
             if (result.getResultCode() == RESULT_OK && result.getData() != null) {
@@ -442,6 +469,7 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         });
     }
 
+    /** Open file picker for document upload (txt/pdf/doc). */
     private void openDocPicker() {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("*/*");
@@ -452,6 +480,12 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         docPickerLauncher.launch(intent);
     }
 
+    /**
+     * Read text content from a given document URI.
+     * Supports plain text, PDF, DOC, and DOCX.
+     * @param uri File URI
+     * @return Extracted text or null on error
+     */
     private String readTextFromUri(Uri uri) {
         try {
             String mimeType = getContentResolver().getType(uri);
@@ -493,6 +527,11 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         }
     }
 
+    /**
+     * Extract file name from URI.
+     * @param uri File URI
+     * @return File name string
+     */
     private String getFileName(Uri uri) {
         String result = null;
         if (uri.getScheme().equals("content")) {
@@ -515,6 +554,11 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         return result;
     }
 
+    /**
+     * Open image picker for selecting poster or catalog images.
+     * @param launcher ActivityResultLauncher
+     * @param allowMultiple Whether multiple selection is allowed
+     */
     private void openImagePicker(ActivityResultLauncher<Intent> launcher, boolean allowMultiple) {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT).setType("image/*");
         if (allowMultiple) {
@@ -523,6 +567,7 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         launcher.launch(intent);
     }
 
+    /** Update UI preview of catalog images (existing + new uploads). */
     private void updateCatalogPreview() {
         layoutCatalogPreview.removeAllViews();
 
@@ -537,6 +582,10 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         catalogScrollView.setVisibility(catalogImageUrls.isEmpty() && newCatalogUris.isEmpty() ? View.GONE : View.VISIBLE);
     }
 
+    /**
+     * Add a single catalog item (image + remove button) to preview layout.
+     * @param imageSource Can be URI (new image) or String (URL from Firestore)
+     */
     private void addSingleCatalogItem(Object imageSource) {
         FrameLayout itemFrame = new FrameLayout(this);
         LinearLayout.LayoutParams frameParams = new LinearLayout.LayoutParams(250, 250);
@@ -571,6 +620,7 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         layoutCatalogPreview.addView(itemFrame);
     }
 
+    /** Update UI preview of poster image. */
     private void updatePosterPreview() {
         if (newPosterUri != null) {
             posterFrame.setVisibility(View.VISIBLE);
@@ -589,6 +639,7 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         }
     }
 
+    /** Display uploaded documents in a styled card with delete option. */
     private void updateUploadedDocumentsDisplay() {
         uploadedDocumentsLayout.removeAllViews();
 
@@ -668,6 +719,10 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         }
     }
 
+    /**
+     * Load event details from Firestore by eventId.
+     * Pre-fills form for editing.
+     */
     private void loadEventDetails(String eventId) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         db.collection("events").document(eventId).get()
@@ -692,6 +747,7 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
                 });
     }
 
+    /** Populate UI form fields with given event data. */
     private void populateEventForm(Event event) {
         eventToEdit = event;
         ((TextView) findViewById(R.id.event_creation_title)).setText("Update Event");
@@ -739,6 +795,11 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         }
     }
 
+    /**
+     * Validate all form inputs before saving event.
+     * Checks required fields, date rules, and publish scheduling.
+     * @return true if valid, false otherwise
+     */
     private boolean isFormValid() {
         if (Objects.requireNonNull(etEventName.getText()).toString().trim().isEmpty()) {
             etEventName.setError("Event name is required");
@@ -811,6 +872,7 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         return true;
     }
 
+    /** Reset all form fields and clear uploaded media/documents. */
     private void resetForm() {
         etEventName.setText("");
         etDescription.setText("");
@@ -835,6 +897,10 @@ public class EventCreationActivity extends AppCompatActivity implements Navigati
         Toast.makeText(this, "Form has been reset", Toast.LENGTH_SHORT).show();
     }
 
+    /**
+     * Handle navigation drawer item selection.
+     * Example: Navigate back to Home.
+     */
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();

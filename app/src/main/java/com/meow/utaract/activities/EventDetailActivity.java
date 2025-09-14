@@ -65,17 +65,16 @@ public class EventDetailActivity extends AppCompatActivity {
     private LinearLayout catalogueImagesLayout;
     private LinearLayout catalogueSection;
 
-    // Permission Launcher: Request storage permission
+    // Permission Launcher: handles storage permission requests
     private final ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
                 if (isGranted) {
-                    // Permission is granted. Continue the action.
+                    // Permission granted → save QR code
                     if (qrCodeToSave != null) {
                         saveQrCodeToGallery(qrCodeToSave);
                     }
                 } else {
-                    // Explain to the user that the feature is unavailable because the
-                    // features requires a permission that the user has denied.
+                    // Permission denied → show error message
                     Toast.makeText(this, "Permission denied. Cannot save QR Code.", Toast.LENGTH_SHORT).show();
                 }
             });
@@ -85,21 +84,28 @@ public class EventDetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_event_detail);
 
+        // Get event ID passed via Intent
         eventId = getIntent().getStringExtra("EVENT_ID");
 
+        // Validate event ID
         if (eventId == null || eventId.isEmpty()) {
             Toast.makeText(this, "Error: Event ID not found.", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
 
+        // Initialize UI components
         initializeViews();
+
+        // Load user profile from local storage
         profileStorage = new GuestProfileStorage(this);
         userProfile = profileStorage.loadProfile();
 
+        // Fetch event details from Firestore
         fetchEventDetails();
     }
 
+    // Initialize all views from layout
     private void initializeViews() {
         followButton = findViewById(R.id.follow_button);
         registerButton = findViewById(R.id.registerButton);
@@ -113,6 +119,7 @@ public class EventDetailActivity extends AppCompatActivity {
         catalogueSection = findViewById(R.id.catalogueSection);
     }
 
+    // Fetch event details from Firestore
     private void fetchEventDetails() {
         pageProgressBar.setVisibility(View.VISIBLE);
         contentScrollView.setVisibility(View.INVISIBLE);
@@ -124,6 +131,7 @@ public class EventDetailActivity extends AppCompatActivity {
                     if (documentSnapshot.exists()) {
                         event = documentSnapshot.toObject(Event.class);
                         if (event != null) {
+                            // Populate UI and fetch more info
                             populateViews();
                             fetchOrganizerProfile();
                             setupListeners();
@@ -138,13 +146,13 @@ public class EventDetailActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> showErrorAndFinish("Failed to load event: " + e.getMessage()));
     }
 
+    // Fetch organizer profile from Firestore
     private void fetchOrganizerProfile() {
-        // ...
         FirebaseFirestore.getInstance().collection("guest_profiles").document(event.getOrganizerId())
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
-                        // --- THE FIX ---
+                        // Organizer profile stored as JSON
                         String json = documentSnapshot.getString("profile_json");
                         if (json != null) {
                             organizerProfile = new Gson().fromJson(json, GuestProfile.class);
@@ -153,17 +161,19 @@ public class EventDetailActivity extends AppCompatActivity {
                     displayOrganizerInfo();
                 })
                 .addOnFailureListener(e -> {
+                    // If failure → still show UI
                     displayOrganizerInfo();
                 });
     }
 
+    // Toggle follow/unfollow organizer
     private void toggleFollowStatus() {
         if (userProfile == null) return;
 
         String organizerId = event.getOrganizerId();
         String organizerName = (organizerProfile != null) ? organizerProfile.getName() : "the organizer";
 
-        // Check if current user is trying to follow themselves
+        // Prevent user from following themselves
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null && currentUser.getUid().equals(organizerId)) {
             Toast.makeText(this, "You cannot follow yourself", Toast.LENGTH_SHORT).show();
@@ -173,19 +183,19 @@ public class EventDetailActivity extends AppCompatActivity {
         GuestProfileStorage storage = new GuestProfileStorage(this);
 
         if (userProfile.getFollowing() != null && userProfile.getFollowing().contains(organizerId)) {
-            // Unfollow
+            // Already following → unfollow
             userProfile.removeFollowing(organizerId);
             Toast.makeText(this, "Unfollowed " + organizerName, Toast.LENGTH_SHORT).show();
         } else {
-            // Follow
+            // Not following → follow
             userProfile.addFollowing(organizerId);
             Toast.makeText(this, "Followed " + organizerName, Toast.LENGTH_SHORT).show();
         }
 
-        // Save locally (guests don't save to Firestore)
+        // Save locally
         storage.saveProfile(userProfile);
 
-        // If user is organizer, also update Firestore
+        // If user logged in with Firebase, update Firestore too
         if (currentUser != null && !currentUser.isAnonymous()) {
             storage.uploadProfileToFirestore(userProfile);
         }
@@ -193,6 +203,7 @@ public class EventDetailActivity extends AppCompatActivity {
         updateFollowButtonState();
     }
 
+    // Populate event details in UI
     private void populateViews() {
         ImageView eventPosterImage = findViewById(R.id.event_poster_image);
         TextView eventTitleText = findViewById(R.id.event_title_text);
@@ -200,18 +211,24 @@ public class EventDetailActivity extends AppCompatActivity {
         TextView eventLocationText = findViewById(R.id.event_location_text);
         TextView eventDescriptionText = findViewById(R.id.event_description_text);
 
+        // Load poster image
         Glide.with(this)
                 .load(event.getCoverImageUrl())
                 .override(Target.SIZE_ORIGINAL)
                 .placeholder(R.drawable.event_banner_placeholder)
                 .into(eventPosterImage);
+
+        // Set event details
         eventTitleText.setText(event.getEventName());
         eventDateTimeText.setText(String.format("%s\n%s", event.getDate(), event.getTime()));
         eventLocationText.setText(event.getLocation());
         eventDescriptionText.setText(event.getDescription());
+
+        // Show catalogue images
         populateCatalogueImages();
     }
 
+    // Display organizer info in UI
     private void displayOrganizerInfo() {
         CircleImageView organizerAvatarImage = findViewById(R.id.organizer_avatar_image);
         TextView organizerNameText = findViewById(R.id.organizer_name_text);
@@ -219,28 +236,33 @@ public class EventDetailActivity extends AppCompatActivity {
         if (organizerProfile != null) {
             organizerNameText.setText(organizerProfile.getName());
 
+            // Load avatar
             Glide.with(this)
                     .load(organizerProfile.getProfileImageUrl())
                     .override(Target.SIZE_ORIGINAL)
                     .placeholder(R.drawable.ic_person)
                     .into(organizerAvatarImage);
         } else {
+            // Default info if missing
             organizerNameText.setText("Unknown Organizer");
             organizerAvatarImage.setImageResource(R.drawable.ic_person);
         }
+
         updateFollowButtonState();
 
-        // Show the content now that everything is ready
+        // Show content after data loaded
         pageProgressBar.setVisibility(View.GONE);
         contentScrollView.setVisibility(View.VISIBLE);
         registrationLayout.setVisibility(View.VISIBLE);
     }
 
+    // Attach listeners to buttons
     private void setupListeners() {
         followButton.setOnClickListener(v -> toggleFollowStatus());
         qrCodeButton.setOnClickListener(v -> generateAndShowQrCode());
         registerButton.setOnClickListener(v -> handleRegistrationClick());
         askButton.setOnClickListener(v -> {
+            // Open chat activity
             Intent intent = new Intent(this, ChatActivity.class);
             intent.putExtra("MODE", "EVENT");
             intent.putExtra("EVENT_ID", event.getEventId());
@@ -248,8 +270,10 @@ public class EventDetailActivity extends AppCompatActivity {
         });
     }
 
+    // Populate additional event images
     private void populateCatalogueImages() {
         catalogueImagesLayout.removeAllViews();
+
         if (event.getAdditionalImageUrls() != null && !event.getAdditionalImageUrls().isEmpty()) {
             catalogueSection.setVisibility(View.VISIBLE);
 
@@ -260,23 +284,26 @@ public class EventDetailActivity extends AppCompatActivity {
                 imageView.setLayoutParams(params);
                 imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
 
+                // Load image
                 Glide.with(this)
                         .load(imageUrl)
                         .override(Target.SIZE_ORIGINAL)
                         .into(imageView);
 
+                // Open fullscreen on click
                 imageView.setOnClickListener(v -> {
                     FullScreenImageDialogFragment dialog = FullScreenImageDialogFragment.newInstance(imageUrl);
                     dialog.show(getSupportFragmentManager(), "FullScreenImageDialog");
                 });
+
                 catalogueImagesLayout.addView(imageView);
             }
-        }
-        else {
+        } else {
             catalogueSection.setVisibility(View.GONE);
         }
     }
 
+    // Check if current user is registered for event
     private void checkRegistrationStatus() {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser == null) {
@@ -302,10 +329,10 @@ public class EventDetailActivity extends AppCompatActivity {
                 });
     }
 
+    // Update UI of registration button
     private void updateRegistrationButtonUI() {
         buttonProgressBar.setVisibility(View.GONE);
         registerButton.setVisibility(View.VISIBLE);
-        String currentStatus = registrationStatus != null ? registrationStatus : "not_registered";
 
         switch (registrationStatus) {
             case "pending":
@@ -316,12 +343,12 @@ public class EventDetailActivity extends AppCompatActivity {
             case "accepted":
                 registerButton.setText("Accepted");
                 registerButton.setBackgroundColor(ContextCompat.getColor(this, R.color.status_confirmed_background));
-                registerButton.setEnabled(false); // User cannot cancel once confirmed
+                registerButton.setEnabled(false); // Cannot cancel
                 break;
             case "rejected":
                 registerButton.setText("Rejected");
                 registerButton.setBackgroundColor(ContextCompat.getColor(this, R.color.status_rejected_background));
-                registerButton.setEnabled(false); // User cannot re-register
+                registerButton.setEnabled(false); // Cannot re-register
                 break;
             default: // not_registered
                 registerButton.setText("Register Now");
@@ -331,18 +358,22 @@ public class EventDetailActivity extends AppCompatActivity {
         }
     }
 
+    // Handle click on registration button
     private void handleRegistrationClick() {
         if ("pending".equals(registrationStatus)) {
+            // Ask user to confirm cancellation
             showCancelConfirmationDialog();
         } else if ("not_registered".equals(registrationStatus)) {
+            // Go to registration form
             Intent intent = new Intent(this, GuestFormActivity.class);
             intent.putExtra("IS_REGISTRATION_MODE", true);
             intent.putExtra("EVENT_ID", event.getEventId());
             startActivity(intent);
         }
-        // Do nothing if status is "accepted" or "rejected"
+        // If accepted or rejected → no action
     }
 
+    // Show confirmation dialog before canceling registration
     private void showCancelConfirmationDialog() {
         new AlertDialog.Builder(this)
                 .setTitle("Cancel Registration")
@@ -352,7 +383,7 @@ public class EventDetailActivity extends AppCompatActivity {
                 .show();
     }
 
-    // Cancel registered event
+    // Cancel event registration in Firestore
     private void cancelRegistration() {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser == null) return;
@@ -365,11 +396,12 @@ public class EventDetailActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> Toast.makeText(this, "Failed to cancel registration.", Toast.LENGTH_SHORT).show());
     }
 
-    // Display QR code
+    // Generate QR code and display in dialog
     private void generateAndShowQrCode() {
         String deepLink = "https://utaract.page.link/event?id=" + event.getEventId();
         QRCodeWriter writer = new QRCodeWriter();
         try {
+            // Encode link as QR code
             BitMatrix bitMatrix = writer.encode(deepLink, BarcodeFormat.QR_CODE, 512, 512);
             int width = bitMatrix.getWidth();
             int height = bitMatrix.getHeight();
@@ -380,10 +412,10 @@ public class EventDetailActivity extends AppCompatActivity {
                 }
             }
 
+            // Show QR in dialog
             ImageView imageView = new ImageView(this);
             imageView.setImageBitmap(bmp);
 
-            // --- Dialog updated to remove "Share URL" button ---
             new AlertDialog.Builder(this)
                     .setTitle("Event QR Code")
                     .setView(imageView)
@@ -397,21 +429,22 @@ public class EventDetailActivity extends AppCompatActivity {
         }
     }
 
+    // Start process to save QR code (check permission)
     private void initiateSaveProcess(Bitmap bitmap) {
-        this.qrCodeToSave = bitmap; // Store the bitmap in a class variable
+        this.qrCodeToSave = bitmap; // Save temporarily
 
-        // Check if we are on an older version of Android that requires the permission
+        // Check storage permission for older Android versions
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q &&
                 ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
 
-            // If we don't have permission, launch the request
             requestPermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE);
         } else {
-            // If we already have permission, or are on a newer Android version, save directly
+            // Already allowed or new Android version
             saveQrCodeToGallery(bitmap);
         }
     }
 
+    // Save QR code bitmap to gallery
     private void saveQrCodeToGallery(Bitmap bitmap) {
         String fileName = "UTAR_ACT_Event_" + System.currentTimeMillis() + ".jpg";
         OutputStream fos;
@@ -421,7 +454,7 @@ public class EventDetailActivity extends AppCompatActivity {
             values.put(MediaStore.Images.Media.DISPLAY_NAME, fileName);
             values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
 
-            // Specify the sub-directory within Pictures for modern Android versions
+            // Save into UTAR-ACT folder (modern Android)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 values.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/UTAR-ACT");
             }
@@ -439,6 +472,7 @@ public class EventDetailActivity extends AppCompatActivity {
         }
     }
 
+    // Update Follow button text and visibility
     private void updateFollowButtonState() {
         if (userProfile != null && userProfile.getFollowing() != null &&
                 userProfile.getFollowing().contains(event.getOrganizerId())) {
@@ -447,7 +481,7 @@ public class EventDetailActivity extends AppCompatActivity {
             followButton.setText("Follow");
         }
 
-        // Hide follow button if user is trying to follow themselves
+        // Hide follow button if current user is organizer
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null && currentUser.getUid().equals(event.getOrganizerId())) {
             followButton.setVisibility(View.GONE);
@@ -456,6 +490,7 @@ public class EventDetailActivity extends AppCompatActivity {
         }
     }
 
+    // Show error and finish activity
     private void showErrorAndFinish(String message) {
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
         finish();

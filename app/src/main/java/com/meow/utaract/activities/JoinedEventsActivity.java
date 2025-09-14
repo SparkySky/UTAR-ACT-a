@@ -28,6 +28,11 @@ public class JoinedEventsActivity extends AppCompatActivity {
     private ChipGroup filterChipGroup;
     private MaterialToolbar toolbar; // Add a variable for the toolbar
 
+    /**
+     * Lifecycle method called when activity is created.
+     * Sets up the UI, initializes the RecyclerView, ViewModel, observers,
+     * and event listeners for filtering, sorting, and refreshing.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,9 +45,8 @@ public class JoinedEventsActivity extends AppCompatActivity {
         emptyView = findViewById(R.id.emptyView);
         filterChipGroup = findViewById(R.id.filterChipGroup);
 
-        // Setup Toolbar
+        // Setup Toolbar with back navigation and menu actions
         toolbar.setNavigationOnClickListener(v -> finish());
-        // Set the menu item click listener for sorting
         toolbar.setOnMenuItemClickListener(item -> {
             if (item.getItemId() == R.id.action_sort) {
                 toggleSortOrder();
@@ -51,8 +55,7 @@ public class JoinedEventsActivity extends AppCompatActivity {
             return false;
         });
 
-
-        // Setup RecyclerView
+        // Setup RecyclerView with LinearLayoutManager and adapter
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new JoinedEventsAdapter(new ArrayList<>(), this);
         recyclerView.setAdapter(adapter);
@@ -60,7 +63,7 @@ public class JoinedEventsActivity extends AppCompatActivity {
         // Setup ViewModel
         viewModel = new ViewModelProvider(this).get(JoinedEventsViewModel.class);
 
-        // Observers remain the same
+        // Observe list of displayed events and update UI accordingly
         viewModel.getDisplayedEvents().observe(this, joinedEvents -> {
             if (joinedEvents == null || joinedEvents.isEmpty()) {
                 emptyView.setVisibility(View.VISIBLE);
@@ -74,19 +77,23 @@ public class JoinedEventsActivity extends AppCompatActivity {
             }
         });
 
+        // Observe loading state to control swipe refresh animation
         viewModel.getIsLoading().observe(this, isLoading -> {
             swipeRefreshLayout.setRefreshing(isLoading);
         });
 
-        // Setup Listeners
+        // Setup listeners for swipe-to-refresh and filter chips
         swipeRefreshLayout.setOnRefreshListener(() -> viewModel.fetchJoinedEvents());
         setupFilterListener();
 
-        // Initial fetch
+        // Fetch events initially when the activity is loaded
         viewModel.fetchJoinedEvents();
     }
 
-    // Extracted the sort logic into its own method
+    /**
+     * Toggle sorting order of events between "latest" and "oldest".
+     * Updates the ViewModel and shows a toast to inform the user.
+     */
     private void toggleSortOrder() {
         String currentSort = viewModel.getCurrentSortOrder();
         String newSort;
@@ -100,9 +107,12 @@ public class JoinedEventsActivity extends AppCompatActivity {
         viewModel.setSort(newSort);
     }
 
-    // Renamed from setupFilterAndSortListeners
+    /**
+     * Setup filter chip group listener to filter events by status:
+     * - All, Pending, Accepted, or Rejected.
+     * Updates the ViewModel filter state based on selected chip.
+     */
     private void setupFilterListener() {
-        // Filter listener remains the same
         filterChipGroup.setOnCheckedChangeListener((group, checkedId) -> {
             if (checkedId == R.id.chipAll) {
                 viewModel.setFilter("all");

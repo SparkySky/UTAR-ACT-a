@@ -28,6 +28,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
+/**
+ * Activity to display and manage a list of applicants for an event.
+ * Supports filtering, searching, QR scanning, and updating applicant status.
+ */
 public class ApplicantListActivity extends AppCompatActivity {
     private ApplicantListViewModel viewModel;
     private ApplicantAdapter adapter;
@@ -37,6 +41,10 @@ public class ApplicantListActivity extends AppCompatActivity {
     private ActivityResultLauncher<ScanOptions> qrScannerLauncher;
     private FirebaseFirestore firebase;
 
+    /**
+     * Called when the activity is created.
+     * Sets up UI, initializes ViewModel, RecyclerView, QR scanner, and filter controls.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -44,6 +52,7 @@ public class ApplicantListActivity extends AppCompatActivity {
 
         firebase = FirebaseFirestore.getInstance();
 
+        // Get event and organizer IDs passed from previous activity
         eventId = getIntent().getStringExtra("EVENT_ID");
         organizerId = getIntent().getStringExtra("ORGANIZER_ID");
         if (eventId == null) {
@@ -51,30 +60,36 @@ public class ApplicantListActivity extends AppCompatActivity {
             return;
         }
 
+        // Setup toolbar with back navigation
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
         toolbar.setNavigationOnClickListener(v -> finish());
 
+        // Setup RecyclerView for displaying applicants
         RecyclerView recyclerView = findViewById(R.id.applicantsRecyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
+        // Setup adapter with applicant actions
         adapter = new ApplicantAdapter(new ArrayList<>(), new ApplicantAdapter.OnApplicantActionListener() {
             @Override
             public void onAccept(Applicant applicant) {
+                // Update status to "accepted"
                 viewModel.updateApplicantStatus(eventId, applicant.getUserId(), "accepted", organizerId);
             }
             @Override
             public void onReject(Applicant applicant) {
+                // Update status to "rejected"
                 viewModel.updateApplicantStatus(eventId, applicant.getUserId(), "rejected", organizerId);
             }
             @Override
             public void onViewDetails(Applicant applicant) {
-                // When viewing details from the list, we don't need the "Scan Next" option.
+                // Show details dialog (from list, no "Scan Next" option)
                 showApplicantDetailsDialog(applicant, false);
             }
         });
 
         recyclerView.setAdapter(adapter);
 
+        // Initialize ViewModel and observe applicant list
         viewModel = new ViewModelProvider(this).get(ApplicantListViewModel.class);
         viewModel.getApplicants().observe(this, applicants -> {
             allApplicants = applicants;
@@ -83,18 +98,25 @@ public class ApplicantListActivity extends AppCompatActivity {
         });
         viewModel.fetchApplicants(eventId, organizerId);
 
+        // Setup QR scanner callback
         qrScannerLauncher = registerForActivityResult(new ScanContract(), result -> {
             if (result.getContents() != null) {
                 verifyTicket(result.getContents());
             }
         });
 
+        // Setup QR scanner button
         ImageView qrScannerButton = findViewById(R.id.qrScannerButton);
         qrScannerButton.setOnClickListener(v -> launchScanner());
 
+        // Setup search and filter chips
         setupFilters();
     }
 
+    /**
+     * Updates the chip labels with the current applicant counts
+     * (All, Pending, Accepted, Rejected).
+     */
     private void updateChipCounts() {
         long all = allApplicants.size();
         long pending = allApplicants.stream().filter(a -> "pending".equals(a.getStatus())).count();
@@ -107,10 +129,15 @@ public class ApplicantListActivity extends AppCompatActivity {
         ((Chip) findViewById(R.id.chipRejected)).setText(String.format(Locale.getDefault(), "Rejected (%d)", rejected));
     }
 
+    /**
+     * Sets up search bar and filter chip group listeners
+     * to filter the applicant list dynamically.
+     */
     private void setupFilters() {
         SearchView searchView = findViewById(R.id.searchView);
         ChipGroup chipGroup = findViewById(R.id.filterChipGroup);
 
+        // Search filtering
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override public boolean onQueryTextSubmit(String query) { return false; }
             @Override public boolean onQueryTextChange(String newText) {
@@ -119,9 +146,14 @@ public class ApplicantListActivity extends AppCompatActivity {
             }
         });
 
+        // Chip selection filtering
         chipGroup.setOnCheckedChangeListener((group, checkedId) -> filterAndDisplayApplicants());
     }
 
+    /**
+     * Applies search and filter criteria to the applicant list
+     * and updates the RecyclerView adapter with the results.
+     */
     private void filterAndDisplayApplicants() {
         SearchView searchView = findViewById(R.id.searchView);
         ChipGroup chipGroup = findViewById(R.id.filterChipGroup);
@@ -130,6 +162,7 @@ public class ApplicantListActivity extends AppCompatActivity {
 
         List<Applicant> filteredList = new ArrayList<>(allApplicants);
 
+        // Apply chip filter
         if (checkedChipId == R.id.chipPending) {
             filteredList = filteredList.stream().filter(a -> "pending".equals(a.getStatus())).collect(Collectors.toList());
         } else if (checkedChipId == R.id.chipAccepted) {
@@ -138,20 +171,26 @@ public class ApplicantListActivity extends AppCompatActivity {
             filteredList = filteredList.stream().filter(a -> "rejected".equals(a.getStatus())).collect(Collectors.toList());
         }
 
+        // Apply search filter
         if (!query.isEmpty()) {
             filteredList = filteredList.stream()
                     .filter(a -> a.getUserName().toLowerCase().contains(query))
                     .collect(Collectors.toList());
         }
 
+        // Update list in RecyclerView
         adapter.updateList(filteredList);
     }
 
+    /**
+     * Shows a dialog with applicant details.
+     * If triggered by the scanner, also provides a "Scan Next" button.
+     */
     private void showApplicantDetailsDialog(Applicant applicant, boolean isFromScanner) {
         String title;
         String message;
 
-        // Determine the title and message based on the verification context
+        // Build dialog message depending on status
         if (applicant.getStatus() != null && applicant.getStatus().equals("accepted")) {
             title = "Ticket Verified";
             message = "Name: " + applicant.getUserName() + "\n" +
@@ -170,17 +209,20 @@ public class ApplicantListActivity extends AppCompatActivity {
                 .setMessage(message)
                 .setPositiveButton("Close", (dialog, which) -> dialog.dismiss());
 
-        // Only show the "Scan Next" button if the dialog was triggered by the scanner
+        // Add "Scan Next" if opened from scanner
         if (isFromScanner) {
             builder.setNeutralButton("Scan Next", (dialog, which) -> {
                 dialog.dismiss();
-                launchScanner(); // Relaunch the scanner for the next guest
+                launchScanner();
             });
         }
 
         builder.show();
     }
 
+    /**
+     * Launches the QR code scanner with custom options.
+     */
     private void launchScanner() {
         ScanOptions options = new ScanOptions();
         options.setCaptureActivity(PortraitCaptureActivity.class);
@@ -191,6 +233,10 @@ public class ApplicantListActivity extends AppCompatActivity {
         qrScannerLauncher.launch(options);
     }
 
+    /**
+     * Verifies a scanned ticket code against Firestore registrations.
+     * Shows applicant details if valid, or an "Invalid Ticket" dialog if not.
+     */
     private void verifyTicket(String ticketCode) {
         firebase.collection("events").document(eventId).collection("registrations")
                 .whereEqualTo("ticketCode", ticketCode)
@@ -199,11 +245,11 @@ public class ApplicantListActivity extends AppCompatActivity {
                     if (!queryDocumentSnapshots.isEmpty()) {
                         Applicant applicant = queryDocumentSnapshots.getDocuments().get(0).toObject(Applicant.class);
                         if (applicant != null) {
-                            // Show details with the continuous scanning option
+                            // Show details with continuous scanning option
                             showApplicantDetailsDialog(applicant, true);
                         }
                     } else {
-                        // Show invalid ticket dialog with the continuous scanning option
+                        // Invalid ticket
                         new AlertDialog.Builder(this)
                                 .setTitle("Invalid Ticket")
                                 .setMessage("This QR code is not valid for this event.")
@@ -221,9 +267,11 @@ public class ApplicantListActivity extends AppCompatActivity {
                 });
     }
 
-    // Renamed from fetchAndShowApplicantDetails to avoid confusion
+    /**
+     * Convenience method to show applicant details when not using the scanner.
+     * Calls the main dialog function with isFromScanner = false.
+     */
     private void showApplicantDetailsDialog(Applicant applicant) {
-        // This is the original method, now we call the new one with isFromScanner = false
         showApplicantDetailsDialog(applicant, false);
     }
 }

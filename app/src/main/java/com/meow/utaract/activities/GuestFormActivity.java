@@ -47,6 +47,11 @@ public class GuestFormActivity extends AppCompatActivity {
     private ActivityResultLauncher<Intent> imagePickerLauncher;
     private final List<String> preferenceList = new ArrayList<>();
 
+    /**
+     * Lifecycle method called when activity is created.
+     * Sets up layout, initializes views, loads profile data,
+     * and configures the UI based on the current mode (organizer or registration).
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -72,6 +77,9 @@ public class GuestFormActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Initialize all UI components by linking them with layout elements.
+     */
     private void initializeViews() {
         nameInput = findViewById(R.id.etName);
         emailInput = findViewById(R.id.etEmail);
@@ -85,6 +93,10 @@ public class GuestFormActivity extends AppCompatActivity {
         tvPreferences = findViewById(R.id.tvPreferences);
     }
 
+    /**
+     * Configure the UI for registration mode.
+     * Disables editing of fields and sets up a confirmation button.
+     */
     private void setupRegistrationMode() {
         titleGuestForm.setText("Confirm Your Details");
         saveButton.setVisibility(View.GONE);
@@ -100,6 +112,10 @@ public class GuestFormActivity extends AppCompatActivity {
         confirmRegisterButton.setOnClickListener(v -> showConfirmationDialog());
     }
 
+    /**
+     * Configure the UI for profile editing mode.
+     * Enables profile saving and image upload for organizers.
+     */
     private void setupProfileMode() {
         saveButton.setOnClickListener(v -> saveProfile());
         if (isOrganiser) {
@@ -112,18 +128,25 @@ public class GuestFormActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Show a confirmation dialog before submitting registration.
+     */
     private void showConfirmationDialog() {
         new AlertDialog.Builder(this)
                 .setTitle("Confirm Registration")
                 .setMessage("Are you sure you want to register for this event?")
                 .setPositiveButton("Yes", (dialog, which) -> {
-                    saveProfile(); // Save the profile first
+                    saveProfile(); // Save profile first
                     submitRegistration();
                 })
                 .setNegativeButton("No", null)
                 .show();
     }
 
+    /**
+     * Submit user registration details to Firestore under the event.
+     * Includes user ID, name, email, phone, and status.
+     */
     private void submitRegistration() {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser == null) {
@@ -132,15 +155,14 @@ public class GuestFormActivity extends AppCompatActivity {
         }
         String userId = currentUser.getUid();
 
-        // Load the user profile to get their name, email, and phone
         GuestProfile userProfile = storage.loadProfile();
         if (userProfile == null) {
             Toast.makeText(this, "Error: Could not find user profile.", Toast.LENGTH_SHORT).show();
             return;
         }
         String userName = userProfile.getName();
-        String userEmail = userProfile.getEmail(); // Get email
-        String userPhone = userProfile.getPhone(); // Get phone
+        String userEmail = userProfile.getEmail();
+        String userPhone = userProfile.getPhone();
 
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
@@ -162,10 +184,16 @@ public class GuestFormActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> Toast.makeText(this, "Registration failed: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
+    /**
+     * Placeholder for sending a registration notification to the event organizer.
+     */
     private void sendRegistrationNotification(String eventId, String userId) {
         System.out.println("Placeholder: Sending notification to organizer for event " + eventId + " from user " + userId);
     }
 
+    /**
+     * Populate the preferences chip group dynamically with categories.
+     */
     private void populatePreferences() {
         for (String preference : preferenceList) {
             Chip chip = new Chip(this);
@@ -178,19 +206,19 @@ public class GuestFormActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Load profile data from Firestore (online) or from local storage (offline).
+     */
     private void loadProfile() {
-        // First, try to download the latest profile from Firestore.
         storage.downloadProfileFromFirestore(new GuestProfileStorage.FirestoreCallback() {
             @Override
             public void onSuccess(GuestProfile profile) {
-                // If successful, save the updated profile locally and then populate the UI.
                 storage.saveProfile(profile);
                 populateForm(profile);
             }
 
             @Override
             public void onFailure(Exception e) {
-                // If it fails (e.g., offline), load the profile from the local file.
                 GuestProfile existingProfile = storage.loadProfile();
                 if (existingProfile != null) {
                     populateForm(existingProfile);
@@ -199,6 +227,9 @@ public class GuestFormActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Populate the form fields with profile data (name, email, phone, image, preferences).
+     */
     private void populateForm(GuestProfile profile) {
         nameInput.setText(profile.getName());
         emailInput.setText(profile.getEmail());
@@ -250,6 +281,10 @@ public class GuestFormActivity extends AppCompatActivity {
         }
     }*/
 
+    /**
+     * Save the profile data entered by the user.
+     * Performs validation for required fields, phone format, email format, and preferences.
+     */
     private void saveProfile() {
         String name = nameInput.getText().toString().trim();
         String email = emailInput.getText().toString().trim();
@@ -298,6 +333,10 @@ public class GuestFormActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Collect selected preferences from the chip group.
+     * @return List of selected preferences.
+     */
     private List<String> getSelectedPreferences() {
         List<String> selected = new ArrayList<>();
         for (int i = 0; i < preferencesChipGroup.getChildCount(); i++) {
@@ -309,6 +348,9 @@ public class GuestFormActivity extends AppCompatActivity {
         return selected;
     }
 
+    /**
+     * Initialize the image picker launcher for selecting profile pictures.
+     */
     private void initializeImagePicker() {
         imagePickerLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
@@ -321,12 +363,19 @@ public class GuestFormActivity extends AppCompatActivity {
         );
     }
 
+    /**
+     * Open image picker for selecting a new profile picture.
+     */
     private void openImagePicker() {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("image/*");
         imagePickerLauncher.launch(intent);
     }
 
+    /**
+     * Upload selected profile image to Firebase Storage and update profile.
+     * @param imageUri URI of the selected image.
+     */
     private void uploadProfileImageToStorage(Uri imageUri) {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (imageUri == null || !isOrganiser || currentUser == null) return;

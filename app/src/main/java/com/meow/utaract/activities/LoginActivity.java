@@ -52,6 +52,10 @@ public class LoginActivity extends AppCompatActivity {
 
     private FirebaseAuth auth;
 
+    /**
+     * Called when the activity is created.
+     * Applies saved theme, initializes views, sets up listeners, and handles any incoming intents.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,6 +68,9 @@ public class LoginActivity extends AppCompatActivity {
         handleIntent(getIntent());
     }
 
+    /**
+     * Initializes all UI elements in the login activity.
+     */
     private void initializeViews() {
         emailInput = findViewById(R.id.emailInputLogin);
         passwordInput = findViewById(R.id.passwordInputLogin);
@@ -77,6 +84,10 @@ public class LoginActivity extends AppCompatActivity {
         updateToggleIcon();
     }
 
+    /**
+     * Sets up click listeners for login, signup, guest login,
+     * password reset, theme toggle, and email verification resend.
+     */
     private void setupListeners() {
         themeToggleButton.setOnClickListener(v -> toggleTheme());
         loginButton.setOnClickListener(v -> loginUser());
@@ -91,7 +102,7 @@ public class LoginActivity extends AppCompatActivity {
             if (user != null && !user.isEmailVerified()) {
                 user.sendEmailVerification().addOnSuccessListener(aVoid -> {
                     Toast.makeText(LoginActivity.this, "Verification email sent.", Toast.LENGTH_SHORT).show();
-                    startResendCooldown(60000); // Start 60-second cooldown
+                    startResendCooldown(60000); // 60 seconds
                 }).addOnFailureListener(e -> {
                     Toast.makeText(LoginActivity.this, "Failed to send email.", Toast.LENGTH_SHORT).show();
                 });
@@ -99,6 +110,9 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Sends a password reset email if the entered email is valid.
+     */
     private void resetPassword() {
         String email = emailInput.getText().toString().trim();
 
@@ -122,6 +136,10 @@ public class LoginActivity extends AppCompatActivity {
                 });
     }
 
+    /**
+     * Attempts to log in the user with provided email and password.
+     * Handles organiser validation, email verification, and navigation.
+     */
     private void loginUser() {
         String email = emailInput.getText().toString().trim();
         String password = passwordInput.getText().toString().trim();
@@ -153,17 +171,14 @@ public class LoginActivity extends AppCompatActivity {
                         FirebaseUser user = new AuthService().getAuth().getCurrentUser();
                         getAndStoreFcmToken(user.getUid());
                         if (user != null && user.isEmailVerified()) {
-                            // Start MainActivity immediately after successful login
                             Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                             intent.putExtra("IS_ORGANISER", true);
                             startActivity(intent);
-                            finish(); // Finish LoginActivity so user can't go back to it
+                            finish();
                         } else {
-                            // User is not verified
                             verificationStatusText.setText("Please verify your email to continue.");
                             verificationStatusText.setVisibility(View.VISIBLE);
                             resendEmailButton.setVisibility(View.VISIBLE);
-                            // Adjust button weights to show both
                             setLoginButtonWeight(0.5f);
                         }
                     } else {
@@ -172,24 +187,29 @@ public class LoginActivity extends AppCompatActivity {
                 });
     }
 
+    /**
+     * Checks if the given email belongs to an organiser.
+     */
     private boolean isOrganiserEmail(String email) {
         return email.endsWith("@utar.my") || email.endsWith("@1utar.my");
     }
+
+    /**
+     * Allows the user to continue as a guest using Firebase anonymous login.
+     * If no profile exists, redirects to guest form setup.
+     */
     private void continueAsGuest() {
         new AuthService().getAuth().signInAnonymously()
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
-                        // Check if a local profile already exists
                         GuestProfileStorage profileStorage = new GuestProfileStorage(LoginActivity.this);
                         if (profileStorage.profileExists()) {
-                            // Profile exists, go to main activity
                             Toast.makeText(LoginActivity.this, "Continuing as Guest.", Toast.LENGTH_SHORT).show();
                             Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                             intent.putExtra("IS_ORGANISER", false);
                             startActivity(intent);
                             finish();
                         } else {
-                            // No profile exists, go to guest form to create one
                             Toast.makeText(LoginActivity.this, "Please set up your guest profile.", Toast.LENGTH_SHORT).show();
                             Intent intent = new Intent(LoginActivity.this, GuestFormActivity.class);
                             intent.putExtra("IS_ORGANISER", false);
@@ -203,6 +223,9 @@ public class LoginActivity extends AppCompatActivity {
                 });
     }
 
+    /**
+     * Validates email and password input fields.
+     */
     private boolean isFormValid(String email, String password) {
         if (TextUtils.isEmpty(email) || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             emailInput.setError("Enter a valid email address");
@@ -217,6 +240,9 @@ public class LoginActivity extends AppCompatActivity {
         return true;
     }
 
+    /**
+     * Toggles between light and dark themes and saves preference.
+     */
     private void toggleTheme() {
         int currentNightMode = getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
         if (currentNightMode == Configuration.UI_MODE_NIGHT_YES) {
@@ -228,9 +254,12 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Applies the previously saved theme preference on startup.
+     */
     private void applySavedTheme() {
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        String savedTheme = prefs.getString(KEY_THEME, "system"); // Default to system
+        String savedTheme = prefs.getString(KEY_THEME, "system");
         switch (savedTheme) {
             case "light":
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
@@ -244,12 +273,18 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Saves the selected theme into SharedPreferences.
+     */
     private void saveThemePreference(String themeValue) {
         SharedPreferences.Editor editor = getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit();
         editor.putString(KEY_THEME, themeValue);
         editor.apply();
     }
 
+    /**
+     * Updates theme toggle button icon and description based on current theme.
+     */
     private void updateToggleIcon() {
         int currentNightMode = getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
         if (currentNightMode == Configuration.UI_MODE_NIGHT_YES) {
@@ -261,12 +296,18 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Called when device configuration changes (e.g., theme).
+     */
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         updateToggleIcon();
     }
 
+    /**
+     * Handles new intents sent to this activity (e.g., verification links).
+     */
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
@@ -274,6 +315,9 @@ public class LoginActivity extends AppCompatActivity {
         handleIntent(intent);
     }
 
+    /**
+     * Handles login activity intents (email verification success, deep links).
+     */
     private void handleIntent(Intent intent) {
         if (intent != null && ACTION_EMAIL_VERIFIED.equals(intent.getAction())) {
             String email = intent.getStringExtra(EXTRA_EMAIL_FOR_VERIFICATION_CHECK);
@@ -287,7 +331,6 @@ public class LoginActivity extends AppCompatActivity {
         } else if (intent != null && Intent.ACTION_VIEW.equals(intent.getAction())) {
             Uri data = intent.getData();
             if (data != null && data.toString().contains("utaract.page.link/verify")) {
-                // Logic to handle user returning from email verification link
                 String emailFromLink = data.getQueryParameter("email");
                 if (emailFromLink != null) {
                     emailInput.setText(emailFromLink);
@@ -298,6 +341,9 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Handles results returned from SignupActivity.
+     */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -311,10 +357,13 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Checks if user is already logged in on activity start.
+     * Redirects to MainActivity if valid session exists.
+     */
     @Override
     protected void onStart() {
         super.onStart();
-        // This part is still useful for users who are ALREADY logged in when they open the app.
         FirebaseUser currentUser = new AuthService().getAuth().getCurrentUser();
         if (currentUser != null && !currentUser.isAnonymous() && currentUser.isEmailVerified()) {
             Intent intent = new Intent(LoginActivity.this, MainActivity.class);
@@ -329,27 +378,33 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    // Always re-enable the buttons when the activity comes into focus.
-    // This handles cases where the user logs out and returns to this screen.
+    /**
+     * Always re-enables buttons when activity resumes and restarts cooldown if active.
+     */
     @Override
     protected void onResume() {
         super.onResume();
         setButtonsEnabled(true);
-        // If a cooldown was active, resume it
         long timeLeft = resendCooldownEndTime - System.currentTimeMillis();
         if (timeLeft > 0) {
             startResendCooldown(timeLeft);
         }
     }
 
+    /**
+     * Cancels countdown timer when activity is paused.
+     */
     @Override
     protected void onPause() {
         super.onPause();
         if (resendTimer != null) {
-            resendTimer.cancel(); // Stop the timer when the activity is not visible
+            resendTimer.cancel();
         }
     }
 
+    /**
+     * Starts cooldown timer for resending verification email.
+     */
     private void startResendCooldown(long durationMillis) {
         resendCooldownEndTime = System.currentTimeMillis() + durationMillis;
         resendEmailButton.setEnabled(false);
@@ -372,14 +427,18 @@ public class LoginActivity extends AppCompatActivity {
         }.start();
     }
 
-    // Helper method to dynamically adjust the login button's width
+    /**
+     * Dynamically adjusts login button width.
+     */
     private void setLoginButtonWeight(float weight) {
         LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) loginButton.getLayoutParams();
         params.weight = weight;
         loginButton.setLayoutParams(params);
     }
 
-    // Helper method to control the state of both buttons (Login and Guest)
+    /**
+     * Enables or disables Login and Guest buttons.
+     */
     private void setButtonsEnabled(boolean enabled) {
         loginButton.setEnabled(enabled);
         loginButton.setClickable(enabled);
@@ -387,7 +446,9 @@ public class LoginActivity extends AppCompatActivity {
         guestButton.setClickable(enabled);
     }
 
-    // For configuring the notification
+    /**
+     * Retrieves and stores FCM token in Firestore for push notifications.
+     */
     private void getAndStoreFcmToken(String userId) {
         if (GmsStatus.isGmsAvailable) {
             FirebaseMessaging.getInstance().getToken().addOnCompleteListener(task -> {
@@ -395,14 +456,10 @@ public class LoginActivity extends AppCompatActivity {
                     Log.w("FCM", "Fetching FCM registration token failed", task.getException());
                     return;
                 }
-                // Get new FCM registration token
                 String token = task.getResult();
-
-                // Create a Map to store the token
                 Map<String, Object> tokenData = new HashMap<>();
                 tokenData.put("fcmToken", token);
 
-                // Use .set() with SetOptions.merge() for a safe update/create
                 FirebaseFirestore db = FirebaseFirestore.getInstance();
                 db.collection("users").document(userId)
                         .set(tokenData, SetOptions.merge())
@@ -410,7 +467,6 @@ public class LoginActivity extends AppCompatActivity {
                         .addOnFailureListener(e -> Log.w("FCM", "Error saving FCM token", e));
             });
         } else {
-            // This log is helpful for debugging on non-GMS devices
             Log.w("FCM", "GMS not available, skipping FCM token retrieval and storage.");
         }
     }

@@ -24,7 +24,14 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import com.google.android.material.navigation.NavigationView;
 
-
+/**
+ * Activity for managing events created by the user.
+ * This screen allows users to:
+ * - View their created events
+ * - Search through events
+ * - Apply filters to narrow down events
+ * - Navigate to other sections using the drawer
+ */
 public class ManageEventsActivity extends AppCompatActivity implements FilterBottomSheetDialogFragment.FilterListener {
 
     private RecyclerView myEventsRecyclerView;
@@ -41,63 +48,72 @@ public class ManageEventsActivity extends AppCompatActivity implements FilterBot
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_manage_events);
 
+        // Setup toolbar
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        toolbar.setNavigationOnClickListener(v -> finish());
+        toolbar.setNavigationOnClickListener(v -> finish()); // Close activity when back arrow pressed
 
+        // Initialize drawer layout & menu
         drawerLayout = findViewById(R.id.drawer_layout_manage);
         menuIcon = findViewById(R.id.menu_icon);
         NavigationView navigationView = findViewById(R.id.nav_view_manage);
 
+        // Open the navigation drawer when the menu icon is clicked
         menuIcon.setOnClickListener(v -> {
-            // Open the drawer when icon is clicked
             drawerLayout.openDrawer(GravityCompat.START);
         });
 
+        // Get organiser flag (used to maintain role context across navigation)
         boolean isOrganiser = getIntent().getBooleanExtra("IS_ORGANISER", false);
 
-        // Handle navigation item clicks
+        // Handle navigation drawer item clicks
         navigationView.setNavigationItemSelectedListener(item -> {
             int id = item.getItemId();
 
             if (id == R.id.nav_home) {
+                // Navigate to home
                 Intent intent = new Intent(this, MainActivity.class);
                 intent.putExtra("IS_ORGANISER", isOrganiser);
                 startActivity(intent);
                 finish();
             } else if (id == R.id.nav_news) {
+                // Navigate to news
                 drawerLayout.closeDrawer(GravityCompat.START);
                 Intent intent = new Intent(this, NewsActivity.class);
                 intent.putExtra("IS_ORGANISER", isOrganiser);
                 startActivity(intent);
                 finish();
             } else if (id == R.id.nav_joined_events) {
+                // Navigate to joined events
                 Intent intent = new Intent(this, JoinedEventsActivity.class);
                 intent.putExtra("IS_ORGANISER", isOrganiser);
                 startActivity(intent);
             }
-            // Close drawer after selection
+            // Always close the drawer after a selection
             drawerLayout.closeDrawer(GravityCompat.START);
             return true;
         });
 
+        // Initialize views
         myEventsRecyclerView = findViewById(R.id.myEventsRecyclerView);
         emptyView = findViewById(R.id.emptyView);
         searchInput = findViewById(R.id.search_input);
 
+        // Setup RecyclerView and search/filter logic
         setupRecyclerView();
         setupSearchAndFilter();
 
-        // Initialize the ViewModel
+        // Initialize ViewModel for managing events
         viewModel = new ViewModelProvider(this).get(ManageEventsViewModel.class);
 
-        // Observe the final, correctly-typed list from the ViewModel
+        // Observe the list of events and update UI accordingly
         viewModel.getMyEvents().observe(this, managedEventItems -> {
             boolean hasEvents = managedEventItems != null && !managedEventItems.isEmpty();
             if (hasEvents) {
-                // The adapter's update method receives the correct list type
+                // Update adapter with new events
                 myEventsAdapter.updateEvents(managedEventItems);
             }
+            // Update visibility of RecyclerView and empty view
             updateUI(hasEvents);
         });
     }
@@ -105,49 +121,65 @@ public class ManageEventsActivity extends AppCompatActivity implements FilterBot
     @Override
     protected void onResume() {
         super.onResume();
-        // Tell the ViewModel to fetch the data
+        // Fetch latest events when the activity is resumed
         viewModel.fetchMyEvents();
     }
 
+    /**
+     * Sets up RecyclerView with adapter and layout manager
+     */
     private void setupRecyclerView() {
-        // Initialize the adapter with an empty list of the correct type.
-        // The old `eventList` variable is no longer used here.
         myEventsAdapter = new MyEventsAdapter(new ArrayList<>(), this, new EventCreationStorage());
         myEventsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         myEventsRecyclerView.setAdapter(myEventsAdapter);
     }
 
+    /**
+     * Sets up search functionality and filter button
+     */
     private void setupSearchAndFilter() {
-        // Set up search functionality
+        // TextWatcher for search input
         searchInput.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                // No action required before text changes
             }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
+                // Update ViewModel search query on every input change
                 viewModel.setSearchQuery(s.toString());
             }
 
             @Override
             public void afterTextChanged(Editable s) {
+                // No action required after text changes
             }
         });
 
-        // Set up filter button click listener
+        // Show filter dialog when filter button clicked
         findViewById(R.id.filter_button).setOnClickListener(v -> showFilterDialog());
     }
 
+    /**
+     * Displays filter dialog for selecting event categories
+     */
     private void showFilterDialog() {
         String[] categories = getResources().getStringArray(R.array.event_categories);
         viewModel.showFilterDialog(this, categories, this);
     }
 
+    /**
+     * Callback when filters are applied in the bottom sheet dialog
+     */
     @Override
     public void onFilterApplied(java.util.List<String> selectedCategories) {
         viewModel.setCategoryFilters(selectedCategories);
     }
 
+    /**
+     * Updates UI visibility depending on whether events exist
+     */
     private void updateUI(boolean hasEvents) {
         if (hasEvents) {
             myEventsRecyclerView.setVisibility(View.VISIBLE);

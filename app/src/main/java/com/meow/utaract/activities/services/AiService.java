@@ -9,6 +9,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -24,6 +26,18 @@ public class AiService {
 
     private final OkHttpClient httpClient = new OkHttpClient();
     private final String geminiApiKey;
+
+    public static class ChatMessage {
+        public final String role; // "user" or "model"
+        public final String content;
+        public final long timestamp;
+
+        public ChatMessage(String role, String content) {
+            this.role = role;
+            this.content = content;
+            this.timestamp = System.currentTimeMillis();
+        }
+    }
 
     public interface AiCallback {
         void onSuccess(String text);
@@ -42,6 +56,25 @@ public class AiService {
     public void chat(String systemPrompt, String userMessage, AiCallback callback) {
         String prompt = systemPrompt + "\n\nUser: " + userMessage;
         generateContent(prompt, callback);
+    }
+
+    public void chatWithHistory(String systemPrompt, List<ChatMessage> chatHistory, String userMessage, AiCallback callback) {
+        StringBuilder prompt = new StringBuilder();
+        prompt.append(systemPrompt).append("\n\n");
+        
+        // Add conversation history
+        for (ChatMessage message : chatHistory) {
+            if ("user".equals(message.role)) {
+                prompt.append("User: ").append(message.content).append("\n\n");
+            } else if ("model".equals(message.role)) {
+                prompt.append("Assistant: ").append(message.content).append("\n\n");
+            }
+        }
+        
+        // Add current user message
+        prompt.append("User: ").append(userMessage);
+        
+        generateContent(prompt.toString(), callback);
     }
 
     private void generateContent(String prompt, AiCallback callback) {

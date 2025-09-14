@@ -42,8 +42,13 @@ public class MainActivity extends AppCompatActivity {
     private TextView tvNavEmail;
     private CircleImageView navProfileImage;
 
+    /**
+     * Getter for organiser status.
+     * @return true if the logged-in user is an organiser, false otherwise.
+     */
     public boolean isOrganiser() { return isOrganiser; }
 
+    // Request permission for notifications (Android 13+)
     private final ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
                 if (isGranted) {
@@ -53,6 +58,11 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
 
+    /**
+     * Called when the activity is first created.
+     * Determines if the user is organiser or guest, and loads/validates their profile.
+     * If the profile is complete, starts the main UI; otherwise redirects to GuestFormActivity.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,39 +71,48 @@ public class MainActivity extends AppCompatActivity {
         GuestProfileStorage profileStorage = new GuestProfileStorage(this);
 
         if (isOrganiser) {
-            // For organizers, first attempt to download the profile from Firestore
+            // Organisers: Attempt to download profile from Firestore
             profileStorage.downloadProfileFromFirestore(new GuestProfileStorage.FirestoreCallback() {
                 @Override
                 public void onSuccess(GuestProfile profile) {
-                    // Profile downloaded, now proceed to check and start the app
                     checkAndStartApp(profile);
                 }
 
                 @Override
                 public void onFailure(Exception e) {
-                    // Download failed, assume no profile exists and redirect to the form
                     redirectToGuestForm();
                 }
             });
         } else {
-            // For guests, check the local profile directly
+            // Guests: Load profile locally
             GuestProfile profile = profileStorage.loadProfile();
             checkAndStartApp(profile);
         }
     }
 
+    /**
+     * Checks whether a profile is complete.
+     * - If profile is null or incomplete → redirects to GuestFormActivity.
+     * - Otherwise → starts the main UI.
+     * @param profile GuestProfile object (can be null).
+     */
     private void checkAndStartApp(GuestProfile profile) {
         if (profile == null || (profile.getName() == null || profile.getName().isEmpty() ||
                 profile.getEmail() == null || profile.getEmail().isEmpty() ||
                 profile.getPhone() == null || profile.getPhone().isEmpty())) {
-            // Profile is incomplete or does not exist
             redirectToGuestForm();
         } else {
-            // Profile is complete, start the main UI
             startApp();
         }
     }
 
+    /**
+     * Initializes the main UI after profile validation:
+     * - Inflates the layout
+     * - Initializes ViewModel
+     * - Sets up navigation drawer and theme toggle
+     * - Requests notification permissions if needed
+     */
     private void startApp() {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
@@ -106,6 +125,9 @@ public class MainActivity extends AppCompatActivity {
         mainViewModel.setOrganiser(isOrganiser);
     }
 
+    /**
+     * Redirects the user to GuestFormActivity if their profile is missing or incomplete.
+     */
     private void redirectToGuestForm() {
         Toast.makeText(this, "Please complete your profile to continue.", Toast.LENGTH_LONG).show();
         Intent intent = new Intent(this, GuestFormActivity.class);
@@ -114,6 +136,9 @@ public class MainActivity extends AppCompatActivity {
         finish();
     }
 
+    /**
+     * Ensures organiser state is updated whenever activity resumes.
+     */
     @Override
     protected void onResume() {
         super.onResume();
@@ -122,6 +147,11 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Sets up the theme toggle button inside the navigation drawer header.
+     * - Reads saved theme preference
+     * - Applies theme immediately when user toggles between dark/light
+     */
     private void setupThemeToggle() {
         NavigationView navigationView = binding.navView;
         View headerView = navigationView.getHeaderView(0);
@@ -141,6 +171,10 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Requests notification permission (only required for Android 13+).
+     * If not granted, the app may not receive push notifications.
+     */
     private void askNotificationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) !=
@@ -150,6 +184,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Sets up the navigation drawer and menu items.
+     * - Connects NavigationView with NavController
+     * - Handles navigation item clicks (opens activities or fragments)
+     * - Hides organiser-only menu items for guest users
+     * @param isOrganiser true if organiser, false if guest
+     */
     private void setupNavigation(boolean isOrganiser) {
         NavigationView navigationView = binding.navView;
         NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
@@ -185,6 +226,11 @@ public class MainActivity extends AppCompatActivity {
         navMenu.findItem(R.id.nav_manage_events).setVisible(isOrganiser);
     }
 
+    /**
+     * Provides external access to the drawer layout.
+     * Useful for controlling drawer state from fragments.
+     * @return DrawerLayout object tied to this activity
+     */
     public DrawerLayout getDrawerLayout() {
         return binding.drawerLayout;
     }

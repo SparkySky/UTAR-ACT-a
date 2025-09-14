@@ -31,20 +31,29 @@ import java.util.UUID;
 
 public class NewsCreationActivity extends AppCompatActivity {
 
+    // UI components
     private EditText titleInput, messageInput;
     private Button btnCreate, btnUploadImage;
     private LinearLayout newsImagePreviewLayout;
+
+    // Lists to store selected images and uploaded image URLs
     private List<Uri> selectedImageUris = new ArrayList<>();
     private List<String> uploadedImageUrls = new ArrayList<>();
+
+    // Storage handler for saving news to Firestore
     private NewsStorage newsStorage;
+
+    // Flags and data for edit mode
     private boolean isEditMode = false;
     private News newsToEdit;
 
+    // Callback interface to fetch organizer's name asynchronously
     interface OrganizerNameCallback {
         void onSuccess(String organizerName);
         void onFailure(Exception e);
     }
 
+    // Launcher for picking multiple or single images
     private final ActivityResultLauncher<Intent> imagePickerLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
                 if (result.getResultCode() == RESULT_OK && result.getData() != null) {
@@ -60,7 +69,7 @@ public class NewsCreationActivity extends AppCompatActivity {
                             selectedImageUris.add(result.getData().getData());
                         }
                     }
-                    updateImagePreviews();
+                    updateImagePreviews(); // Refresh image previews after selection
                 }
             });
 
@@ -69,16 +78,20 @@ public class NewsCreationActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_news_creation);
 
-        initializeViews();
+        initializeViews(); // Bind UI components and set listeners
         newsStorage = new NewsStorage();
 
+        // If intent contains EDIT_NEWS, switch to edit mode
         if (getIntent().hasExtra("EDIT_NEWS")) {
             isEditMode = true;
             newsToEdit = (News) getIntent().getSerializableExtra("EDIT_NEWS");
-            populateEditData();
+            populateEditData(); // Load existing news data for editing
         }
     }
 
+    /**
+     * Initialize UI elements and set button click listeners
+     */
     private void initializeViews() {
         titleInput = findViewById(R.id.newsTitleInput);
         messageInput = findViewById(R.id.newsMessageInput);
@@ -90,16 +103,24 @@ public class NewsCreationActivity extends AppCompatActivity {
         btnCreate.setOnClickListener(v -> saveNews());
     }
 
+    /**
+     * Open system image picker to select single or multiple images
+     */
     private void openImagePicker() {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("image/*");
-        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true); // Allow multiple selection
         imagePickerLauncher.launch(intent);
     }
 
+    /**
+     * Dynamically generate previews of selected images
+     * Each preview includes a remove button
+     */
     private void updateImagePreviews() {
         newsImagePreviewLayout.removeAllViews();
         newsImagePreviewLayout.setVisibility(View.VISIBLE);
+
         for (Uri uri : selectedImageUris) {
             ImageView imageView = new ImageView(this);
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(150, 150);
@@ -107,6 +128,7 @@ public class NewsCreationActivity extends AppCompatActivity {
             imageView.setLayoutParams(params);
             imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
 
+            // Button to remove image from list
             ImageView removeBtn = new ImageView(this);
             removeBtn.setLayoutParams(new LinearLayout.LayoutParams(30, 30));
             removeBtn.setImageResource(android.R.drawable.ic_menu_close_clear_cancel);
@@ -115,12 +137,15 @@ public class NewsCreationActivity extends AppCompatActivity {
                 updateImagePreviews();
             });
 
+            // Add image and remove button to container
             LinearLayout container = new LinearLayout(this);
             container.setOrientation(LinearLayout.VERTICAL);
             container.addView(imageView);
             container.addView(removeBtn);
 
             newsImagePreviewLayout.addView(container);
+
+            // Load image using Glide
             Glide.with(this)
                     .load(uri)
                     .override(Target.SIZE_ORIGINAL)
@@ -128,6 +153,10 @@ public class NewsCreationActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Validate input and either create/update news directly
+     * or upload images first
+     */
     private void saveNews() {
         String title = titleInput.getText().toString().trim();
         String message = messageInput.getText().toString().trim();
@@ -138,12 +167,16 @@ public class NewsCreationActivity extends AppCompatActivity {
         }
 
         if (selectedImageUris.isEmpty()) {
-            createOrUpdateNews(new ArrayList<>());
+            createOrUpdateNews(new ArrayList<>()); // No images
         } else {
-            uploadImagesAndSave();
+            uploadImagesAndSave(); // Upload images before saving news
         }
     }
 
+    /**
+     * Upload selected images to Firebase Storage
+     * and then proceed with news creation
+     */
     private void uploadImagesAndSave() {
         uploadedImageUrls.clear();
         List<StorageReference> uploadTasks = new ArrayList<>();
@@ -157,6 +190,7 @@ public class NewsCreationActivity extends AppCompatActivity {
                     .addOnSuccessListener(taskSnapshot -> storageRef.getDownloadUrl()
                             .addOnSuccessListener(downloadUri -> {
                                 uploadedImageUrls.add(downloadUri.toString());
+                                // Once all images are uploaded, create news
                                 if (uploadedImageUrls.size() == selectedImageUris.size()) {
                                     createOrUpdateNews(uploadedImageUrls);
                                 }
@@ -167,10 +201,13 @@ public class NewsCreationActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Fetch organizer's name and then proceed to save or update news
+     */
     private void createOrUpdateNews(List<String> imageUrls) {
         String organizerId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
-        // Fetch organizer name from Firebase instead of local storage
+        // First try to fetch organizer name from Firestore
         fetchOrganizerNameFromFirebase(organizerId, new OrganizerNameCallback() {
             @Override
             public void onSuccess(String organizerName) {
@@ -179,7 +216,7 @@ public class NewsCreationActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Exception e) {
-                // Fallback to local storage if Firebase fails
+                // Fallback: use locally saved profile
                 GuestProfileStorage profileStorage = new GuestProfileStorage(NewsCreationActivity.this);
                 GuestProfile organizerProfile = profileStorage.loadProfile();
                 String organizerName = organizerProfile != null ? organizerProfile.getName() : "Unknown Organizer";
@@ -188,6 +225,9 @@ public class NewsCreationActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Query Firestore for organizer's profile
+     */
     private void fetchOrganizerNameFromFirebase(String organizerId, OrganizerNameCallback callback) {
         FirebaseFirestore.getInstance().collection("guest_profiles").document(organizerId)
                 .get()
@@ -207,8 +247,12 @@ public class NewsCreationActivity extends AppCompatActivity {
                 .addOnFailureListener(callback::onFailure);
     }
 
+    /**
+     * Final step: either create new news or update existing one
+     */
     private void proceedWithNewsCreation(String organizerId, String organizerName, List<String> imageUrls) {
         if (isEditMode && newsToEdit != null) {
+            // Update existing news
             newsToEdit.setTitle(titleInput.getText().toString());
             newsToEdit.setMessage(messageInput.getText().toString());
             newsToEdit.setImageUrls(imageUrls);
@@ -227,6 +271,7 @@ public class NewsCreationActivity extends AppCompatActivity {
                 }
             });
         } else {
+            // Create new news
             News news = new News(organizerId, organizerName, titleInput.getText().toString(), messageInput.getText().toString());
             news.setImageUrls(imageUrls);
 
@@ -244,6 +289,9 @@ public class NewsCreationActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Fill UI with data when editing existing news
+     */
     private void populateEditData() {
         if (newsToEdit != null) {
             titleInput.setText(newsToEdit.getTitle());
@@ -254,13 +302,16 @@ public class NewsCreationActivity extends AppCompatActivity {
             uploadedImageUrls = new ArrayList<>(newsToEdit.getImageUrls());
             updateImagePreviews();
 
-            // If editing, show delete button
+            // Show delete button in edit mode
             Button deleteButton = findViewById(R.id.btnDeleteNews);
             deleteButton.setVisibility(View.VISIBLE);
             deleteButton.setOnClickListener(v -> showDeleteConfirmation());
         }
     }
 
+    /**
+     * Show a confirmation dialog before deleting news
+     */
     private void showDeleteConfirmation() {
         new AlertDialog.Builder(this)
                 .setTitle("Delete News")
@@ -270,6 +321,9 @@ public class NewsCreationActivity extends AppCompatActivity {
                 .show();
     }
 
+    /**
+     * Delete selected news from Firestore
+     */
     private void deleteNews() {
         NewsStorage newsStorage = new NewsStorage();
         newsStorage.deleteNews(newsToEdit.getNewsId(), new NewsStorage.NewsCallback() {
