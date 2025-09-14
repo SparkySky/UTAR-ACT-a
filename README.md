@@ -132,7 +132,7 @@ UTAR ACT is a comprehensive Android application designed for managing university
    - Enable Authentication, Firestore, Storage, and Cloud Messaging
    - Download `google-services.json` and place it in the `app/` directory
 
-3. **API Keys Configuration**
+3. **API Keys Configuration (For chatbot functionality)**
    - Add your Gemini AI API key to `local.properties`:
    ```properties
    GEMINI_API_KEY=your_gemini_api_key_here
