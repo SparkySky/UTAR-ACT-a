@@ -1,13 +1,16 @@
-# UTAR ACT - University Activity Management App
+
+<img width="449" height="134" alt="icon_utaract_tranparent_crop" src="https://github.com/user-attachments/assets/a075a738-e0ee-4ca4-872c-54d260e8735b" />
+
+# UTAR ACT - University Event Listing and Management App
 
 ## Overview
 
-UTAR ACT is a comprehensive Android application designed for managing university activities and events at Universiti Tunku Abdul Rahman (UTAR). The app facilitates event creation, management, and participation for both organizers and students.
+UTAR ACT is a comprehensive Android application designed for managing university activities and events at Universiti Tunku Abdul Rahman (UTAR). The app facilitates event creation, management, and participation for both organizers and students (Guest).
 
 ## Features
 
 ### 🔐 Authentication & User Management
-- **Firebase Authentication** integration with anonymous sign-in
+- **Firebase Auth** integration with anonymous sign-in
 - **Guest Profile System** for user information management
 - **Role-based Access** - Organizer and Participant roles
 - **Profile Storage** with local JSON and cloud Firestore sync
@@ -31,9 +34,7 @@ UTAR ACT is a comprehensive Android application designed for managing university
 
 ### 📱 User Interface
 - **Material Design 3** with modern UI components
-- **Dark/Light Theme** support with automatic switching
 - **Navigation Drawer** with intuitive menu structure
-- **Responsive Layout** optimized for various screen sizes
 - **Swipe Refresh** functionality for real-time updates
 
 ### 📰 News & Notifications
@@ -71,10 +72,10 @@ UTAR ACT is a comprehensive Android application designed for managing university
 ### Project Structure
 ```
 app/src/main/java/com/meow/utaract/
-├── activities/           # Main application activities
+├── activities/         # Main application activities
 │   ├── fragments/       # UI fragments
 │   └── services/        # Service classes
-├── adapters/            # RecyclerView adapters
+├── adapters/           # RecyclerView adapters
 ├── firebase/           # Firebase service integrations
 ├── utils/              # Utility classes and data models
 └── viewmodels/         # MVVM architecture view models
@@ -83,9 +84,8 @@ app/src/main/java/com/meow/utaract/
 ## Getting Started
 
 ### Prerequisites
-- Android Studio Arctic Fox or later
+- Android Studio
 - Android SDK 24 or higher
-- Java 11
 - Firebase project setup
 
 ### Setup Instructions
