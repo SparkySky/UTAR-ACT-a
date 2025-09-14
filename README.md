@@ -1,4 +1,4 @@
-<div align="center"><h1> UTAR ACT - University Event Listing and Management App </h1></div>
+<div align="center"><h1> UTAR ACT - UTAR Event Listing and Management </h1></div>
 <br><br>
 <p align="center">
   <img src="https://github.com/user-attachments/assets/a075a738-e0ee-4ca4-872c-54d260e8735b" alt="icon_utaract_tranparent_crop" width="300" height="100" />
