@@ -1,11 +1,42 @@
-
-<center><img width="449" height="134" alt="icon_utaract_tranparent_crop" src="https://github.com/user-attachments/assets/a075a738-e0ee-4ca4-872c-54d260e8735b" /></center>center>
-
-# UTAR ACT - University Event Listing and Management App
+<div align="center"><h1> UTAR ACT - University Event Listing and Management App </h1></div>
+<br><br>
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/a075a738-e0ee-4ca4-872c-54d260e8735b" alt="icon_utaract_tranparent_crop" width="300" height="100" />
+</p>
+<br>
 
 ## Overview
 
 UTAR ACT is a comprehensive Android application designed for managing university activities and events at Universiti Tunku Abdul Rahman (UTAR). The app facilitates event creation, management, and participation for both organizers and students (Guest).
+
+<div align="center">
+
+<table>
+  <tr>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/85d72903-42b3-4a36-8f07-94210286558a" width="240" height="520"/><br>Splash Screen
+    </td>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/c42dfded-95b9-4754-939c-cc1f34d83164" width="240" height="520"/><br>Event Listing
+    </td>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/13539571-af14-4385-8700-2cabd8864067" width="240" height="520"/><br>Event Detail
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/ef63c5d5-29dd-446d-b34f-42cd7a2fbc3a" width="240" height="520"/><br>Registered Event History
+    </td>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/fed72944-fc2b-4a8d-8f76-f9edc6729ecb" width="240" height="520"/><br>Ticket System (For Verification)
+    </td>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/a5a30f1e-7d7a-47e2-840c-b207e81556af" width="240" height="520"/><br>News Feed
+    </td>
+  </tr>
+</table>
+
+</div>
 
 ## Features
 
@@ -69,17 +100,6 @@ UTAR ACT is a comprehensive Android application designed for managing university
 - **PDFBox** for document text extraction
 - **OkHttp** for network requests
 
-### Project Structure
-```
-app/src/main/java/com/meow/utaract/
-├── activities/         # Main application activities
-│   ├── fragments/       # UI fragments
-│   └── services/        # Service classes
-├── adapters/           # RecyclerView adapters
-├── firebase/           # Firebase service integrations
-├── utils/              # Utility classes and data models
-└── viewmodels/         # MVVM architecture view models
-```
 
 ## Getting Started
 
@@ -171,10 +191,6 @@ The app requires the following permissions:
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## Support
-
-For support and questions, please contact the development team or create an issue in the repository.
-
 ## Version History
 
 - **v1.0** - Initial release with core event management features
@@ -183,3 +199,4 @@ For support and questions, please contact the development team or create an issu
   - AI-powered assistant
   - News system
   - Push notifications
+  - Ticket system
