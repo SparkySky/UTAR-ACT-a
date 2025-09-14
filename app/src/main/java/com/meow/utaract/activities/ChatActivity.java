@@ -44,8 +44,10 @@ public class ChatActivity extends AppCompatActivity {
 
     private String mode; // GENERAL or EVENT
     private String eventId;
-
     private FirebaseFirestore db;
+    // Chat history for maintaining conversation context
+    private List<AiService.ChatMessage> chatHistory;
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -61,6 +63,9 @@ public class ChatActivity extends AppCompatActivity {
 
         db = FirebaseFirestore.getInstance();
 
+        // Initialize chat history
+        chatHistory = new ArrayList<>();
+
         // Send button click → trigger AI response
         sendButton.setOnClickListener(v -> onSend());
 
@@ -69,11 +74,16 @@ public class ChatActivity extends AppCompatActivity {
         toolbar.setNavigationOnClickListener(v -> showExitDialog());
 
         // Add welcome message based on mode
+        String welcomeMessage;
         if ("EVENT".equals(mode)) {
-            appendBubble("Hi! I can help you with questions about this specific event. What would you like to know?", false);
+            welcomeMessage = "Hi! I can help you with questions about this specific event. What would you like to know?";
         } else {
-            appendBubble("Hi! I'm your UTARACT assistant. I can help you find events that match your interests and preferences. What kind of activities are you looking for?", false);
+            welcomeMessage = "Hi! I'm your UTARACT assistant. I can help you find events that match your interests and preferences. What kind of activities are you looking for?";
         }
+        appendBubble(welcomeMessage, false);
+
+        // Add welcome message to chat history
+        chatHistory.add(new AiService.ChatMessage("model", welcomeMessage));
     }
 
     /**
@@ -86,6 +96,10 @@ public class ChatActivity extends AppCompatActivity {
     private void onSend() {
         String userMessage = chatInput.getText().toString().trim();
         if (TextUtils.isEmpty(userMessage)) return;
+
+        // Add user message to chat history
+        chatHistory.add(new AiService.ChatMessage("user", userMessage));
+
         appendBubble(userMessage, true);
         chatInput.setText("");
 
@@ -107,7 +121,7 @@ public class ChatActivity extends AppCompatActivity {
             db.collection("events").document(eventId).get().addOnSuccessListener(doc -> {
                 Event event = doc.toObject(Event.class);
                 String context = buildEventContext(event);
-                ai.chat(context, userMessage, new UiCallback());
+                ai.chatWithHistory(context, chatHistory, userMessage, new UiCallback());
             });
         }
         // GENERAL mode → build context from all events
@@ -119,7 +133,7 @@ public class ChatActivity extends AppCompatActivity {
                     if (e != null) events.add(e);
                 }
                 String context = buildGeneralContext(events);
-                ai.chat(context, userMessage, new UiCallback());
+                ai.chatWithHistory(context, chatHistory, userMessage, new UiCallback());
             });
         }
     }
@@ -205,6 +219,8 @@ public class ChatActivity extends AppCompatActivity {
                 }
                 sendButton.setEnabled(true);
                 sendButton.setText("Send");
+                // Add AI response to chat history
+                chatHistory.add(new AiService.ChatMessage("model", text));
                 appendBubble(formatAiText(text), false);
             });
         }
@@ -325,7 +341,10 @@ public class ChatActivity extends AppCompatActivity {
         new AlertDialog.Builder(this)
                 .setTitle("Exit Chat")
                 .setMessage("Closing the chat will clear your conversation history. Are you sure you want to exit?")
-                .setPositiveButton("Exit", (dialog, which) -> finish())
+                .setPositiveButton("Exit", (dialog, which) -> {
+                    clearChatHistory();
+                    finish();
+                })
                 .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
                 .setCancelable(true)
                 .show();
@@ -340,5 +359,14 @@ public class ChatActivity extends AppCompatActivity {
             InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
         }
+    }
+    private void clearChatHistory() {
+        if (chatHistory != null) {
+            chatHistory.clear();
+        }
+    }
+    protected void onDestroy() {
+        super.onDestroy();
+        clearChatHistory();
     }
 }
